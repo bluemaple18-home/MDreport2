@@ -160,11 +160,12 @@ export function useAppShellController() {
       if (!artifactPath) {
         return;
       }
+      const artifactName = artifactPath.split("/").pop() || "export.xlsx";
       const downloadUrl = buildExportDownloadUrl(state.ctx, artifactPath, dspExportRoute);
       const link = document.createElement("a");
       link.href = downloadUrl;
+      link.download = artifactName;
       link.rel = "noopener";
-      link.target = "_blank";
       link.style.display = "none";
       document.body.appendChild(link);
       link.click();
