@@ -3,6 +3,7 @@ import {
   PivotWorkspace,
   RawdataWorkspace,
   ResultWorkspace,
+  SspMediaDemandWorkspace,
   SspParityWorkspace,
   Tab4Workspace,
 } from "../components/workspaces";
@@ -14,6 +15,8 @@ import type {
   Tab4TemplateDetail,
   Tab4TemplateSummary,
   Workflow,
+  SspMediaDemandConfig,
+  SspMediaDemandSlot,
 } from "../types";
 import type { DspRawdataFilters } from "../types";
 import type { RecentMap, RowData } from "../components/workspaces/shared";
@@ -52,11 +55,23 @@ type MainWorkspaceRendererProps = {
     updatesJson: string;
     busy: boolean;
     periodLabel: string;
+    periodWeekStart: string;
+    periodWeekEnd: string;
     dirtyState: DirtyState;
     recent: RecentMap;
     resultPayload: unknown;
     resultState: ResultState;
     exportDeliverySnapshotToken: string;
+    sspMediaDemandConfig?: SspMediaDemandConfig;
+    runtimeContext: {
+      root: string;
+      env: string;
+      manifest: string;
+      workflow: Workflow;
+      template_version: string;
+      rule_version: string;
+      artifact_root: string;
+    };
   };
   actions: {
     setRowFilter: (value: string) => void;
@@ -72,6 +87,7 @@ type MainWorkspaceRendererProps = {
     refreshFrame: () => Promise<void>;
     handleSendPivotToTab4: () => Promise<boolean>;
     handleReturnToPivotForDelivery: () => void;
+    handleSspMediaSave: (slots: SspMediaDemandSlot[]) => Promise<boolean>;
   };
   rawdataView: {
     capability: RawdataCapability;
@@ -88,7 +104,9 @@ type MainWorkspaceRendererProps = {
 
 export function MainWorkspaceRenderer(props: MainWorkspaceRendererProps) {
   const { route, view, data, actions, rawdataView } = props;
-  const isSspDedicatedWorkspace = route.workflow === "ssp" && view.showSspParity;
+  const showSspAnomalyWorkspace = route.workflow === "ssp" && route.mainTab === "ssp_anomaly";
+  const showSspMediaDemandWorkspace = route.workflow === "ssp" && route.mainTab === "ssp_media_demand";
+  const hideDefaultWorkspace = showSspAnomalyWorkspace || showSspMediaDemandWorkspace;
   const mainWorkspace = route.subTab === "overview" ? (
     <OverviewWorkspace
       workflow={route.workflow}
@@ -157,12 +175,24 @@ export function MainWorkspaceRenderer(props: MainWorkspaceRendererProps) {
   return (
     <section className="workbench-stage panel-full">
       <section className="workbench-main">
-        {isSspDedicatedWorkspace ? null : mainWorkspace}
-        {view.showSspParity ? (
+        {hideDefaultWorkspace ? null : mainWorkspace}
+        {showSspAnomalyWorkspace ? (
           <SspParityWorkspace
             rows={data.allRows}
             workflow={route.workflow}
             busy={data.busy}
+          />
+        ) : null}
+        {showSspMediaDemandWorkspace ? (
+          <SspMediaDemandWorkspace
+            rows={data.allRows}
+            workflow={route.workflow}
+            busy={data.busy}
+            periodWeekStart={data.periodWeekStart}
+            periodWeekEnd={data.periodWeekEnd}
+            runtimeContext={data.runtimeContext}
+            config={data.sspMediaDemandConfig}
+            onSaveSlots={actions.handleSspMediaSave}
           />
         ) : null}
         {view.showTab4Workspace ? (

@@ -4,7 +4,9 @@ import type {
   RuntimeContext,
   RuntimeEnvelope,
   RuntimeFrameResult,
+  SspMediaDemandResponse,
   RuntimeStatusResult,
+  SspMediaDemandSlot,
   SubTab,
 } from "../types";
 
@@ -25,6 +27,7 @@ function buildApiUrl(path: string): string {
 function withQuery(ctx: RuntimeContext): string {
   const params = new URLSearchParams({
     root: ctx.root,
+    env: ctx.env,
     manifest: ctx.manifest,
     workflow: ctx.workflow,
     template_version: ctx.template_version,
@@ -41,6 +44,7 @@ export function buildExportDownloadUrl(
 ): string {
   const params = new URLSearchParams({
     root: ctx.root,
+    env: ctx.env,
     manifest: ctx.manifest,
     workflow: ctx.workflow,
     template_version: ctx.template_version,
@@ -81,13 +85,42 @@ export async function fetchFrame(ctx: RuntimeContext): Promise<RuntimeEnvelope<R
   return parseEnvelope<RuntimeFrameResult>(resp);
 }
 
+export async function fetchSspMediaDemand(
+  ctx: RuntimeContext,
+  params: {
+    category: string;
+    source: string;
+    period_week_start: string;
+    period_week_end: string;
+    scope_mode: "all" | "07-22";
+    day_limit: number;
+    threshold: number;
+    only_unmet: boolean;
+  },
+): Promise<RuntimeEnvelope<SspMediaDemandResponse>> {
+  const query = new URLSearchParams({
+    ...Object.fromEntries(new URLSearchParams(withQuery(ctx)).entries()),
+    category: params.category,
+    source: params.source,
+    period_week_start: params.period_week_start,
+    period_week_end: params.period_week_end,
+    scope_mode: params.scope_mode,
+    day_limit: String(params.day_limit),
+    threshold: String(params.threshold),
+    only_unmet: String(params.only_unmet),
+  });
+  const resp = await fetch(`${buildApiUrl("/api/ssp/media-demand")}?${query.toString()}`, { cache: "no-store" });
+  return parseEnvelope<SspMediaDemandResponse>(resp);
+}
+
 export type ActionPayload = {
   action: ActionType;
   main_tab?: MainTab;
   sub_tab?: SubTab;
   rows?: Array<Record<string, unknown>>;
   updates?: Array<Record<string, unknown>>;
-  period_preset?: "current_week" | "last_week" | "custom";
+  ssp_media_slots?: SspMediaDemandSlot[];
+  period_preset?: "current_week" | "last_week" | "last_7_days" | "last_14_days" | "custom";
   period_week_start?: string;
   period_week_end?: string;
 };

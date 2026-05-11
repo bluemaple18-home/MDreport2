@@ -1,8 +1,8 @@
 export type Workflow = "dsp" | "ssp";
-export type MainTab = "dsp_tab3" | "dsp_tab4" | "ssp_anomaly";
+export type MainTab = "dsp_tab3" | "dsp_tab4" | "ssp_anomaly" | "ssp_media_demand";
 export type SubTab = "overview" | "rawdata" | "pivot" | "result";
 export type SubView = "status" | "frame" | "result";
-export type PeriodPreset = "current_week" | "last_week" | "custom";
+export type PeriodPreset = "current_week" | "last_week" | "last_7_days" | "last_14_days" | "custom";
 export type DspDateBucket = "last_week" | "two_weeks_ago" | "three_weeks_ago" | "four_weeks_ago";
 
 export type DspRawdataFilters = {
@@ -15,6 +15,7 @@ export type DspRawdataFilters = {
 
 export type RuntimeContext = {
   root: string;
+  env: string;
   manifest: string;
   workflow: Workflow;
   template_version: string;
@@ -22,7 +23,7 @@ export type RuntimeContext = {
   artifact_root: string;
 };
 
-export type ActionType = "bootstrap" | "health" | "save" | "modify" | "export" | "tab4_delivery";
+export type ActionType = "bootstrap" | "health" | "save" | "modify" | "export" | "tab4_delivery" | "ssp_media_save";
 export type FrontendActionType = ActionType | "publish";
 
 export type RouteState = {
@@ -105,7 +106,73 @@ export type RuntimeFrameResult = {
     delivery_ready: boolean;
     delivery_reason: string;
   };
+  ssp_media_demand?: SspMediaDemandConfig;
   frame_error?: string;
+};
+
+export type SspMediaDemandSlot = {
+  id?: number;
+  runtime_env?: string;
+  category: string;
+  slot_order: number;
+  placement_id: string;
+  placement_name: string;
+  media_quality?: string;
+  need_call?: boolean;
+  target_fr?: string;
+  remark: string;
+  media_target: number;
+  is_active: boolean;
+};
+
+export type SspMediaDemandConfig = {
+  runtime_env: string;
+  categories: string[];
+  slots: SspMediaDemandSlot[];
+  defaults_source: string;
+  template_path: string;
+  group_overrides_path: string;
+  storage_source: string;
+};
+
+export type SspMediaDemandMetricSet = {
+  complianceRate: number;
+  request: number;
+  impression: number;
+  clicks: number;
+  revenue: number;
+  dspAmount: number;
+  fr: number;
+  ctr: number;
+  ecpm: number;
+};
+
+export type SspMediaDemandViewRow = {
+  slot: SspMediaDemandSlot;
+  latest_request: number;
+  latest_compliance_rate: number;
+  has_latest_date_data: boolean;
+  metrics_by_date: Record<string, Record<"all" | "07-22", SspMediaDemandMetricSet>>;
+};
+
+export type SspMediaDemandView = {
+  category: string;
+  source: string;
+  scope_mode: "all" | "07-22";
+  day_limit: number;
+  threshold: number;
+  only_unmet: boolean;
+  date_keys: string[];
+  latest_date: string;
+  latest_total_request: number;
+  unmet_count: number;
+  source_options: string[];
+  rows: SspMediaDemandViewRow[];
+};
+
+export type SspMediaDemandResponse = {
+  config: SspMediaDemandConfig;
+  view: SspMediaDemandView;
 };
 
 export type Tab4TemplateSummaryRow = {

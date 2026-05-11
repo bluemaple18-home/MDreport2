@@ -44,7 +44,7 @@ const WORKFLOW_CAPABILITY_MAP: Record<Workflow, WorkflowCapability> = {
       readOnlyReason: "SSP 目前為 read-only，僅提供檢視、篩選與核對。",
     },
     periodLocked: false,
-    sspParityEnabled: true,
+    sspParityEnabled: false,
     tab4MainTab: "",
     tab4VisibleSubTabs: [],
   },

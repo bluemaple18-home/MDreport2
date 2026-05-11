@@ -98,11 +98,21 @@
 }
 
 .workbench-command-deck {
+  position: relative;
+  z-index: 20;
+  overflow: visible;
   border-color: #a6c4d4;
   background:
     linear-gradient(155deg, #fefefecc, #edf3f980),
     var(--panel);
   box-shadow: 0 6px 14px #1f34430d;
+}
+
+.workbench-command-deck .panel-body,
+.workbench-command-deck .command-grid,
+.workbench-command-deck .command-cell,
+.workbench-command-deck .command-cell-wide {
+  overflow: visible;
 }
 
 .command-grid {

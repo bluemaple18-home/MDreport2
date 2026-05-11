@@ -3,6 +3,7 @@ export {
   PivotWorkspace,
   RawdataWorkspace,
   ResultWorkspace,
+  SspMediaDemandWorkspace,
   SspParityWorkspace,
   Tab4Workspace,
   WorkflowStatusRail,

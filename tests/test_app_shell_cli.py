@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import tempfile
 import unittest
+from datetime import date, timedelta
 from pathlib import Path
 
 from openpyxl import Workbook, load_workbook
@@ -53,12 +55,27 @@ class AppShellCliTests(unittest.TestCase):
         (root / "migrations").mkdir(parents=True, exist_ok=True)
         (root / "templates").mkdir(parents=True, exist_ok=True)
         (root / "contracts").mkdir(parents=True, exist_ok=True)
+        (root / "data_seed" / "templates_rules_mapping").mkdir(parents=True, exist_ok=True)
+        (root / "data_seed_test" / "templates_rules_mapping").mkdir(parents=True, exist_ok=True)
         (root / "migrations" / "0001_initial.sql").write_text((src / "migrations" / "0001_initial.sql").read_text(encoding="utf-8"), encoding="utf-8")
         (root / "templates" / "template_registry.seed.json").write_text((src / "templates" / "template_registry.seed.json").read_text(encoding="utf-8"), encoding="utf-8")
         (root / "templates" / "ruleset.seed.json").write_text((src / "templates" / "ruleset.seed.json").read_text(encoding="utf-8"), encoding="utf-8")
         self._write_dsp_tab4_template(root / "templates" / "dsp_tab4_template.xlsx")
         (root / "contracts" / "fields_contract.json").write_text((src / "contracts" / "fields_contract.json").read_text(encoding="utf-8"), encoding="utf-8")
         (root / "bootstrap.manifest.json").write_text((src / "bootstrap.manifest.json").read_text(encoding="utf-8"), encoding="utf-8")
+        (root / "bootstrap.test.manifest.json").write_text((src / "bootstrap.test.manifest.json").read_text(encoding="utf-8"), encoding="utf-8")
+        default_group_overrides = {
+            "蓋板": [{"placement_id": 8435, "placement_name": "MW_蓋版_COOL", "remark": "", "media_target": 1000}],
+            "置底": [{"placement_id": 17236, "placement_name": "MW_置底創意_UDN聯合新聞", "remark": "", "media_target": 1200}],
+            "置底展開": [{"placement_id": 22218, "placement_name": "MW_置底(展開)_上報", "remark": "", "media_target": 800}],
+            "文中300x250": [{"placement_id": 16980, "placement_name": "MW_文中創意300x250_大人物", "remark": "", "media_target": 900}],
+            "文中320x480": [{"placement_id": 16977, "placement_name": "MW_文中創意320x480_大人物", "remark": "", "media_target": 700}],
+        }
+        for rel_path in (
+            root / "data_seed" / "templates_rules_mapping" / "group_overrides.json",
+            root / "data_seed_test" / "templates_rules_mapping" / "group_overrides.json",
+        ):
+            rel_path.write_text(json.dumps(default_group_overrides, ensure_ascii=False), encoding="utf-8")
 
     def _run(self, root: Path, *args: str) -> subprocess.CompletedProcess[str]:
         cmd = [
@@ -504,9 +521,13 @@ class AppShellCliTests(unittest.TestCase):
             artifact_path = Path(je["result"]["artifact_path"])
             self.assertTrue(artifact_path.exists())
             self.assertEqual(artifact_path.suffix, ".xlsx")
+            today = date.today()
+            this_week_start = today - timedelta(days=today.weekday())
+            prev_week_start = this_week_start - timedelta(days=7)
+            prev_week_end = this_week_start - timedelta(days=1)
             self.assertEqual(
                 artifact_path.name,
-                "2026 DSP投資量報表_0427-0503.xlsx",
+                f"{prev_week_end.year} DSP投資量報表_{prev_week_start.strftime('%m%d')}-{prev_week_end.strftime('%m%d')}.xlsx",
             )
             wb = load_workbook(artifact_path, data_only=True)
             try:
@@ -1138,6 +1159,102 @@ class AppShellCliTests(unittest.TestCase):
             finally:
                 wb.close()
 
+    def test_seed_rebuild_restores_ssp_truth_table_from_raw_seed(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            pb = self._run(root, "bootstrap")
+            self.assertEqual(pb.returncode, 0)
+
+            seed_rows = [
+                {
+                    "source": "ssp_seed",
+                    "ts": "2026-05-06 08:00:00",
+                    "date": "2026-05-06",
+                    "hour": 8,
+                    "placement_id": 9101,
+                    "placement_name": "SEED_SSP_SLOT_300x250",
+                    "request": 321.0,
+                    "impression": 4321.0,
+                    "clicks": 21.0,
+                    "revenue": 654.5,
+                    "dsp_amount": 543.2,
+                    "order_id": "SSP-SEED-001",
+                    "order_name": "Seed Order",
+                    "supplier_id": 77,
+                    "supplier_name": "Seed Supplier",
+                    "site_id": 8801,
+                    "site_name": "seed-site",
+                }
+            ]
+            raw_inbox = root / "raw-inbox"
+            raw_inbox.mkdir(parents=True, exist_ok=True)
+            (raw_inbox / "ssp_raw_20260506.json").write_text(
+                json.dumps(seed_rows, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            pseed = self._run(root, "seed-bootstrap", "--raw-source", "raw-inbox")
+            self.assertEqual(pseed.returncode, 0)
+
+            self._make_seed_canonical_ssp_db(root)
+            pp = self._run(
+                root,
+                "seed-promote-live",
+                "--workflow",
+                "ssp",
+                "--source-db-rel",
+                "canonical/volume.sqlite",
+                "--template-version",
+                "v1",
+                "--rule-version",
+                "v1",
+            )
+            self.assertEqual(pp.returncode, 0)
+
+            pr = self._run(
+                root,
+                "seed-rebuild",
+                "--workflow",
+                "ssp",
+                "--template-version",
+                "v1",
+                "--rule-version",
+                "v1",
+            )
+            self.assertEqual(pr.returncode, 0)
+            jr = json.loads(pr.stdout)
+            self.assertEqual(jr["status"], "ok")
+            self.assertEqual(int(jr["result"]["files_used"]), 1)
+            self.assertEqual(int(jr["result"]["workflows"]["ssp"]["row_count"]), 1)
+
+            import sqlite3
+
+            db = root / "data" / "mdrep.sqlite"
+            conn = sqlite3.connect(str(db))
+            try:
+                ssp_count = conn.execute("SELECT COUNT(1) FROM ssp_raw").fetchone()
+                canonical_count = conn.execute("SELECT COUNT(1) FROM canonical_raw WHERE workflow='ssp'").fetchone()
+                row = conn.execute(
+                    """
+                    SELECT source, placement_name, supplier_name, request, impression
+                    FROM ssp_raw
+                    ORDER BY row_order ASC
+                    LIMIT 1
+                    """
+                ).fetchone()
+            finally:
+                conn.close()
+
+            self.assertEqual(int(ssp_count[0] or 0), 1)
+            self.assertEqual(int(canonical_count[0] or 0), 0)
+            self.assertIsNotNone(row)
+            assert row is not None
+            self.assertEqual(str(row[0]), "ssp_seed")
+            self.assertEqual(str(row[1]), "SEED_SSP_SLOT_300x250")
+            self.assertEqual(str(row[2]), "Seed Supplier")
+            self.assertEqual(float(row[3]), 321.0)
+            self.assertEqual(float(row[4]), 4321.0)
+
     def test_seed_import_mdreport_layers_raw_and_canonical(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -1254,11 +1371,39 @@ class AppShellCliTests(unittest.TestCase):
             self.assertEqual(float(rows[0][2]), 150.0)
             self.assertEqual(float(rows[0][3]), 1200.0)
 
+            pe = self._run(
+                root,
+                "export",
+                "--workflow",
+                "ssp",
+                "--template-version",
+                "v1",
+                "--rule-version",
+                "v1",
+            )
+            self.assertEqual(pe.returncode, 0)
+            je = json.loads(pe.stdout)
+            self.assertEqual(int(je["result"]["row_count"]), 2)
+            artifact_path = Path(str(je["result"]["artifact_path"]))
+            self.assertTrue(artifact_path.exists())
+            wb = load_workbook(artifact_path, data_only=True)
+            try:
+                ws_data = wb["canonical_data"]
+                headers = [cell.value for cell in ws_data[1]]
+                first_row = dict(zip(headers, [cell.value for cell in ws_data[2]]))
+                self.assertEqual(first_row["supplier_name"], "供應商A")
+                self.assertEqual(first_row["placement_name"], "母檔_純蓋板_300x250")
+            finally:
+                wb.close()
+
     def test_seed_promote_live_ssp_uses_mdreport_default_truth_db(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             self._make_project(root)
-            self._make_seed_canonical_ssp_mdreport_db(root)
+            source_seed_db = self._make_seed_canonical_ssp_mdreport_db(root)
+            test_seed_db = root / "data_seed_test" / "canonical" / "mdreport.sqlite"
+            test_seed_db.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_seed_db, test_seed_db)
 
             pp = self._run(
                 root,
@@ -1299,6 +1444,98 @@ class AppShellCliTests(unittest.TestCase):
             self.assertEqual(str(first[1]), "版位A_300x250")
             self.assertEqual(float(first[2]), 320.0)
             self.assertEqual(float(first[3]), 4500.0)
+
+    def test_cli_env_test_routes_db_seed_and_artifact_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            source_seed_db = self._make_seed_canonical_ssp_mdreport_db(root)
+            test_seed_db = root / "data_seed_test" / "canonical" / "mdreport.sqlite"
+            test_seed_db.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_seed_db, test_seed_db)
+
+            pb = self._run(root, "--env", "test", "bootstrap")
+            self.assertEqual(pb.returncode, 0)
+            jb = json.loads(pb.stdout)
+            self.assertEqual(jb["status"], "ok")
+            self.assertEqual(jb["result"]["runtime_env"], "test")
+            self.assertTrue(str(jb["result"]["db_path"]).endswith("data_test/mdrep.test.sqlite"))
+            self.assertTrue(str(jb["result"]["artifact_root"]).endswith("artifacts_test"))
+            self.assertTrue(str(jb["result"]["data_seed_root"]).endswith("data_seed_test"))
+
+            row = {
+                "日期時間": "2026-05-01 00:00:00",
+                "經銷商": "A",
+                "訂單": "O1",
+                "素材": "C1",
+                "廣告形式": "Banner",
+                "尺寸": "300x250",
+                "素材樣板": "tplA",
+                "執行金額": 10.0,
+                "系統營收": 12.5,
+                "媒體費用": 8.0,
+                "原始經銷商": "A",
+                "原始廣告形式": "Banner",
+                "最終經銷商": "A1",
+                "規則命中_經銷商": "r1",
+                "最終來源_經銷商": "rule",
+                "分類層級B": "B1",
+                "分類層級C": "C1",
+                "分類層級D": "D1",
+                "最終廣告形式": "Banner",
+                "規則命中_廣告形式": "r2",
+                "最終來源_廣告形式": "rule",
+            }
+            rows_path = root / "rows.json"
+            rows_path.write_text(json.dumps([row], ensure_ascii=False), encoding="utf-8")
+
+            ps = self._run(
+                root,
+                "--env",
+                "test",
+                "save",
+                "--workflow",
+                "dsp",
+                "--template-version",
+                "v1",
+                "--rule-version",
+                "v1",
+                "--rows-json",
+                str(rows_path),
+            )
+            self.assertEqual(ps.returncode, 0)
+
+            pp = self._run(
+                root,
+                "--env",
+                "test",
+                "seed-promote-live",
+                "--workflow",
+                "ssp",
+                "--template-version",
+                "v1",
+                "--rule-version",
+                "v1",
+            )
+            self.assertEqual(pp.returncode, 0)
+
+            pe = self._run(
+                root,
+                "--env",
+                "test",
+                "export",
+                "--workflow",
+                "ssp",
+                "--template-version",
+                "v1",
+                "--rule-version",
+                "v1",
+            )
+            self.assertEqual(pe.returncode, 0)
+            je = json.loads(pe.stdout)
+            artifact_path = Path(str(je["result"]["artifact_path"]))
+            self.assertTrue(artifact_path.exists())
+            self.assertIn("artifacts_test", str(artifact_path))
 
 
 if __name__ == "__main__":

@@ -7,7 +7,9 @@ __pycache__/
 .claude/
 .codex/
 artifacts/
+artifacts_test/
 data/
+data_test/
 data_seed/
 frontend/dist/
 frontend/node_modules/

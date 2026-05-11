@@ -14,8 +14,8 @@
 - 不為了分離而預先特規化
 
 ## FRONTEND-011 契約檔
-- 實作契約：`/Users/matt/MDREPROT2/frontend/MDREP-FRONTEND-011_IMPLEMENTATION_CONTRACT.md`
-- 契約常數：`/Users/matt/MDREPROT2/frontend/src/state/runtimeContract.ts`
+- 實作契約：`MDREP-FRONTEND-011_IMPLEMENTATION_CONTRACT.md`
+- 契約常數：`src/state/runtimeContract.ts`
 
 ## 第一批共用元件（已落地）
 - `ShellHeader`
@@ -30,7 +30,7 @@
 
 ## 本地開發
 ```bash
-cd /Users/matt/MDREPROT2/frontend
+cd frontend
 pnpm install
 pnpm dev
 ```

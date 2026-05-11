@@ -9,6 +9,11 @@ from datetime import datetime
 from pathlib import Path
 
 from domain.contracts import FieldContract
+from infra.sqlite.ssp_media_demand import (
+    build_ssp_media_demand_view,
+    normalize_ssp_media_slot,
+    resolve_default_ssp_media_slots,
+)
 
 
 @dataclass(frozen=True)
@@ -73,6 +78,27 @@ CREATE TABLE IF NOT EXISTS ssp_raw (
 CREATE INDEX IF NOT EXISTS idx_ssp_raw_row ON ssp_raw(row_order);
 """
 
+SSP_MEDIA_SLOT_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS ssp_media_slots (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  runtime_env TEXT NOT NULL DEFAULT 'prod',
+  category TEXT NOT NULL DEFAULT '',
+  slot_order INTEGER NOT NULL DEFAULT 0,
+  placement_id TEXT NOT NULL DEFAULT '',
+  placement_name TEXT NOT NULL DEFAULT '',
+  media_quality TEXT NOT NULL DEFAULT '',
+  need_call INTEGER NOT NULL DEFAULT 0,
+  target_fr TEXT NOT NULL DEFAULT '',
+  remark TEXT NOT NULL DEFAULT '',
+  media_target REAL NOT NULL DEFAULT 0.0,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_ssp_media_slots_env_category
+ON ssp_media_slots(runtime_env, category, slot_order);
+"""
+
 
 class SQLiteRepository:
     def __init__(self, db_path: Path, *, project_root: Path | None = None, field_contract: FieldContract | None = None) -> None:
@@ -134,6 +160,22 @@ class SQLiteRepository:
 
     def _ensure_ssp_raw_table(self, conn: sqlite3.Connection) -> None:
         conn.executescript(SSP_RAW_TABLE_SQL)
+
+    def _ensure_ssp_media_slots_table(self, conn: sqlite3.Connection) -> None:
+        conn.executescript(SSP_MEDIA_SLOT_TABLE_SQL)
+        existing_columns = {
+            str(row[1] or "")
+            for row in conn.execute("PRAGMA table_info(ssp_media_slots)").fetchall()
+            if row
+        }
+        required_columns = {
+            "media_quality": "TEXT NOT NULL DEFAULT ''",
+            "need_call": "INTEGER NOT NULL DEFAULT 0",
+            "target_fr": "TEXT NOT NULL DEFAULT ''",
+        }
+        for column_name, column_sql in required_columns.items():
+            if column_name not in existing_columns:
+                conn.execute(f"ALTER TABLE ssp_media_slots ADD COLUMN {column_name} {column_sql}")
 
     def save_canonical_rows(self, conn: sqlite3.Connection, workflow: str, rows: list[dict]) -> int:
         self._ensure_tables(conn)
@@ -200,6 +242,281 @@ class SQLiteRepository:
             changed = self.save_ssp_raw_rows(conn, rows)
             conn.commit()
             return changed
+
+    def read_ssp_media_slots(self, runtime_env: str) -> list[dict]:
+        with self.connect() as conn:
+            return self.read_ssp_media_slots_in_tx(conn, runtime_env)
+
+    def read_ssp_media_slots_in_tx(self, conn: sqlite3.Connection, runtime_env: str) -> list[dict]:
+        self._ensure_ssp_media_slots_table(conn)
+        cur = conn.execute(
+            """
+            SELECT
+              id, runtime_env, category, slot_order, placement_id, placement_name,
+              media_quality, need_call, target_fr, remark, media_target, is_active, created_at, updated_at
+            FROM ssp_media_slots
+            WHERE runtime_env = ?
+            ORDER BY category ASC, slot_order ASC, id ASC
+            """,
+            (runtime_env,),
+        )
+        rows: list[dict] = []
+        for raw in cur.fetchall():
+            rows.append(
+                {
+                    "id": int(raw[0]),
+                    "runtime_env": str(raw[1] or ""),
+                    "category": str(raw[2] or ""),
+                    "slot_order": int(raw[3] or 0),
+                    "placement_id": str(raw[4] or ""),
+                    "placement_name": str(raw[5] or ""),
+                    "media_quality": str(raw[6] or ""),
+                    "need_call": bool(int(raw[7] or 0)),
+                    "target_fr": str(raw[8] or ""),
+                    "remark": str(raw[9] or ""),
+                    "media_target": float(raw[10] or 0.0),
+                    "is_active": bool(int(raw[11] or 0)),
+                    "created_at": str(raw[12] or ""),
+                    "updated_at": str(raw[13] or ""),
+                }
+            )
+        return rows
+
+    def replace_ssp_media_slots(self, runtime_env: str, slots: list[dict]) -> int:
+        with self.connect() as conn:
+            written = self.replace_ssp_media_slots_in_tx(conn, runtime_env, slots)
+            conn.commit()
+            return written
+
+    def replace_ssp_media_slots_in_tx(self, conn: sqlite3.Connection, runtime_env: str, slots: list[dict]) -> int:
+        self._ensure_ssp_media_slots_table(conn)
+        conn.execute("DELETE FROM ssp_media_slots WHERE runtime_env = ?", (runtime_env,))
+        now = _now()
+        written = 0
+        by_category: dict[str, list[dict]] = {}
+        for item in slots:
+            if not isinstance(item, dict):
+                continue
+            category = str(item.get("category") or "").strip()
+            by_category.setdefault(category, []).append(item)
+        for category, raw_slots in by_category.items():
+            for idx, raw_slot in enumerate(raw_slots):
+                slot = normalize_ssp_media_slot(raw_slot, fallback_category=category, fallback_order=idx)
+                if not str(slot.get("category") or "").strip():
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO ssp_media_slots(
+                      runtime_env, category, slot_order, placement_id, placement_name,
+                      media_quality, need_call, target_fr, remark,
+                      media_target, is_active, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        runtime_env,
+                        str(slot["category"]),
+                        int(slot["slot_order"]),
+                        str(slot["placement_id"]),
+                        str(slot["placement_name"]),
+                        str(slot.get("media_quality") or ""),
+                        1 if bool(slot.get("need_call")) else 0,
+                        str(slot.get("target_fr") or ""),
+                        str(slot["remark"]),
+                        float(slot["media_target"]),
+                        1 if bool(slot["is_active"]) else 0,
+                        now,
+                        now,
+                    ),
+                )
+                written += 1
+        return written
+
+    def resolve_ssp_media_demand_config(self, runtime_env: str, data_seed_root: Path) -> dict[str, object]:
+        defaults = resolve_default_ssp_media_slots(self.project_root or Path("."), data_seed_root)
+        db_slots = self.read_ssp_media_slots(runtime_env)
+        if db_slots:
+            default_slots = list(defaults["slots"])
+            default_by_key = {
+                (
+                    str(item.get("category") or "").strip(),
+                    str(item.get("placement_id") or "").strip(),
+                ): item
+                for item in default_slots
+                if str(item.get("category") or "").strip() and str(item.get("placement_id") or "").strip()
+            }
+            default_by_order = {
+                (
+                    str(item.get("category") or "").strip(),
+                    int(item.get("slot_order") or 0),
+                ): item
+                for item in default_slots
+                if str(item.get("category") or "").strip()
+            }
+            slots = []
+            for raw_slot in db_slots:
+                default_slot = default_by_key.get(
+                    (
+                        str(raw_slot.get("category") or "").strip(),
+                        str(raw_slot.get("placement_id") or "").strip(),
+                    )
+                ) or default_by_order.get(
+                    (
+                        str(raw_slot.get("category") or "").strip(),
+                        int(raw_slot.get("slot_order") or 0),
+                    )
+                ) or {}
+                slots.append(
+                    normalize_ssp_media_slot(
+                        {
+                            **default_slot,
+                            **raw_slot,
+                            "media_quality": str(raw_slot.get("media_quality") or default_slot.get("media_quality") or ""),
+                            "need_call": raw_slot.get("need_call", default_slot.get("need_call", False)),
+                            "target_fr": str(raw_slot.get("target_fr") or default_slot.get("target_fr") or ""),
+                            "remark": str(raw_slot.get("remark") or default_slot.get("remark") or ""),
+                            "estimated_request_0722": raw_slot.get("media_target", default_slot.get("media_target", 0.0)),
+                        },
+                        fallback_category=str(raw_slot.get("category") or ""),
+                        fallback_order=int(raw_slot.get("slot_order") or 0),
+                    )
+                )
+        else:
+            slots = list(defaults["slots"])
+        return {
+            "runtime_env": runtime_env,
+            "categories": list(defaults["categories"]),
+            "slots": slots,
+            "defaults_source": str(defaults["defaults_source"]),
+            "template_path": str(defaults["template_path"]),
+            "group_overrides_path": str(defaults["group_overrides_path"]),
+            "storage_source": "db" if db_slots else "defaults",
+        }
+
+    def list_ssp_sources_in_tx(self, conn: sqlite3.Connection) -> list[str]:
+        self._ensure_ssp_raw_table(conn)
+        cur = conn.execute(
+            """
+            SELECT DISTINCT source
+            FROM ssp_raw
+            WHERE source != ''
+            ORDER BY source ASC
+            """
+        )
+        return [str(raw[0] or "") for raw in cur.fetchall() if str(raw[0] or "").strip()]
+
+    def query_ssp_media_matrix_in_tx(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        placement_ids: list[str],
+        sources: list[str] | None,
+        start_date: str,
+        end_date: str,
+    ) -> list[dict[str, object]]:
+        self._ensure_ssp_raw_table(conn)
+        normalized_placement_ids = [int(pid) for pid in placement_ids if str(pid).strip().isdigit()]
+        if not normalized_placement_ids or not start_date or not end_date:
+            return []
+
+        where_parts = [
+            f"placement_id IN ({', '.join('?' for _ in normalized_placement_ids)})",
+            "date >= ?",
+            "date <= ?",
+        ]
+        params: list[object] = [*normalized_placement_ids, start_date, end_date]
+        if sources:
+            normalized_sources = [str(item).strip() for item in sources if str(item).strip()]
+            if normalized_sources:
+                where_parts.insert(0, f"source IN ({', '.join('?' for _ in normalized_sources)})")
+                params = [*normalized_sources, *params]
+
+        sql = f"""
+        SELECT
+          date,
+          placement_id,
+          SUM(request) AS request_all,
+          SUM(impression) AS impression_all,
+          SUM(clicks) AS clicks_all,
+          SUM(revenue) AS revenue_all,
+          SUM(dsp_amount) AS dsp_amount_all,
+          SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN request ELSE 0 END) AS request_0722,
+          SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN impression ELSE 0 END) AS impression_0722,
+          SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN clicks ELSE 0 END) AS clicks_0722,
+          SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN revenue ELSE 0 END) AS revenue_0722,
+          SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN dsp_amount ELSE 0 END) AS dsp_amount_0722
+        FROM ssp_raw
+        WHERE {" AND ".join(where_parts)}
+        GROUP BY date, placement_id
+        ORDER BY date DESC, placement_id ASC
+        """
+        cur = conn.execute(sql, tuple(params))
+        rows: list[dict[str, object]] = []
+        for raw in cur.fetchall():
+            rows.append(
+                {
+                    "date": str(raw[0] or ""),
+                    "placement_id": str(int(raw[1] or 0)),
+                    "request_all": float(raw[2] or 0.0),
+                    "impression_all": float(raw[3] or 0.0),
+                    "clicks_all": float(raw[4] or 0.0),
+                    "revenue_all": float(raw[5] or 0.0),
+                    "dsp_amount_all": float(raw[6] or 0.0),
+                    "request_0722": float(raw[7] or 0.0),
+                    "impression_0722": float(raw[8] or 0.0),
+                    "clicks_0722": float(raw[9] or 0.0),
+                    "revenue_0722": float(raw[10] or 0.0),
+                    "dsp_amount_0722": float(raw[11] or 0.0),
+                }
+            )
+        return rows
+
+    def resolve_ssp_media_demand_view(
+        self,
+        *,
+        runtime_env: str,
+        data_seed_root: Path,
+        category: str,
+        source: str,
+        start_date: str,
+        end_date: str,
+        scope_mode: str,
+        day_limit: int,
+        threshold: float,
+        only_unmet: bool,
+    ) -> dict[str, object]:
+        config = self.resolve_ssp_media_demand_config(runtime_env, data_seed_root)
+        categories = [str(item or "").strip() for item in list(config.get("categories") or []) if str(item or "").strip()]
+        effective_category = category if category in categories else (categories[0] if categories else "")
+        effective_source = str(source or "").strip() or "__all__"
+        with self.connect() as conn:
+            source_options = self.list_ssp_sources_in_tx(conn)
+            if effective_source != "__all__" and effective_source not in source_options:
+                effective_source = "__all__"
+            category_slots = [
+                slot for slot in list(config.get("slots") or [])
+                if str(slot.get("category") or "").strip() == effective_category
+            ]
+            placement_ids = [str(slot.get("placement_id") or "").strip() for slot in category_slots]
+            matrix_rows = self.query_ssp_media_matrix_in_tx(
+                conn,
+                placement_ids=placement_ids,
+                sources=[] if effective_source == "__all__" else [effective_source],
+                start_date=start_date,
+                end_date=end_date,
+            )
+        view = build_ssp_media_demand_view(
+            categories=categories,
+            slots=list(config.get("slots") or []),
+            matrix_rows=matrix_rows,
+            source_options=source_options,
+            active_source=effective_source,
+            active_category=effective_category,
+            scope_mode=scope_mode,
+            day_limit=day_limit,
+            threshold=threshold,
+            only_unmet=only_unmet,
+        )
+        return view
 
     def apply_modifications(self, conn: sqlite3.Connection, workflow: str, updates: list[dict]) -> int:
         self._ensure_tables(conn)

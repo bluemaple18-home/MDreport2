@@ -42,3 +42,17 @@ export function numValue(value: unknown): number {
   }
   return Number.isFinite(n) ? n : 0;
 }
+
+export function isSummableCell(value: unknown): boolean {
+  if (typeof value === "number") {
+    return Number.isFinite(value);
+  }
+  const raw = String(value ?? "").trim();
+  if (!raw) {
+    return false;
+  }
+  if (!/^[\d,.$%\s()+\-]+$/.test(raw)) {
+    return false;
+  }
+  return Number.isFinite(numValue(raw));
+}

@@ -1,0 +1,7854 @@
+{
+  "蓋板": [
+    {
+      "placement_id": 1068,
+      "placement_name": "MW-320X480_三立新聞網(蓋版)",
+      "remark": "只能走純320*480\n與我們現在的滿版蓋板不符",
+      "media_target": 0
+    },
+    {
+      "placement_id": 4278,
+      "placement_name": "MW_320x480_蓋板_樂透彩幸運發財網",
+      "remark": "擾民暫不開放",
+      "media_target": 0
+    },
+    {
+      "placement_id": 7372,
+      "placement_name": "MA-320X480_蓋版_台鐵時刻表查詢",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 7385,
+      "placement_name": "MA-320X480_蓋版_台鐵訂票",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 7710,
+      "placement_name": "MW_蓋板_痞客邦",
+      "remark": "",
+      "media_target": 1000.0
+    },
+    {
+      "placement_id": 8435,
+      "placement_name": "MW_蓋版_COOL",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 9804,
+      "placement_name": "MW_蓋版_TEEPR亮新聞-mobile",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 9883,
+      "placement_name": "ＭＷ_蓋板_中時電子報_2019",
+      "remark": "",
+      "media_target": 2000.0
+    },
+    {
+      "placement_id": 10069,
+      "placement_name": "MA-蓋版_台鐵訂票App輔助工具",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 10984,
+      "placement_name": "MW_蓋板_ttshow",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 11543,
+      "placement_name": "MW_320x480_蓋版_CTWANT",
+      "remark": "目前無合作窗口\nadgeek-暫無合作\nwen-寄信也沒人回",
+      "media_target": 0
+    },
+    {
+      "placement_id": 12288,
+      "placement_name": "MW_蓋版_Basketball Top5",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 13326,
+      "placement_name": "MW_蓋板_PopDaily",
+      "remark": "喊量須達1000",
+      "media_target": 0
+    },
+    {
+      "placement_id": 13437,
+      "placement_name": "MW_蓋板_工商時報",
+      "remark": "",
+      "media_target": 2000.0
+    },
+    {
+      "placement_id": 14097,
+      "placement_name": "MW_蓋版_東森新聞網",
+      "remark": "",
+      "media_target": 3000.0
+    },
+    {
+      "placement_id": 14732,
+      "placement_name": "MW_今購百科_H5素材專用",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 14931,
+      "placement_name": "MW_蓋版_中天新聞網-mobile",
+      "remark": "",
+      "media_target": 1000.0
+    },
+    {
+      "placement_id": 15126,
+      "placement_name": "MA_320x480_蓋板_Feebee飛比價格(iOS)",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 15127,
+      "placement_name": "MA_320x480_蓋板_Feebee飛比價格(Android)",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 17025,
+      "placement_name": "MW_蓋板_risu短網址",
+      "remark": "目前沒量",
+      "media_target": 0
+    },
+    {
+      "placement_id": 17205,
+      "placement_name": "MW_蓋版_造咖",
+      "remark": "價格高+FR須保證，建議有指名才開",
+      "media_target": 0
+    },
+    {
+      "placement_id": 17278,
+      "placement_name": "MW_蓋版_記者爆料網-mobile",
+      "remark": "轉成賴傳媒，但窗口設定有困難",
+      "media_target": 0
+    },
+    {
+      "placement_id": 17279,
+      "placement_name": "MW_蓋板_ 台灣達人秀_2020New",
+      "remark": "",
+      "media_target": 1000.0
+    },
+    {
+      "placement_id": 17311,
+      "placement_name": "MW_320x480_蓋板_Toolskk線上工具網",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 17328,
+      "placement_name": "MW_蓋板_鏡新聞-mobile",
+      "remark": "須保證FR80%以上否則不開",
+      "media_target": 0
+    },
+    {
+      "placement_id": 17944,
+      "placement_name": "MW_蓋板_Women'sHealth 美力圈",
+      "remark": "很貴+FR要滿70%，非不得已不開",
+      "media_target": 0
+    },
+    {
+      "placement_id": 17945,
+      "placement_name": "MW_蓋板_ 柯夢波丹",
+      "remark": "很貴+FR要滿70%，非不得已不開",
+      "media_target": 0
+    },
+    {
+      "placement_id": 18076,
+      "placement_name": "MW_蓋板_鏡新聞-mobile",
+      "remark": "要喊先找媒體17328，不得已才找adgeek-18076",
+      "media_target": 0
+    },
+    {
+      "placement_id": 18295,
+      "placement_name": "MW_蓋版_FTNN新聞網-mobile",
+      "remark": "網站改版不開放",
+      "media_target": 0
+    },
+    {
+      "placement_id": 18535,
+      "placement_name": "MW_蓋版_縮短網址產生器-reurl",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 18569,
+      "placement_name": "MW_蓋版_風傳媒",
+      "remark": "",
+      "media_target": 6000.0
+    },
+    {
+      "placement_id": 18959,
+      "placement_name": "MW_蓋版_東森地產王",
+      "remark": "價格高+FR須保證，建議有指名才開",
+      "media_target": 0
+    },
+    {
+      "placement_id": 19009,
+      "placement_name": "MW_蓋板_良醫健康網",
+      "remark": "",
+      "media_target": 3000.0
+    },
+    {
+      "placement_id": 21208,
+      "placement_name": "MW_蓋版_商周",
+      "remark": "",
+      "media_target": 1000.0
+    },
+    {
+      "placement_id": 21214,
+      "placement_name": "MW_320x480蓋版_東森財經新聞",
+      "remark": "價格高+FR須保證，建議有指名才開",
+      "media_target": 0
+    },
+    {
+      "placement_id": 21317,
+      "placement_name": "MW_蓋版_太報",
+      "remark": "",
+      "media_target": 12000.0
+    },
+    {
+      "placement_id": 21486,
+      "placement_name": "MW_320x480_蓋版_記者新聞網-mobile",
+      "remark": "轉成賴傳媒，但窗口設定有困難",
+      "media_target": 0
+    },
+    {
+      "placement_id": 21776,
+      "placement_name": "MW_文中創意300x250_康健雜誌",
+      "remark": "網站改版不開放",
+      "media_target": 0
+    },
+    {
+      "placement_id": 21783,
+      "placement_name": "MW_蓋版_愛料理_HB",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 22103,
+      "placement_name": "MW_蓋板_遠見_城市學",
+      "remark": "網站有鎖時段\n15-17.\n07-09.\n20-22.",
+      "media_target": 1300.0
+    },
+    {
+      "placement_id": 22105,
+      "placement_name": "MW_蓋板_遠見_遠見雜誌",
+      "remark": "",
+      "media_target": 1000.0
+    },
+    {
+      "placement_id": 22106,
+      "placement_name": "MW_蓋板_遠見_ESG遠見",
+      "remark": "",
+      "media_target": 1000.0
+    },
+    {
+      "placement_id": 22107,
+      "placement_name": "MW_蓋板_遠見_健康遠見",
+      "remark": "",
+      "media_target": 1000.0
+    },
+    {
+      "placement_id": 22167,
+      "placement_name": "MW_蓋版_愛料理_5月起供量",
+      "remark": "",
+      "media_target": 3000.0
+    },
+    {
+      "placement_id": 22194,
+      "placement_name": "MW_蓋板_康健雜誌",
+      "remark": "網站改版不開放",
+      "media_target": 0
+    },
+    {
+      "placement_id": 22213,
+      "placement_name": "MW_蓋版_縮短網址產生器-reurl-2025.05(特殊供量)",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 22221,
+      "placement_name": "MW_蓋板_妞新聞",
+      "remark": "",
+      "media_target": 1300.0
+    },
+    {
+      "placement_id": 22222,
+      "placement_name": "MW_蓋板_大人物",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 22400,
+      "placement_name": "MW_蓋板_Juksy",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": 22405,
+      "placement_name": "MW_蓋版_上報",
+      "remark": "",
+      "media_target": 3000.0
+    },
+    {
+      "placement_id": 22483,
+      "placement_name": "MW_蓋版_科技紫微",
+      "remark": "",
+      "media_target": 0
+    },
+    {
+      "placement_id": "13436",
+      "placement_name": "MW_320x480_蓋板_工商時報",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11488",
+      "placement_name": "MW_320x480_蓋版_Juksy(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8249",
+      "placement_name": "MW_置底創意(展開)_鏡週刊",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14084",
+      "placement_name": "CF_336x280_全網_蘋果仁",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22061",
+      "placement_name": "ＭＷ_336x280_手機_PopDailly-2",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22403",
+      "placement_name": "MW_蓋版_科技紫微",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11314",
+      "placement_name": "MW_320x480_蓋板_manhuagui-漫畫櫃",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11345",
+      "placement_name": "MW_320x480_蓋版_尋夢園",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19045",
+      "placement_name": "MW_320x480_蓋板_epop-就愛玩娛樂",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22404",
+      "placement_name": "MW_蓋版_Teepr 亮新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "1326",
+      "placement_name": "MW_320X480_蓋版_激動新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "3057",
+      "placement_name": "MA_320x480_蓋板_匯率與單位轉換",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5814",
+      "placement_name": "MA_320x480_蓋板_貸款計算機",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5850",
+      "placement_name": "MA_320x480_蓋板_事求人",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6718",
+      "placement_name": "MA_320x480_蓋板_GPG 測速照相",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "808",
+      "placement_name": "MW-320x480_多多開伙(蓋版)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "738",
+      "placement_name": "MW-320x480_英雄聯盟影音資訊站(蓋版)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "1507",
+      "placement_name": "MW-320X480_蓋板_軟體吧免費下載",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7246",
+      "placement_name": "MW-蓋版-320x480-湯姆群情報站",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2208",
+      "placement_name": "MW-320x480_Qooah_蓋版",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2284",
+      "placement_name": "MW-蓋板_文中_Web批踢踢",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6482",
+      "placement_name": "MW-320X480_小政_小鎮資訊",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6484",
+      "placement_name": "MW-320X480_楊勳蓋版_小鎮資訊",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "3603",
+      "placement_name": "MW_320X480_全站_小政娛樂(蓋版)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19036",
+      "placement_name": "MW_320x480_蓋板_小鎮資訊_mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19040",
+      "placement_name": "MW_320x480_蓋板(no墊檔)_小鎮資訊_mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9077",
+      "placement_name": "MW_蓋版_寶可夢資訊站",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4395",
+      "placement_name": "MA-320*480-蓋版-簡約記帳",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4837",
+      "placement_name": "MA-蓋版-320*480-永安平安生活網(Android)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5115",
+      "placement_name": "MA-320X480_蓋版_統一發票兌獎好幫手",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5118",
+      "placement_name": "MA-320X480_全站_廉價航空機票查詢小幫手",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5921",
+      "placement_name": "MA-320X480_上方橫幅_統一發票中獎號碼",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6899",
+      "placement_name": "MA-320X480_全站_油價查詢",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7279",
+      "placement_name": "MA-320X480_全站_高鐵訂票",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7304",
+      "placement_name": "MA-320X480_全站_高雄公車動態",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7305",
+      "placement_name": "MA-320X480_全站_台灣考駕照模擬題庫",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7306",
+      "placement_name": "MA-320X480_全站_台南公車動態",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7307",
+      "placement_name": "MA-320X480_全站_新竹公車動態",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7308",
+      "placement_name": "MA-320X480_全站_台北二輪電影時刻查詢",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7321",
+      "placement_name": "MA-320X480_全站_威力彩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7322",
+      "placement_name": "MA-320X480_全站_看診進度掛號",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7323",
+      "placement_name": "MA-320X480_全站_台灣交通違規罰款紅單查詢",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7325",
+      "placement_name": "MA-320X480_全站_大樂透兌獎號碼",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7326",
+      "placement_name": "MA-320X480_全站_綜合所得稅",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7327",
+      "placement_name": "MA-320X480_全站_勞保年金試算查詢",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7373",
+      "placement_name": "MA-320X480_蓋版_高鐵時刻表查詢",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7374",
+      "placement_name": "MA-320X480_蓋版_台北公車動態",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7376",
+      "placement_name": "MA-320X480_蓋版_國民年金",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7377",
+      "placement_name": "MA-320X480_蓋版_台北捷運APP隨身版",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7378",
+      "placement_name": "MA-320X480_蓋版_台中公車動態",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7379",
+      "placement_name": "MA-320X480_蓋版_高雄捷運乘車資訊",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7380",
+      "placement_name": "MA-320X480_蓋版_遊樂園票價查詢",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7381",
+      "placement_name": "MA-320X480_蓋版_網路銀行通",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7382",
+      "placement_name": "MA-320X480_蓋版_ETC查詢",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7384",
+      "placement_name": "MA-320X480_蓋版_新北公車動態",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9121",
+      "placement_name": "MA-320X480_蓋版_台灣網路銀行代碼幫",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9123",
+      "placement_name": "MA-320X480_蓋版_郵遞區號",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9943",
+      "placement_name": "MA-320X480_蓋版_勞保年金20219",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5182",
+      "placement_name": "MA-全站蓋版_星橋命盤APP",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6239",
+      "placement_name": "MA-320*480-蓋板-ABCs 叢林學數學",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6236",
+      "placement_name": "MA-320*480-蓋板-ABC 開心配對遊戲 game",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6237",
+      "placement_name": "MA-320*480-蓋板-Catch ABC Word Preschool Learning for Kids",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18859",
+      "placement_name": "MW_320x480_Banner_老葉看版(NEW)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6806",
+      "placement_name": "MW-320*480-蓋板-养生网",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7172",
+      "placement_name": "MA-蓋版-320x480-輕鬆讀小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21985",
+      "placement_name": "MW_336x280_文中創意_熱血台中",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22240",
+      "placement_name": "MW_320x480蓋板_稅美人-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11946",
+      "placement_name": "MA-320X480-小電視",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7540",
+      "placement_name": "MW_320x480蓋版_行遍天下",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17028",
+      "placement_name": "MW_320x480_蓋版_無限動漫8comic",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14037",
+      "placement_name": "MW_320x480_meme",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12427",
+      "placement_name": "MW_all-popup_320x480__styletc",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12860",
+      "placement_name": "MW_320x480_文中創意_czbooks",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14036",
+      "placement_name": "MW_320x480_CZBOOKS",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17927",
+      "placement_name": "MW_置底創意_czbook",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17027",
+      "placement_name": "MW_320x480_蓋版_漫畫櫃manhuagui",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17026",
+      "placement_name": "MW_320x480_蓋版_星座好朋友(horofriend88)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13041",
+      "placement_name": "MW_320x480_加倍mycard",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13052",
+      "placement_name": "MW_320x480_ 二次元fun",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10070",
+      "placement_name": "MA-蓋版_大樂透威力彩對獎號碼",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10068",
+      "placement_name": "MA-蓋版_看診掛號查詢通",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10066",
+      "placement_name": "MA-蓋版_英文常用語法",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10064",
+      "placement_name": "MA-蓋版_國道客運訂票通(查詢)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10063",
+      "placement_name": "MA-蓋版_統一發票APP",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10430",
+      "placement_name": "MW_320x480_直式蓋板_2023 HBL",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10437",
+      "placement_name": "MA_320x480_進站蓋板_2023 HBL",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22478",
+      "placement_name": "Mobile_320x480_蓋板_HBL專案",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22484",
+      "placement_name": "APP_320x480_蓋板_HBL專案",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21656",
+      "placement_name": "APP_320x480_蓋板_奧運專案",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10797",
+      "placement_name": "MW-蓋版-爆新聞omg",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10800",
+      "placement_name": "MW-蓋版-遊戲百科gamewikia",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13039",
+      "placement_name": "MW_320x480蓋板_肖準神算",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12942",
+      "placement_name": "MW_320x480_文中_肖準紫微神算",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14290",
+      "placement_name": "MW_320x480蓋板_包子漫畫-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14316",
+      "placement_name": "MW_320x480蓋板_\t 天天要聞-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17921",
+      "placement_name": "MW_320x480_蓋板_包子漫畫dzmanga-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18051",
+      "placement_name": "MW_320x480_蓋板_包子漫畫dociy-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21742",
+      "placement_name": "MW_320x480蓋板_西瓜卡通",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17207",
+      "placement_name": "MW_320x480_蓋版_稷下書院-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21741",
+      "placement_name": "MW_320x480_蓋版_石頭小說-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16959",
+      "placement_name": "MW_320x480_文中創意_提莫書屋-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22046",
+      "placement_name": "CF_320 x 480 橫幅_石頭小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22089",
+      "placement_name": "CF_320 x 480 橫幅_稷下書院2",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22399",
+      "placement_name": "CF_320 x 480 橫幅_石頭小說3",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22175",
+      "placement_name": "MW_蓋版_賴傳媒",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17283",
+      "placement_name": "MW_320x480_蓋板_趣聞圖說-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18899",
+      "placement_name": "MW_320x480_蓋板_荷花動漫筆記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20708",
+      "placement_name": "MW_蓋板_TW Bodhi",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20729",
+      "placement_name": "MW_蓋板_忘憂書屋",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21703",
+      "placement_name": "MW_蓋板_爆漫畫-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "Remark",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "網站有鎖時段\n15-17",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "喊量須達1000",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "須保證FR80%以上否則不開",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "要喊先找媒體17328，不得已才找adgeek-18076",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "價格高+FR須保證，建議有指名才開",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "很貴+FR要滿70%，非不得已不開",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "只能走純320*480\n與我們現在的滿版蓋板不符",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "擾民暫不開放",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "網站改版不開放",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "目前無合作窗口\nadgeek-暫無合作\nwen-寄信也沒人回",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "轉成賴傳媒，但窗口設定有困難",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "目前沒量",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    }
+  ],
+  "置底": [
+    {
+      "placement_id": "8915",
+      "placement_name": "MW-置底(含展開)_Plurk",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10072",
+      "placement_name": "MW-置底(含展開)-MamiBuy",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10490",
+      "placement_name": "MW_置底創意(非展開)_經濟日報",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22220",
+      "placement_name": "MW_置底(展開)_經濟日報",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12869",
+      "placement_name": "MW_置底創意_嬰兒與母親",
+      "media_target": 2400.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10952",
+      "placement_name": "MW_漂浮多商品_台灣達人秀",
+      "media_target": 1000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13949",
+      "placement_name": "MW_置底創意廣告_匯流新聞網",
+      "media_target": 1000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13735",
+      "placement_name": "MW_置底創意(非展開)_商周",
+      "media_target": 10000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17092",
+      "placement_name": "MW_置底創意_良醫健康網",
+      "media_target": 8000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17236",
+      "placement_name": "MW_置底創意_UDN聯合新聞",
+      "media_target": 40000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19043",
+      "placement_name": "MW_置底創意(展開)_太報",
+      "media_target": 20000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22216",
+      "placement_name": "MW_置底創意(非展開)_太報",
+      "media_target": 10000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13442",
+      "placement_name": "MA_置底創意_雙鐵時刻表",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11013",
+      "placement_name": "MW-置底創意廣告_三立新聞網",
+      "media_target": 10000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14034",
+      "placement_name": "MW_置底創意_綠色工廠-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2213",
+      "placement_name": "MW_置底創意(非展開)_T客邦",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9470",
+      "placement_name": "MW-置底-樂透幸運發財網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12599",
+      "placement_name": "MW-置底-樂透幸運發財網(20:30-21:00)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2654",
+      "placement_name": "MW_置底創意_babyhome",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9453",
+      "placement_name": "CF_漂浮多商品_MW-漂浮多商品-TEEPR亮新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19031",
+      "placement_name": "MW_置底創意_UDN聯合新聞網",
+      "media_target": 28000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22196",
+      "placement_name": "MW_置底創意(非展開)_UDN聯合新聞網_2025.05",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19032",
+      "placement_name": "MW_置底創意_UDN遊戲角落",
+      "media_target": 1000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22199",
+      "placement_name": "MW_置底創意(非展開)_UDN遊戲角落_2025.05",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19033",
+      "placement_name": "MW_置底創意_UDN元氣網",
+      "media_target": 4000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22197",
+      "placement_name": "MW_置底創意(非展開)_UDN元氣網_2025.05",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14734",
+      "placement_name": "MW_置底創意_(非展開)_經理人-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14764",
+      "placement_name": "MW_置底創意_(非展開)_數位時代_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14767",
+      "placement_name": "MW_置底創意_(非展開)_ShoppingDesign_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15102",
+      "placement_name": "MW_置底創意(非展開)_創業小聚_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14772",
+      "placement_name": "MW_置底創意_民視新聞-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8250",
+      "placement_name": "MW_置底創意(非展開)_鏡週刊",
+      "media_target": 1000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13392",
+      "placement_name": "MW_置底創意_霹靂網-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14011",
+      "placement_name": "MW_置底創意_劇集介紹_霹靂網-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14012",
+      "placement_name": "MW_置底創意_新聞頁_霹靂網-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8854",
+      "placement_name": "MW_置底創意_黑特籃球",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8855",
+      "placement_name": "MW_置底創意_籃球圈",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11325",
+      "placement_name": "MW_置底創意(非展開)_今周刊New",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11326",
+      "placement_name": "MW_漂浮多商品_幸福熟齡",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7170",
+      "placement_name": "MW_置底創意(非展開)_非凡新聞台",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12612",
+      "placement_name": "MW_置底創意(展開)_非凡新聞台",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7293",
+      "placement_name": "MW_置底創意(非展開)_Cmoney",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13713",
+      "placement_name": "MW_置底創意(非展開)_MONEY錢雜誌",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18345",
+      "placement_name": "MW_置底創意(非展開)_文章內頁_運動視界_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17265",
+      "placement_name": "MW_置底創意(非展開)_集合頁_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17266",
+      "placement_name": "MW_置底創意(非展開)_文章內頁_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22168",
+      "placement_name": "MW_置底創意(非展開)_文章內頁_電影神搜 HB_5月起供量",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21781",
+      "placement_name": "MW_置底創意(非展開)_愛料理_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7709",
+      "placement_name": "MW_置底創意(非展開)_東森新聞網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17186",
+      "placement_name": "MW_置底創意(非展開)_造咖",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18955",
+      "placement_name": "MW_置底創意(非展開)_東森地產王",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21210",
+      "placement_name": "MW_置底創意(非展開)_東森財經新聞網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17230",
+      "placement_name": "MW_置底創意(非展開)_華視-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12393",
+      "placement_name": "MW_置底創意(非展開)_ keketravel",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12237",
+      "placement_name": "MW_置底創意_ttshow",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13239",
+      "placement_name": "MW_置底創意(非展開)_欣傳媒",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12792",
+      "placement_name": "MW_置底創意_91譜",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12927",
+      "placement_name": "MW_置底創意(非展開)_早安樂活",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13329",
+      "placement_name": "MW_置底創意(展開)_PopDaily",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15217",
+      "placement_name": "MW_置底創意(非展開)-今健康-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15254",
+      "placement_name": "MW_置底創意(非展開)_ Beauty 美人圈",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16974",
+      "placement_name": "MW_置底創意_妞新聞",
+      "media_target": 15000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16969",
+      "placement_name": "MW_置底創意_Hami任務牆",
+      "media_target": 30000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21347",
+      "placement_name": "MW_置底創意(非展開)_租租知識通",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12266",
+      "placement_name": "MW_創意置底(非產開)_Basketball TOP5",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22219",
+      "placement_name": "MW_置底(展開)_Basketball TOP5",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22217",
+      "placement_name": "MW_置底創意(非展開)_上報",
+      "media_target": 10000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22218",
+      "placement_name": "MW_置底(展開)_上報",
+      "media_target": 8000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22226",
+      "placement_name": "MW_文章頁-置底-痞客邦",
+      "media_target": 1600.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7527",
+      "placement_name": "CF-300X250_右側通欄_行遍天下",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22135",
+      "placement_name": "MW_置底創意(非展開)_行遍天下-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11979",
+      "placement_name": "MW_置底創意_risu短網址(IOS)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12009",
+      "placement_name": "MW_置底創意_risu短網址(Android)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14209",
+      "placement_name": "MW_置底創意_縮短網址產生器-reurl",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22214",
+      "placement_name": "MW_置底創意_縮短網址產生器-reurl-2025.05(特殊供量)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16973",
+      "placement_name": "MW_置底創意_大人物",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16972",
+      "placement_name": "MW_置底創意_女子學",
+      "media_target": 10000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22440",
+      "placement_name": "MW_置底_租租通刊登",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15228",
+      "placement_name": "MW-創意-85小說網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11496",
+      "placement_name": "MW_漂浮多商品_鄉民食堂",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11291",
+      "placement_name": "MW_漂浮多商品_小宅戲劇周記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10911",
+      "placement_name": "MW_漂浮多商品_女人說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10957",
+      "placement_name": "MW_漂浮多商品_科學最前線",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11068",
+      "placement_name": "MW_漂浮多商品_台灣同人誌中心",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11283",
+      "placement_name": "MW_漂浮多商品_台灣旅行趣",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11284",
+      "placement_name": "MW_漂浮多商品_女人瘋",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11285",
+      "placement_name": "MW_漂浮多商品_台中房市通",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11286",
+      "placement_name": "MW_漂浮多商品_樂活迷",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11287",
+      "placement_name": "MW_漂浮多商品_旅宿",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11351",
+      "placement_name": "MW_漂浮多商品_尋夢新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12834",
+      "placement_name": "MW_ 置底創意_85小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12891",
+      "placement_name": "MW-置底創意__時雨の町",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12983",
+      "placement_name": "MW_置底創意(非展開)_科技紫薇",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13897",
+      "placement_name": "MW_置底創意_KingNet國家網路醫藥",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14017",
+      "placement_name": "MW_置底創意(非展開)_農傳媒",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14733",
+      "placement_name": "MW_置底創意_老貓測3C",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15972",
+      "placement_name": "MW_置底創意(非展開)_DeTools工具死神",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15973",
+      "placement_name": "MW_置底創意(非展開)_ Pokemon-info 寶可夢資訊站",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "3601",
+      "placement_name": "MW_漂浮多商品_全站_小鎮資訊",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19038",
+      "placement_name": "MW_置底創意_非展開(no墊檔) _全站_小鎮資訊_mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11262",
+      "placement_name": "MW-置底廣告-寶可夢資訊站",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4350",
+      "placement_name": "MW-漂浮多商品_全站_PicSee",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4437",
+      "placement_name": "MW-漂浮多商品_3C影音客棧",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4625",
+      "placement_name": "MW-漂浮多商品_跑跑資訊站",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4736",
+      "placement_name": "MW_置底創意_泰好網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4820",
+      "placement_name": "MW-漂浮多商品_全站_中英物語",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5143",
+      "placement_name": "MW-漂浮多商品-全站-賽肥膩膩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5180",
+      "placement_name": "MW-漂浮多商品_數位男女",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5183",
+      "placement_name": "MW-漂浮多商品_星橋命盤",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5630",
+      "placement_name": "MW-置底創意_台灣新論",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5644",
+      "placement_name": "MW-漂浮多商品-女生集合",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5659",
+      "placement_name": "MW-漂浮多商品_熱新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9506",
+      "placement_name": "MW_置底創意_親子集合",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17216",
+      "placement_name": "MW_置底創意_人車事-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6495",
+      "placement_name": "MW-漂浮多商品_夢遊電玩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6507",
+      "placement_name": "MW-漂浮多商品_-夢遊電玩APP",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18265",
+      "placement_name": "MW-漂浮多商品_夢遊電玩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6485",
+      "placement_name": "MW-漂浮多商品_冰楓論壇",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6526",
+      "placement_name": "MW-漂浮多商品_冰楓短網址",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9581",
+      "placement_name": "MW-漂浮多商品_BFFile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6569",
+      "placement_name": "MW-漂浮多商品_TruthMall",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7452",
+      "placement_name": "MW-漂浮多商品_加尾彈唱",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8625",
+      "placement_name": "MW-漂浮多商品_華倫眼鏡行_蓋版",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21922",
+      "placement_name": "MW_置底創意(非展開)_書中字有黃金屋-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21923",
+      "placement_name": "MW_置底創意(非展開)_稅美人-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21924",
+      "placement_name": "MW_置底創意(非展開)_玩桌遊-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21925",
+      "placement_name": "MW_置底創意(非展開)_運動BBS-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22022",
+      "placement_name": "MW_置底創意(非展開)_繁體小說-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22010",
+      "placement_name": "MW_置底創意(非展開)_老王隔壁-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22128",
+      "placement_name": "MW_置底創意(非展開)_愛下電子書 HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10356",
+      "placement_name": "MA-磁浮廣告_國旅卡",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18022",
+      "placement_name": "MW_置底創意(非展開)_文章內頁_歐搜哇_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18932",
+      "placement_name": "MW_置底創意(非展開)_iGood",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18954",
+      "placement_name": "MW_List_置底創意(非展開)_iGood",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13365",
+      "placement_name": "MW_置底創意_Mr. & Mrs. Diary",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8804",
+      "placement_name": "MW-漂浮多商品_華人百科",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11997",
+      "placement_name": "MW_置底創意_meme",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12111",
+      "placement_name": "MW_創意置底_girlstalk",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12236",
+      "placement_name": "MW-置底創意__DM5漫畫人",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17927",
+      "placement_name": "MW_置底創意_czbook",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22443",
+      "placement_name": "MW_置底_manhuagui",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13032",
+      "placement_name": "MW_置底創意_vivi01 ViVi視頻",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14159",
+      "placement_name": "MW_置底創意_jonlovefood",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14255",
+      "placement_name": "MW_置底創意_funsoccer.cc",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14257",
+      "placement_name": "MW_置底創意_horo88.cc",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18758",
+      "placement_name": "MW_置底創意_ezneering",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11540",
+      "placement_name": "MW_置底廣告_星星的話",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12060",
+      "placement_name": "MW_置底創意_二次元fun",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11576",
+      "placement_name": "MW_漂浮多商品_我的感人故事",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11822",
+      "placement_name": "MW_置底創意_芭樂貓的美食日記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15197",
+      "placement_name": "MW_置底創意_繁中寶可夢卡表生成器-奶爸工作室",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12456",
+      "placement_name": "MW-置底創意__台灣圖書館電子書搜尋",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14227",
+      "placement_name": "MW_置底創意_whocll 查電話",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12874",
+      "placement_name": "MW_置底創意_肖準神算",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12932",
+      "placement_name": "MW_置底創意_肖準紫微神算",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14211",
+      "placement_name": "MW_置底創意_日期計算機 - Youtils",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22406",
+      "placement_name": "MW_置底_imgus",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13061",
+      "placement_name": "MW_置底創意_12生肖",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13055",
+      "placement_name": "MW_置底創意(非展開)_Hola Kevin",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14014",
+      "placement_name": "MW_置底創意(非展開)_熱搜事件簿",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14300",
+      "placement_name": "MW_置底創意_PinQueue_Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14737",
+      "placement_name": "MW_置底創意(非展開)_稷下書院-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14739",
+      "placement_name": "MW_置底創意(非展開)_石頭小說-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15151",
+      "placement_name": "MW_置底創意_稷下書院-特殊流量",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15152",
+      "placement_name": "MW_置底創意_石頭小說-特殊流量",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16958",
+      "placement_name": "MW_置底創意_提莫書屋-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22043",
+      "placement_name": "MW_置底創意(非展開)_石頭小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22092",
+      "placement_name": "MW_置底創意(非展開)_稷下書院2",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22396",
+      "placement_name": "MW_置底_石頭小說3",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17001",
+      "placement_name": "MW_置底創意_Pls watch-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22170",
+      "placement_name": "MW_置底創意_賴傳媒",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22173",
+      "placement_name": "MW_置底創意(文章頁)_賴傳媒",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17274",
+      "placement_name": "MW_置底創意_文思泉湧-點子網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18996",
+      "placement_name": "MW_置底創意_訓練家情報網-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17282",
+      "placement_name": "MW_置底創意_趣聞圖說-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18578",
+      "placement_name": "MW_置底創意(非展開)_萬花小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18092",
+      "placement_name": "MW_置底創意(非展開)_TSNA",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18093",
+      "placement_name": "MW_置底創意(展開)_TSNA",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18234",
+      "placement_name": "MW_置底創意(非展開)_理財新手福利社-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18895",
+      "placement_name": "MW_置底創意_荷花動漫筆記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21406",
+      "placement_name": "MW_置底創意_知識網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20707",
+      "placement_name": "MW_置底創意_TW Bodhi",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20730",
+      "placement_name": "MW_置底創意_忘憂書屋",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21430",
+      "placement_name": "MW_置底創意_野史祕聞錄",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21439",
+      "placement_name": "MW_置底創意_靈異事件簿",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21697",
+      "placement_name": "MW_置底創意-爆漫畫-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22098",
+      "placement_name": "MW_置底創意(非展開)_Ｍiku's Blog-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "Remark",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "若遇到直售，導致流量有少給，他們會在隔天把少給的流量補上，所以有時FR%會偏低",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "網站沒量了",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "喊量須達1000",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "FR須保證90%以上，建議有需要才開",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12/10會重新開量",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "價格高+FR須保證，建議有指名才開",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "網站沒有電影神搜了",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "剩餘流量,不用喊",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9887",
+      "placement_name": "MW-置底創意(非展開)中時電子報_2019",
+      "media_target": 5000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14918",
+      "placement_name": "MW_置底創意(非展開)_中天新聞網-mobile",
+      "media_target": 5000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22517",
+      "placement_name": "MW_置底創意(非展開)_經濟日報",
+      "media_target": 10000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10204",
+      "placement_name": "MW-漂浮多商品-MOOK景點家",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22731",
+      "placement_name": "MW-置底(非展開)-MamiBuy",
+      "media_target": 1000.0,
+      "remark": ""
+    }
+  ],
+  "置底展開": [
+    {
+      "placement_id": "8915",
+      "placement_name": "MW-置底(含展開)_Plurk",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10072",
+      "placement_name": "MW-置底(含展開)-MamiBuy",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10490",
+      "placement_name": "MW_置底創意(非展開)_經濟日報",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22220",
+      "placement_name": "MW_置底(展開)_經濟日報",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12869",
+      "placement_name": "MW_置底創意_嬰兒與母親",
+      "media_target": 2500.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10952",
+      "placement_name": "MW_漂浮多商品_台灣達人秀",
+      "media_target": 1000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13949",
+      "placement_name": "MW_置底創意廣告_匯流新聞網",
+      "media_target": 1000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17092",
+      "placement_name": "MW_置底創意_良醫健康網",
+      "media_target": 8000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17236",
+      "placement_name": "MW_置底創意_UDN聯合新聞",
+      "media_target": 40000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19043",
+      "placement_name": "MW_置底創意(展開)_太報",
+      "media_target": 2000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14034",
+      "placement_name": "MW_置底創意_綠色工廠-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2213",
+      "placement_name": "MW_置底創意(非展開)_T客邦",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2647",
+      "placement_name": "MW_置底創意(展開)_T客邦",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9470",
+      "placement_name": "MW-置底-樂透幸運發財網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12599",
+      "placement_name": "MW-置底-樂透幸運發財網(20:30-21:00)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9453",
+      "placement_name": "CF_漂浮多商品_MW-漂浮多商品-TEEPR亮新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19031",
+      "placement_name": "MW_置底創意_UDN聯合新聞網",
+      "media_target": 28000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19032",
+      "placement_name": "MW_置底創意_UDN遊戲角落",
+      "media_target": 1000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19033",
+      "placement_name": "MW_置底創意_UDN元氣網",
+      "media_target": 4000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8249",
+      "placement_name": "MW_置底創意(展開)_鏡週刊",
+      "media_target": 1000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21755",
+      "placement_name": "CF_桌機置底創意_鏡週刊",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13392",
+      "placement_name": "MW_置底創意_霹靂網-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14011",
+      "placement_name": "MW_置底創意_劇集介紹_霹靂網-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14012",
+      "placement_name": "MW_置底創意_新聞頁_霹靂網-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8854",
+      "placement_name": "MW_置底創意_黑特籃球",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8855",
+      "placement_name": "MW_置底創意_籃球圈",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11326",
+      "placement_name": "MW_漂浮多商品_幸福熟齡",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12612",
+      "placement_name": "MW_置底創意(展開)_非凡新聞台",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21750",
+      "placement_name": "CF_桌機置底創意_歐搜哇",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13162",
+      "placement_name": "MW_置底創意(展開)_東森新聞網",
+      "media_target": 1800.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18956",
+      "placement_name": "MW_置底創意(展開)_東森地產王",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21211",
+      "placement_name": "MW_置底創意(展開)_東森財經新聞網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12237",
+      "placement_name": "MW_置底創意_ttshow",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21774",
+      "placement_name": "CF_桌機置底創意1x1&970x90&728x90-欣傳媒",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12792",
+      "placement_name": "MW_置底創意_91譜",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12926",
+      "placement_name": "MW_置底創意(展開)_早安樂活",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13329",
+      "placement_name": "MW_置底創意(展開)_PopDaily",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15253",
+      "placement_name": "MW_置底創意(展開)_Beauty 美人圈",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22482",
+      "placement_name": "MW_置底創意(展開)_Beauty 美人圈-測試",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16974",
+      "placement_name": "MW_置底創意_妞新聞",
+      "media_target": 15000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16969",
+      "placement_name": "MW_置底創意_Hami任務牆",
+      "media_target": 30000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18512",
+      "placement_name": "MW_置底創意(展開)_Japaholic-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22219",
+      "placement_name": "MW_置底(展開)_Basketball TOP5",
+      "media_target": 19000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22057",
+      "placement_name": "MW_置底創意(展開)_科技紫薇",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14733",
+      "placement_name": "MW_置底創意_老貓測3C",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22218",
+      "placement_name": "MW_置底(展開)_上報",
+      "media_target": 8000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22223",
+      "placement_name": "MW_中繼頁_置底創意(展開)-痞客邦_Mobile",
+      "media_target": 6000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17216",
+      "placement_name": "MW_置底創意_人車事-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11979",
+      "placement_name": "MW_置底創意_risu短網址(IOS)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12009",
+      "placement_name": "MW_置底創意_risu短網址(Android)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14209",
+      "placement_name": "MW_置底創意_縮短網址產生器-reurl",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22214",
+      "placement_name": "MW_置底創意_縮短網址產生器-reurl-2025.05(特殊供量)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15228",
+      "placement_name": "MW-創意-85小說網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11496",
+      "placement_name": "MW_漂浮多商品_鄉民食堂",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10911",
+      "placement_name": "MW_漂浮多商品_女人說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10957",
+      "placement_name": "MW_漂浮多商品_科學最前線",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11068",
+      "placement_name": "MW_漂浮多商品_台灣同人誌中心",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11351",
+      "placement_name": "MW_漂浮多商品_尋夢新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12834",
+      "placement_name": "MW_ 置底創意_85小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13897",
+      "placement_name": "MW_置底創意_KingNet國家網路醫藥",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11262",
+      "placement_name": "MW-置底廣告-寶可夢資訊站",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4350",
+      "placement_name": "MW-漂浮多商品_全站_PicSee",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4437",
+      "placement_name": "MW-漂浮多商品_3C影音客棧",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4625",
+      "placement_name": "MW-漂浮多商品_跑跑資訊站",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4736",
+      "placement_name": "MW_置底創意_泰好網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4820",
+      "placement_name": "MW-漂浮多商品_全站_中英物語",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5143",
+      "placement_name": "MW-漂浮多商品-全站-賽肥膩膩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5180",
+      "placement_name": "MW-漂浮多商品_數位男女",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5183",
+      "placement_name": "MW-漂浮多商品_星橋命盤",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5630",
+      "placement_name": "MW-置底創意_台灣新論",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5644",
+      "placement_name": "MW-漂浮多商品-女生集合",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5659",
+      "placement_name": "MW-漂浮多商品_熱新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9506",
+      "placement_name": "MW_置底創意_親子集合",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6495",
+      "placement_name": "MW-漂浮多商品_夢遊電玩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6507",
+      "placement_name": "MW-漂浮多商品_-夢遊電玩APP",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18265",
+      "placement_name": "MW-漂浮多商品_夢遊電玩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6485",
+      "placement_name": "MW-漂浮多商品_冰楓論壇",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6526",
+      "placement_name": "MW-漂浮多商品_冰楓短網址",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9581",
+      "placement_name": "MW-漂浮多商品_BFFile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6569",
+      "placement_name": "MW-漂浮多商品_TruthMall",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7452",
+      "placement_name": "MW-漂浮多商品_加尾彈唱",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8625",
+      "placement_name": "MW-漂浮多商品_華倫眼鏡行_蓋版",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21922",
+      "placement_name": "MW_置底創意(非展開)_書中字有黃金屋-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21926",
+      "placement_name": "MW_置底創意(展開)_書中自有黃金屋-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21923",
+      "placement_name": "MW_置底創意(非展開)_稅美人-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21927",
+      "placement_name": "MW_置底創意(展開)_稅美人-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21924",
+      "placement_name": "MW_置底創意(非展開)_玩桌遊-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21928",
+      "placement_name": "MW_置底創意(展開)_玩桌遊-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21925",
+      "placement_name": "MW_置底創意(非展開)_運動BBS-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21929",
+      "placement_name": "MW_置底創意(展開)_運動BBS-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22018",
+      "placement_name": "MW_置底創意(展開)_繁體小說-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22010",
+      "placement_name": "MW_置底創意(非展開)_老王隔壁-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22011",
+      "placement_name": "MW_置底創意(展開)_老王隔壁-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10356",
+      "placement_name": "MA-磁浮廣告_國旅卡",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13365",
+      "placement_name": "MW_置底創意_Mr. & Mrs. Diary",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8804",
+      "placement_name": "MW-漂浮多商品_華人百科",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11997",
+      "placement_name": "MW_置底創意_meme",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12111",
+      "placement_name": "MW_創意置底_girlstalk",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17927",
+      "placement_name": "MW_置底創意_czbook",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13032",
+      "placement_name": "MW_置底創意_vivi01 ViVi視頻",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14159",
+      "placement_name": "MW_置底創意_jonlovefood",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14255",
+      "placement_name": "MW_置底創意_funsoccer.cc",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14257",
+      "placement_name": "MW_置底創意_horo88.cc",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18758",
+      "placement_name": "MW_置底創意_ezneering",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11540",
+      "placement_name": "MW_置底廣告_星星的話",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12060",
+      "placement_name": "MW_置底創意_二次元fun",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11576",
+      "placement_name": "MW_漂浮多商品_我的感人故事",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11822",
+      "placement_name": "MW_置底創意_芭樂貓的美食日記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15197",
+      "placement_name": "MW_置底創意_繁中寶可夢卡表生成器-奶爸工作室",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12456",
+      "placement_name": "MW-置底創意__台灣圖書館電子書搜尋",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14227",
+      "placement_name": "MW_置底創意_whocll 查電話",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12874",
+      "placement_name": "MW_置底創意_肖準神算",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12932",
+      "placement_name": "MW_置底創意_肖準紫微神算",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14211",
+      "placement_name": "MW_置底創意_日期計算機 - Youtils",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13061",
+      "placement_name": "MW_置底創意_12生肖",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14300",
+      "placement_name": "MW_置底創意_PinQueue_Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18297",
+      "placement_name": "MW_置底創意(展開)_稷下書院-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21788",
+      "placement_name": "CF_桌機置底創意-稷下書院",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14739",
+      "placement_name": "MW_置底創意(非展開)_石頭小說-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18305",
+      "placement_name": "MW_置底創意(展開)_石頭小說-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21789",
+      "placement_name": "CF_桌機置底創意-石頭小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15151",
+      "placement_name": "MW_置底創意_稷下書院-特殊流量",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15152",
+      "placement_name": "MW_置底創意_石頭小說-特殊流量",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18306",
+      "placement_name": "MW_置底創意(展開)_提莫書屋-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21790",
+      "placement_name": "CF_桌機置底創意-提莫書屋",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22044",
+      "placement_name": "MW_置底創意(展開)_石頭小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22091",
+      "placement_name": "MW_置底創意(展開)_稷下書院2",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22397",
+      "placement_name": "MW_置底(展開)_石頭小說3",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16973",
+      "placement_name": "MW_置底創意_大人物",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16972",
+      "placement_name": "MW_置底創意_女子學",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17001",
+      "placement_name": "MW_置底創意_Pls watch-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22170",
+      "placement_name": "MW_置底創意_賴傳媒",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22173",
+      "placement_name": "MW_置底創意(文章頁)_賴傳媒",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17274",
+      "placement_name": "MW_置底創意_文思泉湧-點子網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21724",
+      "placement_name": "CF_桌機置底創意_文思泉湧-點子網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18996",
+      "placement_name": "MW_置底創意_訓練家情報網-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21725",
+      "placement_name": "CF_桌機置底創意_訓練家情報網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17282",
+      "placement_name": "MW_置底創意_趣聞圖說-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17923",
+      "placement_name": "MW_置底創意(展開)_趣聞圖說-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18578",
+      "placement_name": "MW_置底創意(非展開)_萬花小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18093",
+      "placement_name": "MW_置底創意(展開)_TSNA",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18895",
+      "placement_name": "MW_置底創意_荷花動漫筆記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21406",
+      "placement_name": "MW_置底創意_知識網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20707",
+      "placement_name": "MW_置底創意_TW Bodhi",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20730",
+      "placement_name": "MW_置底創意_忘憂書屋",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21430",
+      "placement_name": "MW_置底創意_野史祕聞錄",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21439",
+      "placement_name": "MW_置底創意_靈異事件簿",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21697",
+      "placement_name": "MW_置底創意-爆漫畫-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22097",
+      "placement_name": "MW_置底創意(展開)_Ｍiku's Blog-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22098",
+      "placement_name": "MW_置底創意(非展開)_Ｍiku's Blog-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "Remark",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "因為網站限制，只能跑凌晨時段00-06",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "UDN最近都有直售，狀況會持續至月底",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "喊量須達1000",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "網站沒量了",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "價格高+FR須保證，建議有指名才開",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "這版位不能跑素材超過畫面1/3",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "網站已關閉此版位",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2025",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "剩餘流量,不用喊",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17937",
+      "placement_name": "MW_置底創意(展開)_中天新聞網-mobile",
+      "media_target": 10000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12974",
+      "placement_name": "MW-置底創意(展開)-中時電子報_2019",
+      "media_target": 9000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10204",
+      "placement_name": "MW-漂浮多商品-MOOK景點家",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7294",
+      "placement_name": "MW_置底創意(展開)_Cmoney",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13714",
+      "placement_name": "MW_置底創意(展開)_MONEY錢雜誌",
+      "media_target": 0,
+      "remark": ""
+    }
+  ],
+  "文中300x250": [
+    {
+      "placement_id": "252",
+      "placement_name": "CF-300x250_Plurk_內文右方",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "400",
+      "placement_name": "MW-文中創意300x250_內文第一塊_台視新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "422",
+      "placement_name": "PC-300x250_內文第一塊_台視新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8312",
+      "placement_name": "MW-300x250_內文第一塊_台視財經",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8313",
+      "placement_name": "PC-300x250_內文第一塊_台視財經",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11358",
+      "placement_name": "CF_300x250_內文右側_窩客島",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10761",
+      "placement_name": "CF-300*250-文中穿插第一塊-台灣達人秀",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12217",
+      "placement_name": "CF-300x250_Banner__大紀元台灣",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12226",
+      "placement_name": "MW-300x250_Banner__大紀元台灣",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22492",
+      "placement_name": "MW_300x250_匯流新聞網_直播用BN-1",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22493",
+      "placement_name": "MW_300x250_匯流新聞網_直播用BN-2",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22494",
+      "placement_name": "MW_300x250_匯流新聞網_直播用BN-3",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13269",
+      "placement_name": "MW_300x250_置頂banner_商周-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13817",
+      "placement_name": "MW_300x250_文中_商周-exchange",
+      "media_target": 3000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14201",
+      "placement_name": "MW_336x280_內文上方_LOOKin 美人時髦話題網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18076",
+      "placement_name": "MW_蓋板_鏡新聞-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19010",
+      "placement_name": "MW_300x250_文中_良醫健康網",
+      "media_target": 3000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18476",
+      "placement_name": "CF_300x250_文章右側sidebar_1_太報-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18519",
+      "placement_name": "CF_300x250_文章右側sidebar_4_太報-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22495",
+      "placement_name": "MW_300x250_太報_直播用BN-1",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22496",
+      "placement_name": "MW_300x250_太報_直播用BN-2",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22497",
+      "placement_name": "MW_300x250_太報_直播用BN-3",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22513",
+      "placement_name": "MW_300x250_玩具人_直播用BN",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21776",
+      "placement_name": "MW_文中創意300x250_康健雜誌",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21810",
+      "placement_name": "MW_文中300x250Banner(21776PB)_康健雜誌",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "432",
+      "placement_name": "CF-300x250_中廣_中廣新聞網_內容下方",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13441",
+      "placement_name": "MA_300x250_查詢頁下方_雙鐵時刻表",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13682",
+      "placement_name": "PC_內文下方-左側_300x250-台灣英文新聞-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14228",
+      "placement_name": "CF_300x250_Banner_台灣英文新聞-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18907",
+      "placement_name": "MW_300x250_首頁_ENDBANNER_1_台灣英文新聞(new)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18908",
+      "placement_name": "MW_300x250_首頁_ENDBANNER_2_台灣英文新聞(new)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18909",
+      "placement_name": "MW_300x250_首頁_ENDBANNER_3_台灣英文新聞(new)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18910",
+      "placement_name": "MW_300x250_首頁_ENDBANNER_4_台灣英文新聞(new)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18911",
+      "placement_name": "MW_300x250_首頁_ENDBANNER_5_台灣英文新聞(new)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18912",
+      "placement_name": "MW_300x250_首頁_文中橫幅_2_台灣英文新聞(new)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18916",
+      "placement_name": "CF_336x280_首頁_右側看版_台灣英文新聞(new)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18917",
+      "placement_name": "CF_300x250_首頁_ENDBANNER_1_台灣英文新聞(new)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18918",
+      "placement_name": "CF_300x250_首頁_ENDBANNER_2_台灣英文新聞(new)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18919",
+      "placement_name": "CF_300x250_首頁_ENDBANNER_3_台灣英文新聞(new)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18920",
+      "placement_name": "CF_300x250_首頁_ENDBANNER_4_台灣英文新聞(new)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18924",
+      "placement_name": "CF_300x250_內容頁_右側看版_1_台灣英文新聞(new)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12576",
+      "placement_name": "CF_300x250_內頁_Disp BBS_Exchange(MCM)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12779",
+      "placement_name": "CF_300x250_Disp BBS_Exchange(ads-n)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15013",
+      "placement_name": "CF_300x250_Disp BBS_2023_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15014",
+      "placement_name": "CF_300x250_Disp BBS_2023_Exchange(no ads)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15018",
+      "placement_name": "MW_300x250_Disp BBS_2023_Exchange(no ads)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15019",
+      "placement_name": "MW_336x280_Disp BBS_2023_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15020",
+      "placement_name": "MW_336x280_Disp BBS_2023_Exchange(no ads)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12710",
+      "placement_name": "MW_300x250_即時新聞列表下_中央通訊社2021_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12711",
+      "placement_name": "MW_300x250_話題關鍵字下_中央通訊社2021_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4671",
+      "placement_name": "MW_300x250_綠色工廠-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20617",
+      "placement_name": "MW_300x250Banner_文中創意(PB)_綠色工廠-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6337",
+      "placement_name": "MW_300x250-_哇哇3C日誌-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20616",
+      "placement_name": "MW_300x250Banner_文中創意(PB)_哇哇3C日誌-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22073",
+      "placement_name": "CF_300x250Banner_20250117_01_新頭殼",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22074",
+      "placement_name": "CF_300x250Banner_20250117_02_新頭殼",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22079",
+      "placement_name": "CF_336x280Banner_20250117_01_新頭殼",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22080",
+      "placement_name": "CF_336x280Banner_20250117_02_新頭殼",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19047",
+      "placement_name": "(子)CF_300x250Banner_newtalk.tw_content_300250_1_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21798",
+      "placement_name": "(子)CF_336x280Banner_newtalk.tw_content_336280_1_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21826",
+      "placement_name": "(子)CF_336x280Banner_newtalk.tw_content_336280_2_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21827",
+      "placement_name": "(子)CF_336x280Banner_newtalk.tw_content_336280_3_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21828",
+      "placement_name": "(子)CF_336x280Banner_newtalk.tw_content_336280_4_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21829",
+      "placement_name": "(子)CF_300x250Banner_newtalk.tw_photo_300250_1_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21830",
+      "placement_name": "(子)CF_300x250Banner_newtalk.tw_all_300250_1_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21831",
+      "placement_name": "(子)CF_300x250Banner_newtalk.tw_all_300250_2_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21832",
+      "placement_name": "(子)CF_300x250Banner_newtalk.tw_all_300250_3_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21833",
+      "placement_name": "(子)CF_300x250Banner_newtalk.tw_all_300250_4_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21834",
+      "placement_name": "(子)CF_300x250Banner_newtalk.tw_all_300250_5_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21835",
+      "placement_name": "(子)CF_300x250Banner_newtalk.tw_all_300250_6_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21836",
+      "placement_name": "(子)CF_300x250Banner_newtalk.tw_all_300250_7_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21837",
+      "placement_name": "(子)CF_300x250Banner_newtalk.tw_all_300250_8_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21838",
+      "placement_name": "ＭＷ_336x280Banner_newtalk.tw_mobile_all_336280_1_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21839",
+      "placement_name": "ＭＷ_336x280Banner_newtalk.tw_mobile_all_336280_2_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21840",
+      "placement_name": "ＭＷ_336x280Banner_newtalk.tw_mobile_all_336280_3_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21841",
+      "placement_name": "ＭＷ_336x280Banner_newtalk.tw_comment_336280_1_新頭殼(R18)-RWD",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21842",
+      "placement_name": "CF_336x280Banner_newtalk.tw_comment_336280_1_新頭殼(R18)-RWD",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22438",
+      "placement_name": "(子)CF_336x280Banner_newtalk.tw_content_336280_5_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22439",
+      "placement_name": "(子)CF_336x280Banner_newtalk.tw_content_336280_6_新頭殼(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6837",
+      "placement_name": "CF-300x250-內文滯留頁-科技新報",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18002",
+      "placement_name": "CF_300x250_互動看板1_工商時報-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18003",
+      "placement_name": "CF_300x250_互動看板2_工商時報-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18007",
+      "placement_name": "CF_336x280_文末右側看板_工商時報-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18008",
+      "placement_name": "CF_336x280_文末左側看板_工商時報-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18009",
+      "placement_name": "CF_336x280_閒置頁_互動看板_工商時報-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18014",
+      "placement_name": "MW_300x250_文末Banner1_工商時報-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18015",
+      "placement_name": "MW_300x250_文末Banner2_工商時報-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18278",
+      "placement_name": "CF_336x280_文中-MiddleBillboard_工商時報-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2380",
+      "placement_name": "CF-300*250-內文下方-樂透幸運發財網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17011",
+      "placement_name": "MW_變形蓋版_樂透幸運發財網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10774",
+      "placement_name": "MW-300x250_內文_樂透幸運發財網_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11110",
+      "placement_name": "MW-300x250_內文第二塊_樂透幸運發財網_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15108",
+      "placement_name": "CF_300x250_首頁中間_樂透彩幸運發財網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15111",
+      "placement_name": "CF_336x280-內文下方-樂透幸運發財網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15859",
+      "placement_name": "CF_336x280_內頁_PC右側互動看板B-中天新聞網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "994",
+      "placement_name": "CF_300x250 _Banner_babyhome-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16921",
+      "placement_name": "CF_300x250_首頁第二頻右邊(熱搜關鍵字上)_BabyHome-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16923",
+      "placement_name": "CF_300x250_頻道頁右邊(上方)_ BabyHome-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16926",
+      "placement_name": "CF_300x250_閒置廣告右上_BabyHome-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16927",
+      "placement_name": "CF_300x250_內文頁右邊(上方)_BabyHome-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16928",
+      "placement_name": "CF_300x250_內文文末_BabyHome-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12603",
+      "placement_name": "MW_300x250_文中創意_TEEPR亮新聞-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10012",
+      "placement_name": "CF_336x280Banner_Teepr亮新聞-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18096",
+      "placement_name": "MA_300x250_文末_中時電子報-APP",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17060",
+      "placement_name": "CF_300x250_NativeAd_觸mii",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17061",
+      "placement_name": "CF_300x250_Billboard_1s_觸mii",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17063",
+      "placement_name": "CF_300x250_Billboard_2nd_觸mii",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17065",
+      "placement_name": "CF_300x250_Billboard_3nd_觸mii",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13724",
+      "placement_name": "CF_300x250_內文右側第一塊_中時電子報_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12559",
+      "placement_name": "CF_300x250_右側互動看版_中時電子報_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12560",
+      "placement_name": "CF_336x280_文中看板_中時電子報_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12561",
+      "placement_name": "MW_300x250_內頁TOP Banner_中時電子報_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16909",
+      "placement_name": "CF_300x250_NativeAd_旺得富",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16910",
+      "placement_name": "CF_300x250_Billboard_1s_旺得富",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16911",
+      "placement_name": "CF_300x250_Billboard_2nd_旺得富",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16914",
+      "placement_name": "MW_300x250_End banner_旺得富",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13927",
+      "placement_name": "CF_336x280_全網版位_痞客邦",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14145",
+      "placement_name": "MW_336x280_全網版位_痞客邦",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2386",
+      "placement_name": "MW_300x250_部落格文章頁-黃金頂天_痞客邦",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13961",
+      "placement_name": "CF_300x250_部落格文章頁-右側Sticky_痞客邦",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22212",
+      "placement_name": "MW_300x250_部落格文章頁-黃金頂天_痞客邦（桌機專案）",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18523",
+      "placement_name": "MW_300x250_黃金熱門_痞客邦-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18524",
+      "placement_name": "MW_300x250_黃金內文_痞客邦-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "1430",
+      "placement_name": "CF_300x250_首頁右側第三塊_小老婆汽車資訊網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "1431",
+      "placement_name": "CF_300x250_首頁右側第四塊_小老婆汽車資訊網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "1432",
+      "placement_name": "CF_300x250_內文右側_小老婆汽車資訊網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "3096",
+      "placement_name": "MW_300x250_文章結束第一塊_小老婆汽機車資訊網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22059",
+      "placement_name": "MW_300x250_首頁車界新聞下方_小老婆汽機車資訊網-exchange-測試",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5665",
+      "placement_name": "CF-300*250-討論區頻道下方-玩運彩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5806",
+      "placement_name": "CF-300*250-即時比分頁上方-玩運彩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14150",
+      "placement_name": "MW_300x250_手機文中1_Juksy流行生活網_Exchange_2022(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14156",
+      "placement_name": "CF_300x250_文章結束(左側)_文末1_Juksy流行生活網_Exchange_2022(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14182",
+      "placement_name": "MW_300x250_文章結束(右側)_文末2_Juksy流行生活網_Exchange_2022(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14184",
+      "placement_name": "CF_300x250_閒置頁_Juksy流行生活網_Exchange_2022(R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18208",
+      "placement_name": "CF_文章頁右上300x250_UDN聯合新聞網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18209",
+      "placement_name": "MW_全站上方300x250_UDN聯合新聞網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18211",
+      "placement_name": "MW_文章頁文中300x250_UDN聯合新聞網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19014",
+      "placement_name": "CF_首頁文章推薦第三格300x250_UDN遊戲角落",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19015",
+      "placement_name": "CF_文章頁右上300x250_UDN遊戲角落",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19016",
+      "placement_name": "MW_全站上方300x250_UDN遊戲角落",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19017",
+      "placement_name": "MW_文章頁文中300x250_UDN遊戲角落",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19018",
+      "placement_name": "CF_首頁文章推薦第三格300x250_UDN元氣網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19019",
+      "placement_name": "CF_文章頁右上300x250_UDN元氣網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19020",
+      "placement_name": "MW_全站上方300x250_UDN元氣網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19021",
+      "placement_name": "MW_文章頁文中300x250_UDN元氣網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2388",
+      "placement_name": "CF_300x250_工具頁左側(PB)_ToolsKK",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2389",
+      "placement_name": "MW_300x250_工具頁上方1_ToolsKK",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5824",
+      "placement_name": "CF_300x250_工具頁右側(PB)_ToolsKK",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5825",
+      "placement_name": "MW_300x250_工具頁上方2_ToolsKK",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13907",
+      "placement_name": "MW_300x250_工具頁最下方_ToolsKK",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17312",
+      "placement_name": "MW_300x250_蓋板(PB)_ToolsKK",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2501",
+      "placement_name": "CF-300x250-右側上方通欄-數位時代",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13151",
+      "placement_name": "CF_300x250_內文下方左側__數位時代",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13152",
+      "placement_name": "CF_300x250_內文下方右側__數位時代",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14238",
+      "placement_name": "MW_文章結束第一塊_300x250_經理人-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14239",
+      "placement_name": "CF_300x250_內文下方右側_經理人-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14240",
+      "placement_name": "CF_300x250_內文下方左側_經理人-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14241",
+      "placement_name": "MW_300x250_內文下方_經理人-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14242",
+      "placement_name": "CF_300x250_內文下方左側_數位時代-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14243",
+      "placement_name": "CF_300x250_內文下方右側_數位時代-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14244",
+      "placement_name": "MW_300x250_文中第四塊_數位時代-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14245",
+      "placement_name": "MW_300x250_文末最後一塊_數位時代-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14246",
+      "placement_name": "MW_300x250_文章結束第一塊_數位時代-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14269",
+      "placement_name": "MW_300x250_文中第三塊_ShoppingDesig_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14270",
+      "placement_name": "MW_300x250_文中第四塊_ShoppingDesig_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14272",
+      "placement_name": "CF_300x250_右側通欄第三塊_ShoppingDesig_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15104",
+      "placement_name": "CF_300x250_內文下方左側_創業小聚_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15105",
+      "placement_name": "CF_300x250_內文下方右側_創業小聚_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2649",
+      "placement_name": "MW_336x280_首頁上方第一塊_今購百科_2024",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13409",
+      "placement_name": "CF_336x280_價格右側_今購百科_2024",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13410",
+      "placement_name": "CF_336x280_商品列表-1_今購百科_2024",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4390",
+      "placement_name": "MW-300X250_播放器下方_四季線上影音(IOS)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4391",
+      "placement_name": "MW-300X250_播放器下方_四季線上影音(Android)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12579",
+      "placement_name": "CF_300x250_右側第一塊_民視新聞網-Exchange(RWD)(MCM)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12580",
+      "placement_name": "CF_300x250_內文文中左側_民視新聞網-Exchange(RWD)(MCM)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8860",
+      "placement_name": "CF_300X250_文章右側_今日最新上方_四季線上",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8952",
+      "placement_name": "MW_300x250_文中_四季線上",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8953",
+      "placement_name": "MW_300x250_文章結束_延伸閱讀下方_四季線上",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13083",
+      "placement_name": "MW_300x250_電視節目表上方_四季線上",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7663",
+      "placement_name": "MW-300x250_上方看板_Nownews旅食樂",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7666",
+      "placement_name": "CF-300x250_內文頁右側1_Nownews旅食樂",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7668",
+      "placement_name": "CF-300x250_內文頁右側3_Nownews旅食樂",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7920",
+      "placement_name": "MW-300X250_內頁底-2_Nownews旅食樂",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "3636",
+      "placement_name": "MW-300*250-文末第四塊-痞凱踏踏PKstep",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5262",
+      "placement_name": "MW-300*250-文末第二塊-痞凱踏踏PKstep",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "3906",
+      "placement_name": "CF_300X250_內文第1塊_KiKiNote奇奇筆記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "3909",
+      "placement_name": "MW_300X250_內文上方第1塊_KiKiNote奇奇筆記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4210",
+      "placement_name": "CF-300X250-內文右側-獨家報導",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4211",
+      "placement_name": "CF-300X250-首頁右側-獨家報導",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4649",
+      "placement_name": "MW-300*250-內文下方-TSNA",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16964",
+      "placement_name": "CF_336x280_影音暫停頁_LINE TV",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8576",
+      "placement_name": "CF_336x280_戲劇-右側好康資訊下方_LINE TV-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8577",
+      "placement_name": "CF_336x280_戲劇-右側好康資訊上方_LINE TV-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18212",
+      "placement_name": "MW_336x280_文章Top_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18215",
+      "placement_name": "MW_336x280_餐廳資訊Top_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18216",
+      "placement_name": "CF_336x280_餐廳列表_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18217",
+      "placement_name": "MW_336x280_餐廳列表_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18841",
+      "placement_name": "MW_336x280_第11家餐廳上面_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18842",
+      "placement_name": "MW_336x280_評論區塊上方_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18843",
+      "placement_name": "MW_336x280_評論區塊下方_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18844",
+      "placement_name": "CF_336x280_第四家餐廳上面_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18846",
+      "placement_name": "MW_336x280_文章結尾_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18847",
+      "placement_name": "CF_336x280_照片下方_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18848",
+      "placement_name": "MW_336x280_第23家餐廳上面_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18849",
+      "placement_name": "MW_336x280_在第7家餐廳上面_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18850",
+      "placement_name": "MW_336x280_第15家餐廳上面_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19004",
+      "placement_name": "MW_300x250_floating_square_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19007",
+      "placement_name": "MW_300x250_popup_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19008",
+      "placement_name": "MW_336x280_post_inread_0_愛食記-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5972",
+      "placement_name": "MW_300x250_角色介紹-代表顏色下方_霹靂網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13395",
+      "placement_name": "MW_300x250文中創意_霹靂網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10334",
+      "placement_name": "MW_300x250_內文第1塊_黑特籃球-Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10335",
+      "placement_name": "MW_300x250_內文第2塊_黑特籃球-Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10336",
+      "placement_name": "MW_300x250_內文第3塊_黑特籃球-Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15950",
+      "placement_name": "MW_300x250_全網_BringYou-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17210",
+      "placement_name": "MW_336x280_內文文中_BringYou-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11328",
+      "placement_name": "MW_變形蓋版_今周刊New",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11329",
+      "placement_name": "MW_變形蓋版_幸福熟齡",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12292",
+      "placement_name": "CF_300x250_內文右側第二塊-1_今周刊_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12293",
+      "placement_name": "MW_300x250_內文第二塊_今周刊_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12600",
+      "placement_name": "MW_300x250_內文第四塊_今周刊_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13084",
+      "placement_name": "CF_300x250_內文右側第二塊-2_今周刊_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13085",
+      "placement_name": "CF_300x250_內文右側第二塊-3_今周刊_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7359",
+      "placement_name": "CF_300x250_右側欄位_非凡新聞-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14188",
+      "placement_name": "MW_300x250_內文上方_非凡新聞-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14406",
+      "placement_name": "CF_300x250_網誌-右側欄中_Cmoney-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21760",
+      "placement_name": "MW_文章三_336x280_TVBS-女人我最大_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21761",
+      "placement_name": "MW_文章四_336x280_TVBS-女人我最大_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21803",
+      "placement_name": "MW_文章一_336x280_TVBS-女人我最大_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21765",
+      "placement_name": "MW_文章三_336x280_TVBS-健康2.0_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21812",
+      "placement_name": "MW_文章一_336x280_TVBS-健康2.0_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21770",
+      "placement_name": "MW_文章三_336x280_TVBS-食尚玩家_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21771",
+      "placement_name": "MW_文章四_336x280_TVBS-食尚玩家_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21899",
+      "placement_name": "MW_文章一_336x280_TVBS-新聞網_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21900",
+      "placement_name": "MW_文章三_336x280_TVBS-新聞網_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21901",
+      "placement_name": "MW_文章四_336x280_TVBS-新聞網_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21994",
+      "placement_name": "MW_文中創意_Juksy_mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21995",
+      "placement_name": "MW_文中創意_Juksy_mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18330",
+      "placement_name": "MW_300x250首頁大看板_運動視界_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18332",
+      "placement_name": "MW_300x250分類頁大看板_運動視界_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18334",
+      "placement_name": "MW_300x250文章頁大看板_運動視界_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18336",
+      "placement_name": "MW_300x250文章頁文中1_運動視界_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18337",
+      "placement_name": "CF_300x250文章頁文中1_運動視界_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18338",
+      "placement_name": "CF_300x250文章頁文中2_運動視界_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18339",
+      "placement_name": "CF_300x250文章頁文中3_運動視界_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18340",
+      "placement_name": "CF_300x250文章頁文末_運動視界_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18343",
+      "placement_name": "MW_300x250文章頁文中3_運動視界_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18344",
+      "placement_name": "MW_300x250文章頁文末_運動視界_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20686",
+      "placement_name": "MW_300x250文章頁大看板_every little d_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20687",
+      "placement_name": "MW_300x250文章頁文中1_every little d_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20689",
+      "placement_name": "MW_300x250文章頁文中3_every little d_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20693",
+      "placement_name": "MW_300x250文章頁文末_every little d_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20695",
+      "placement_name": "CF_300x250文章頁文中1_every little d_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20697",
+      "placement_name": "CF_300x250文章頁文中3_every little d_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20698",
+      "placement_name": "CF_300x250文章頁文末_every little d_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21297",
+      "placement_name": "MW_300x250文章頁文上_關鍵評論網_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21298",
+      "placement_name": "MW_300x250文章頁文中1_關鍵評論網_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21303",
+      "placement_name": "CF_300x250文章頁文中1_關鍵評論網_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21337",
+      "placement_name": "MW_300x250首頁最新消息上方_COOL3C-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21338",
+      "placement_name": "MW_300x250文章頁上方_COOL3C-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21340",
+      "placement_name": "MW_300x250文章頁文中2_COOL3C-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21341",
+      "placement_name": "MW_300x250文章頁文末_COOL3C-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21363",
+      "placement_name": "CF_728x90文章頁文中2_COOL3C-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21364",
+      "placement_name": "CF_728x90文章頁文末_COOL3C-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21366",
+      "placement_name": "CF_300x600右側欄上方_COOL3C-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21367",
+      "placement_name": "CF_300x600右側欄下方_COOL3C-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21306",
+      "placement_name": "MW_300x250文章頁文上_INSIDE_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21307",
+      "placement_name": "MW_300x250文章頁文中1_INSIDE_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21309",
+      "placement_name": "MW_300x250文章頁文中3_INSIDE_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21313",
+      "placement_name": "CF_300x250文章頁文中1_INSIDE_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21315",
+      "placement_name": "CF_300x250文章頁文中3_INSIDE_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13764",
+      "placement_name": "MA_300x250_iCook_iPhone_FPv2_Middle1_Banner",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13766",
+      "placement_name": "MA_300x250_iCook_iPhone_Recipe_Bottomv2_Banner",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13767",
+      "placement_name": "MA_300x250_iCook_iPhone_Recipe_Middle_Banner",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13768",
+      "placement_name": "MA_300x250_iCook_iPhone_Recipe_Step_Banner",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13770",
+      "placement_name": "MA_300x250_iCook_iPhone_Recipes_Top_Banner",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13789",
+      "placement_name": "MA_300x250_iCook_Android_Recipe_Bottomv2_Banner",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13790",
+      "placement_name": "MA_300x250_iCook_Android_Recipe_Middle_Banner",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17247",
+      "placement_name": "CF_336x280_首頁最新文章第三格_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17248",
+      "placement_name": "MW_336x280_首頁最新文章第三格_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17249",
+      "placement_name": "CF_336x280_首頁最新文章第七格_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17250",
+      "placement_name": "MW_336x280_首頁最新文章第七格_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17251",
+      "placement_name": "CF_336x280_首頁右側熱門標籤下方_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17252",
+      "placement_name": "CF_336x280_首頁鄉民推薦右側_電影神搜_HB-",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17253",
+      "placement_name": "CF_336x280_集合頁第三格_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17254",
+      "placement_name": "MW_336x280_集合頁第三格_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17255",
+      "placement_name": "CF_336x280_集合頁第七格_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17256",
+      "placement_name": "MW_336x280_集合頁第七格_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17260",
+      "placement_name": "CF_336x280_文章內頁每日熱門排行下方_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17261",
+      "placement_name": "CF_336x280_文章內頁相關文章第二格下方_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17262",
+      "placement_name": "MW_336x280_文章內頁第一段文字上方_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17263",
+      "placement_name": "MW_336x280_文章內頁延伸閱讀上方_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17264",
+      "placement_name": "MW_336x280_文章內頁每日熱門排行上方_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21778",
+      "placement_name": "MW_Recipes_Top_336x280banner_愛料理_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21779",
+      "placement_name": "MW_Recipes_Middle_336x280banner_愛料理_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21780",
+      "placement_name": "MW_Recipes_Bottom_336x280banner_愛料理_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13164",
+      "placement_name": "MW_文中創意300x250_東森新聞網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13258",
+      "placement_name": "MW_300x250_不分版位_東森新聞網_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17190",
+      "placement_name": "MW_文中創意300x250_造咖",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17191",
+      "placement_name": "MW_300x250_不分版位_造咖",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18958",
+      "placement_name": "MW_文中創意300x250_東森地產王",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18960",
+      "placement_name": "MW_300x250_不分版位_東森地產王-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21213",
+      "placement_name": "MW_文中創意300x250_東森財經新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21216",
+      "placement_name": "MW_300x250_不分版位_東森財經新聞-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18481",
+      "placement_name": "MW_文中創意320x480(PB)_華視-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12174",
+      "placement_name": "MW_文中創意300x250_keketravel",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20732",
+      "placement_name": "CF_336x280_keketravel(PB)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11273",
+      "placement_name": "MW-300X250-ttshow",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12283",
+      "placement_name": "MW-300x250_文中創意__ttshow",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12979",
+      "placement_name": "MW-300x250_banner_plurk",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13241",
+      "placement_name": "CF_300x250_banner_dailymotion",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20731",
+      "placement_name": "CF_300x250_banner_kikinote (PB)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17970",
+      "placement_name": "MW_300x250_內文_ftvnews",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21959",
+      "placement_name": "CF_336x280_Banner_plurk search",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13652",
+      "placement_name": "CF_300x250_toy-people_AM",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11251",
+      "placement_name": "CF_300x250_首頁右上方_欣嚴選",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18863",
+      "placement_name": "CF_300x600_文章頁面右側第二塊_欣傳媒2023exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18867",
+      "placement_name": "CF_300x250_全站右側第一塊_欣講堂-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18868",
+      "placement_name": "CF_300x250_全站右側第二塊_欣講堂-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18982",
+      "placement_name": "CF_336x280文章頁內文第一段下方_欣傳媒2023-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18983",
+      "placement_name": "ＭＷ_336x280文章頁內文第一段下方_欣傳媒2023exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18258",
+      "placement_name": "MW_文章頁文上300x250_韓粉日常-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18359",
+      "placement_name": "CF_文章頁文中(2)300x250_韓粉日常-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18363",
+      "placement_name": "MW_文中創意320x480(PB)_韓粉日常-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18250",
+      "placement_name": "CF_全站右側通欄上方300x250_女生日常-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18251",
+      "placement_name": "CF_全站右側通欄中間(1)300x250_女生日常-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18348",
+      "placement_name": "CF_全站右側通欄下方300x250_女生日常-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18349",
+      "placement_name": "CF_文章頁文中(1)300x250_女生日常-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18351",
+      "placement_name": "CF_文章頁文末(1)300x250_女生日常-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18353",
+      "placement_name": "MW_文中創意320x480(PB)_女生日常-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14066",
+      "placement_name": "WEB_磁浮廣告_2023 HBL",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10676",
+      "placement_name": "CF-300X250_首頁_PChome商店街",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14143",
+      "placement_name": "CF_336x280_Banner_91譜_exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12914",
+      "placement_name": "CF_300x250_右側通欄倒數第二塊_風傳媒_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15249",
+      "placement_name": "CF_300x250_搜尋頁右側_abc好車網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13739",
+      "placement_name": "MW_336x280_首頁-今日購物限時優惠_樂天市場購物網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13740",
+      "placement_name": "CF_336x280_商品內頁左側_樂天市場購物網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13741",
+      "placement_name": "MW_336x280_購買完成頁_樂天市場購物網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14137",
+      "placement_name": "MW_300x250_內文文章結束_OwlNews",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14138",
+      "placement_name": "CF_300x250_分頁下方右側_OwlNews",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14936",
+      "placement_name": "CF_300x250_CATCHPLAY+ _ WEB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15219",
+      "placement_name": "CF_300x250_內容頁-文中_今健康-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15220",
+      "placement_name": "CF_300x250_內容頁-右側上方_今健康-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15221",
+      "placement_name": "CF_300x250_內容頁-右側第二塊_今健康-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15222",
+      "placement_name": "CF_300x250_內容頁-右側第三塊_今健康-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15223",
+      "placement_name": "MW_300x250_內容頁-最上方_今健康-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15225",
+      "placement_name": "MW_300x250_文中創意PB_今健康-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16981",
+      "placement_name": "MW_文中創意300x250_妞新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22221",
+      "placement_name": "MW_蓋板_妞新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16971",
+      "placement_name": "MW_文中創意300x250_Hami任務牆",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17104",
+      "placement_name": "CF_336x280_首頁_右側看板A-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17105",
+      "placement_name": "CF_336x280_首頁_右側看板B-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17107",
+      "placement_name": "MW_336x280_首頁_MiddleBanner1-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17108",
+      "placement_name": "MW_336x280_首頁_MiddleBanner2-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17109",
+      "placement_name": "MW_336x280_首頁_EndBanner-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17111",
+      "placement_name": "MW_336x280_目錄頁_EndBanner-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17113",
+      "placement_name": "CF_336x280_內容頁_右側看板A-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17114",
+      "placement_name": "CF_336x280_內容頁_右側看板B-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17115",
+      "placement_name": "CF_336x280_內容頁_文末Banner-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17116",
+      "placement_name": "MW_336x280_內容頁_置頂Banner-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17117",
+      "placement_name": "MW_336x280_內容頁_文中Banner-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17118",
+      "placement_name": "MW_336x280_內容頁_文末Banner1-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17119",
+      "placement_name": "MW_336x280_內容頁_文末Banner2-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17120",
+      "placement_name": "MW_336x280_內容頁_文末Banner3-記者爆料網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17162",
+      "placement_name": "MW_300x250_文中創意_記者爆料網-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17178",
+      "placement_name": "CF_300x250_頻道頁_大看板_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17179",
+      "placement_name": "CF_300x250_熱門大看板_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17180",
+      "placement_name": "CF_300x250_置底看板左_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17181",
+      "placement_name": "CF_300x250_置底看板中_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17182",
+      "placement_name": "CF_300x250_置底看板右_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17185",
+      "placement_name": "CF_300x250_特殊看板右上_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17192",
+      "placement_name": "CF_300x250_特殊置底看板左_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17193",
+      "placement_name": "CF_300x250_特殊置底看板中_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17194",
+      "placement_name": "CF_300x250_特殊置底看板右_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17198",
+      "placement_name": "MW_336x280_刊頭看板_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17199",
+      "placement_name": "MW_336x280_置底看板_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17200",
+      "placement_name": "MW_336x280_列表看板_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17201",
+      "placement_name": "MW_336x280_特殊刊頭看板_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17202",
+      "placement_name": "MW_336x280_特殊置底看板_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17203",
+      "placement_name": "MW_336x280_特殊列表看板_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17204",
+      "placement_name": "MW_300x250_文中Banner(interscroller)_Mobile01_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21346",
+      "placement_name": "MW_300x250_文中_租租知識通-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22113",
+      "placement_name": "ＭＷ_300x250_頁面右側_租租通搜尋結果-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21813",
+      "placement_name": "MW_文中創意300x250_知新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21815",
+      "placement_name": "CF_300x250_頻道頁右1_知新聞-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21816",
+      "placement_name": "CF_300x250_頻道頁右2_知新聞-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21820",
+      "placement_name": "CF_300x250_內文頁右上1_知新聞-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21821",
+      "placement_name": "CF_300x250_內文頁右上2_知新聞-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21823",
+      "placement_name": "MW_300x250banner_內文第一顆mook_all_top_MOOK景點家",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22507",
+      "placement_name": "MW_300x250_鉅亨網_直播用BN-1",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12264",
+      "placement_name": "CF_300x250_全站右側通欄_Basketball TOP5",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21777",
+      "placement_name": "MW_文中創意300x250_Basketball Top5",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22498",
+      "placement_name": "MW_300x250_Basketball TOP5_直播用BN-1",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22499",
+      "placement_name": "MW_300x250_Basketball TOP5_直播用BN-2",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22500",
+      "placement_name": "MW_300x250_Basketball TOP5_直播用BN-3",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22510",
+      "placement_name": "MW_300x250_上報_直播用BN-1",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22401",
+      "placement_name": "MW_336x280_全網版位_痞客邦（原14145）",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22445",
+      "placement_name": "MW_336x280_全網版位_痞客邦 高VTR",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22446",
+      "placement_name": "MW_336x280_全網版位_痞客邦  低CPM",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22469",
+      "placement_name": "MW_文中300x250_痞客邦",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22489",
+      "placement_name": "MW_300x250_痞客邦_直播用BN-1",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22490",
+      "placement_name": "MW_300x250_痞客邦_直播用BN-2",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22491",
+      "placement_name": "MW_300x250_痞客邦_直播用BN-3",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22062",
+      "placement_name": "MW_文中創意_PopDaily-1",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22063",
+      "placement_name": "MW_文中創意_PopDaily-2",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9106",
+      "placement_name": "MW_文中300x250_INSIDE",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7530",
+      "placement_name": "MW-300X250_內文下方_行遍天下",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22136",
+      "placement_name": "MW_文中創意_行遍天下-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13848",
+      "placement_name": "CF_300x250_轉址失敗_最右邊_reurl",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13856",
+      "placement_name": "CF_300x250_轉址失敗頁第二塊_reurl",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13858",
+      "placement_name": "CF_300x250_網址下方左側_reurl",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13860",
+      "placement_name": "CF_300x250_網址下方右側_reurl",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20279",
+      "placement_name": "CF_300x250_轉址失敗頁左_reurl (R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20282",
+      "placement_name": "MW_300x250_轉址失敗頁_reurl (R18)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14210",
+      "placement_name": "MW_文中創意300x250_縮短網址產生器-reurl",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16980",
+      "placement_name": "MW_文中創意300x250_大人物",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22222",
+      "placement_name": "MW_蓋板_大人物",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21283",
+      "placement_name": "MW_300x250_manhuagui_漫畫櫃",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4716",
+      "placement_name": "CF-內文中間-300*250-龍騰世紀書庫",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4678",
+      "placement_name": "CF-內文上方-300*250-紅櫻桃小說書庫",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4717",
+      "placement_name": "MW-文中創意300*250-紅櫻桃小說書庫",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9153",
+      "placement_name": "MW-300X250_85小說網_隨身影音PB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13445",
+      "placement_name": "MW_336X280_全量1_85小說網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13446",
+      "placement_name": "MW_336X280_全量2_85小說網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "1698",
+      "placement_name": "MW-300x250_功能列下方_扒書網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "1773",
+      "placement_name": "CF-300x250_85小說網_內文1",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13449",
+      "placement_name": "CF_336x280_全量1_85小說網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15227",
+      "placement_name": "MW-300X250_85小說網_隨身影音PB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12216",
+      "placement_name": "CF_300x250_文中_單車時代",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22504",
+      "placement_name": "MW_300x250_韓基地_直播用BN-1",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "514",
+      "placement_name": "CF-300X250_內文頁下方_bobowin旅行攝影生活",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "1408",
+      "placement_name": "CF-300X250_內文_飛格寵物家族",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2341",
+      "placement_name": "MW-300X250內文下方_萊爾德工作(RWD)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6966",
+      "placement_name": "MW-300x250_下方廣告_軟體部落",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15158",
+      "placement_name": "MW_內文下方300x250_動漫狂-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2290",
+      "placement_name": "MW-300x250&336x280_第一塊_Web批踢踢(RWD)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2294",
+      "placement_name": "MW-300x250&336x280_第三塊_Web批踢踢(RWD)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2296",
+      "placement_name": "MW-300x250&336x280_第四塊_Web批踢踢(RWD)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "2757",
+      "placement_name": "MW-300x250_內文頁文末(下)_台灣住宿推薦排行榜",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6069",
+      "placement_name": "CF-300*250-首頁-動漫戲說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9427",
+      "placement_name": "MW_300X250_內文文末(ADXPB)_小鎮資訊",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "3996",
+      "placement_name": "MW-文中創意300X250-下方通欄2-精讚部落格",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4179",
+      "placement_name": "CF-內文上方-300*250-簡單新生活_exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15233",
+      "placement_name": "CF_336x280_文中_funnyp.co-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15234",
+      "placement_name": "MW_336x280_文中_funnyp.co-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4421",
+      "placement_name": "MW-300*250-內文下方-匯流新聞網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6296",
+      "placement_name": "MW-300X250-中間通欄-3C影音客棧",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6298",
+      "placement_name": "MW-300X250-相關影片上方-3C影音客棧",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4582",
+      "placement_name": "CF-300X250-上方通欄-iTVer 電視吧",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4584",
+      "placement_name": "MW-300X250-上方通欄-iTVer 電視吧",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4997",
+      "placement_name": "CF-300X250-電視超人",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9840",
+      "placement_name": "MW_300X250_其他列表內文上方_臺灣仙境傳說-幻想廳-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12821",
+      "placement_name": "MW_300x250_其他列表內文下方_臺灣仙境傳說-幻想廳-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14001",
+      "placement_name": "CF_300x250_書本頁右上_POPO原創市集_Exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8710",
+      "placement_name": "MW-300*250-下方通欄-RO守遊資料庫-流大",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5162",
+      "placement_name": "MW_首頁下方_300x250_台灣同人誌中心-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4735",
+      "placement_name": "MW-300*250-內文下方-泰好網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "4971",
+      "placement_name": "MW-300X250-內文下方-KPOP Korean POP Music 韓國流行音樂 韓星網路大集合",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5114",
+      "placement_name": "MW-300X250-下方通欄-百萬家庭拜拜網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5167",
+      "placement_name": "MW_300x250_文中創意_大口老師的走跳學堂!",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5122",
+      "placement_name": "MW-300X250-右側通欄-易學網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5142",
+      "placement_name": "MW-300*250-內文版位-賽肥膩膩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "5234",
+      "placement_name": "MW-300X250-下方通欄-預見雜誌",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9217",
+      "placement_name": "MW-300X250_內頁上方第一塊_奇集集_隨身影音PB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6196",
+      "placement_name": "CF-首頁中間-300*250-大A彩券網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18830",
+      "placement_name": "MW_300x250_Banner_老葉看版(NEW)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6309",
+      "placement_name": "CF-336x280_內文上方_夢遊電玩-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18264",
+      "placement_name": "MW-336x280_內文上方_夢遊電玩_exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6656",
+      "placement_name": "MW-300*250-內文中-夢遊電玩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18269",
+      "placement_name": "300x250 Banner",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12510",
+      "placement_name": "CF-300x250_Banner_冰楓論壇-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9307",
+      "placement_name": "CF-300X250-跳轉頁下方-冰楓短網址",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9308",
+      "placement_name": "ＭＷ-300X250-跳轉頁下方-冰楓短網址",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9583",
+      "placement_name": "MW-300X250-舉報下方-BFFile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18492",
+      "placement_name": "MW_300x250_Banner_ 冰楓論壇-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22159",
+      "placement_name": "MW_300x250_Banner2_ 冰楓論壇-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6733",
+      "placement_name": "MW-300*250-內文中-運彩報馬仔",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "6797",
+      "placement_name": "MW-300*250-內文下方-環境資訊中心",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7153",
+      "placement_name": "CF-300X250-右側通欄-英語島",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21985",
+      "placement_name": "MW_336x280_文中創意_熱血台中",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21930",
+      "placement_name": "MW_文中創意_書中字有黃金屋-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21931",
+      "placement_name": "MW_文中創意_稅美人-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22240",
+      "placement_name": "MW_320x480蓋板_稅美人-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21932",
+      "placement_name": "MW_文中創意_玩桌遊-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21933",
+      "placement_name": "MW_文中創意_運動BBS-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22012",
+      "placement_name": "MW_文中創意_老王隔壁-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22129",
+      "placement_name": "MW_文中創意_愛下電子書 HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22145",
+      "placement_name": "MW_336x280_文中創意_Teepr亮新聞 HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22146",
+      "placement_name": "MW_336x280_文中創意1_知新聞 HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22147",
+      "placement_name": "MW_336x280_文中創意_知新聞2 HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22157",
+      "placement_name": "MW_336x280_文中創意_方格子 HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7419",
+      "placement_name": "MA-300*250-事求人",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12619",
+      "placement_name": "MA_300X250_Banner_小電視",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12620",
+      "placement_name": "MA_300x250_banner_看電視新聞APP",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18019",
+      "placement_name": "MW_336x280_文章頁文中第二顆_歐搜哇_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18020",
+      "placement_name": "MW_336x280_文章頁文中第三顆_歐搜哇_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18021",
+      "placement_name": "MW_336x280_文章頁文末_歐搜哇_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18927",
+      "placement_name": "MW_iGood_a_p2_文中創意300x250_iGood",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7719",
+      "placement_name": "MW-300X250_下方看版_滄者極限",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8803",
+      "placement_name": "CF-300x250-首頁下方-華人百科",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13733",
+      "placement_name": "CF_300x250_banner_8comic",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11260",
+      "placement_name": "MW-300X250-MB_page_left-risu",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11978",
+      "placement_name": "MW_變形蓋版_risu短網址",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17006",
+      "placement_name": "CF_300x250_popup _risu短網址(一般)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14037",
+      "placement_name": "MW_320x480_meme",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11996",
+      "placement_name": "CF_300x250_pttnews(RWD)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12173",
+      "placement_name": "MW_文中創意300x250_sunflyday",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12555",
+      "placement_name": "MW-300x250_文中創意_czbooks",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12975",
+      "placement_name": "MW_300x250_文中banner_czbooks",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13481",
+      "placement_name": "MW_300x250_banner_czbooks",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13487",
+      "placement_name": "MW_300x250_文章末banner_czbooks",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14036",
+      "placement_name": "MW_320x480_CZBOOKS",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12673",
+      "placement_name": "CF_300X250_manhuagui",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17027",
+      "placement_name": "MW_320x480_蓋版_漫畫櫃manhuagui",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20685",
+      "placement_name": "MW_300X250_manhuagui",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13169",
+      "placement_name": "MW_300x250_Banner_8book",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13737",
+      "placement_name": "CF_300x250_banner_8book",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13227",
+      "placement_name": "MW_300x250_文中創意_Eatmary",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13549",
+      "placement_name": "CF_300x250_banner_clickme(一般)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13720",
+      "placement_name": "MW_300x250_文中創意_v6nwm",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13731",
+      "placement_name": "MW_336x280_banner_v6nwm_popup",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13819",
+      "placement_name": "CF_300x250_banner_pilio",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14128",
+      "placement_name": "FSA_outbound_300x250_czbooks",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14161",
+      "placement_name": "CF_300x250_banner_jonlovefood",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14719",
+      "placement_name": "MW_300x250_文中創意_horo88",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14361",
+      "placement_name": "CF_336x280_Banner_furnishwe",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14463",
+      "placement_name": "CF_336x280_banner_firstopdesign",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14482",
+      "placement_name": "CF_336x280_banner_cartoonfans766",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14556",
+      "placement_name": "CF_336x280_banner_ddojoy",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14698",
+      "placement_name": "MW_336x280_Banner_lookit",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17313",
+      "placement_name": "MW_300x250_Banner_apk.tw-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17314",
+      "placement_name": "MW_300x250_popup_apk.tw-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17321",
+      "placement_name": "CF_300x250_Banner_memes.tw-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17322",
+      "placement_name": "CF_336x280_Banner_memes.tw-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18756",
+      "placement_name": "(子)CF_300x250_Banner_ezneering",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21282",
+      "placement_name": "MW_336x280_banner_芒果小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21739",
+      "placement_name": "MW_336x280 Banner_PO客",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21740",
+      "placement_name": "CF_336x280 Banner_PO客",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13054",
+      "placement_name": "MW_300x250_文中創意_二次元fun",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18263",
+      "placement_name": "MW_文章頁文上300x250_毛孩日常-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22488",
+      "placement_name": "APP_磁浮廣告_2023 HBL",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10710",
+      "placement_name": "CF_300x250_討論區下方右側_馬祖資訊網_Exchange_2024",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10716",
+      "placement_name": "CF_300x250_首頁右中- 提姆網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10722",
+      "placement_name": "CF_300x250_論壇列表上- 提姆網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10724",
+      "placement_name": "CF_300x250_論壇內文上- 提姆網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10751",
+      "placement_name": "CF_300x250_論壇內文下- 提姆網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11067",
+      "placement_name": "MW_300x250-首頁新聞圖文廣告(11066RWD)- 提姆網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11085",
+      "placement_name": "MW_300x250-首頁新聞第四則圖文廣告(11084RWD)- 提姆網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10796",
+      "placement_name": "MW_變形蓋版_爆新聞omg",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14220",
+      "placement_name": "MW_336x280_ 查電話首頁_店家資料上方 _whocll 查電話",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14225",
+      "placement_name": "MW_336x280_查電話結果頁_上方 _whocll 查電話",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14226",
+      "placement_name": "MW_336x280_ 查電話結果頁_電話說明上方 _whocll 查電話",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12933",
+      "placement_name": "MW_文中300x250_肖準紫微神算",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14212",
+      "placement_name": "MW_文中創意300x250_日期計算機 - Youtils",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14213",
+      "placement_name": "MW_文中創意300x250_日期計算機 - Youtils",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13141",
+      "placement_name": "MW_300x250_文中創意_12生肖",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13977",
+      "placement_name": "MW_336x280_(AD)_包子漫畫",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15141",
+      "placement_name": "MW_336x280_Banner_包子漫畫(kukuc.co)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17033",
+      "placement_name": "CF_336x280_Banner置頂_天天要聞(bg3.co)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17043",
+      "placement_name": "CF_336x280_Banner文中_天天要聞(bg3.co)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17044",
+      "placement_name": "CF_336x280_Banner文末_天天要聞(bg3.co)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17046",
+      "placement_name": "MW_336x280_Banner文末_天天要聞(bg3.co)-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18038",
+      "placement_name": "MW_336x280_Banner_包子漫畫dociy-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18051",
+      "placement_name": "MW_320x480_蓋板_包子漫畫dociy-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18732",
+      "placement_name": "MW_336x280_Banner_包子漫畫_twmanga",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21502",
+      "placement_name": "MW_336x280_Banner_包子漫畫2024-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17095",
+      "placement_name": "(子)MW_336x280_Banner_稷下書院-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14446",
+      "placement_name": "CF_336x280_Banner_石頭小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14472",
+      "placement_name": "MW_336x280_Banner_石頭小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17010",
+      "placement_name": "MW_變形蓋版_稷下書院-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21741",
+      "placement_name": "MW_320x480_蓋版_石頭小說-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16953",
+      "placement_name": "CF_336x280banner_提莫書屋_exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16957",
+      "placement_name": "MW_336x280banner_提莫書屋_exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22046",
+      "placement_name": "CF_320 x 480 橫幅_石頭小說",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22089",
+      "placement_name": "CF_320 x 480 橫幅_稷下書院2",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22399",
+      "placement_name": "CF_320 x 480 橫幅_石頭小說3",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22172",
+      "placement_name": "MW_300x250_文中創意_賴傳媒",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17081",
+      "placement_name": "CF_336x280_首頁列表_文思泉湧-點子網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17267",
+      "placement_name": "MW_336x280_首頁列表中間_文思泉湧-點子網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17270",
+      "placement_name": "CF_336x280_內文中間_文思泉湧-點子網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17272",
+      "placement_name": "MW_336x280_文章頁刊頭_文思泉湧-點子網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17273",
+      "placement_name": "MW_336x280_文末_文思泉湧-點子網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17276",
+      "placement_name": "MW_300x250_文中創意(PB)_文思泉湧-點子網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18032",
+      "placement_name": "CF_336x280_首頁列表2_文思泉湧-點子網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18033",
+      "placement_name": "CF_336x280_內文中間2_文思泉湧-點子網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18034",
+      "placement_name": "MW_336x280_首頁列表中間2_文思泉湧-點子網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18035",
+      "placement_name": "CF_336x280_首頁列表3_文思泉湧-點子網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18036",
+      "placement_name": "CF_336x280_內文中間3_文思泉湧-點子網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18037",
+      "placement_name": "MW_336x280_首頁列表中間3_文思泉湧-點子網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18988",
+      "placement_name": "CF_336x280_目錄頁Banner_訓練家情報網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18989",
+      "placement_name": "CF_300x250_內容頁右側1_訓練家情報網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18992",
+      "placement_name": "MW_336x280_首頁Banner_訓練家情報網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18995",
+      "placement_name": "MW_336x280_內容頁置底_訓練家情報網-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18996",
+      "placement_name": "MW_置底創意_訓練家情報網-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17293",
+      "placement_name": "CF_336x280_Banner_vivi01視頻-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17294",
+      "placement_name": "MW_336x280_Banner_vivi01視頻-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17297",
+      "placement_name": "(子)MW_336x280_Banner_趣聞圖說-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17309",
+      "placement_name": "MW_336x280_文中Banner_趣聞圖說-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18576",
+      "placement_name": "MW_336x280_Banner_TOP_萬花小說-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18090",
+      "placement_name": "CF_300x250_內容頁上方_TSNA-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18897",
+      "placement_name": "MW_文中創意300x250_荷花動漫筆記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18887",
+      "placement_name": "CF_336x280_文章頁文中_荷花動漫筆記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21401",
+      "placement_name": "MW_336x280_首頁列表最上方_知識網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21402",
+      "placement_name": "MW_336x280_首頁列表中間1_知識網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21403",
+      "placement_name": "MW_336x280_首頁列表中間2_知識網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21404",
+      "placement_name": "MW_336x280_文章頁最上方_知識網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21405",
+      "placement_name": "MW_336x280_文章頁最下方_知識網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20706",
+      "placement_name": "CF_336x280文章頁(RWD)_TW Bodhi",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20719",
+      "placement_name": "MW_文中創意300x250_TW Bodhi",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20727",
+      "placement_name": "CF_336x280文章頁(RWD)_忘憂書屋",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20728",
+      "placement_name": "MW_文中創意300x250_忘憂書屋",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20789",
+      "placement_name": "MW_300x250_文章頁文中_Wise Novel-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21292",
+      "placement_name": "MW_300x250_文章頁文中_ABOnovel-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21492",
+      "placement_name": "MW_300x250_文章頁文末_66novel-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21426",
+      "placement_name": "MW_336x280文章頁最上方(RWD)_野史祕聞錄",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21427",
+      "placement_name": "MW_336x280文章頁相關文章上方(RWD)_野史祕聞錄",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21428",
+      "placement_name": "MW_336x280文章頁相關文章下方第一塊(RWD)_野史祕聞錄",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21429",
+      "placement_name": "MW_336x280文章頁相關文章下方第二塊(RWD)_野史祕聞錄",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21437",
+      "placement_name": "MW_336x280文章頁最上方(RWD)_靈異事件簿",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21438",
+      "placement_name": "MW_336x280文章頁相關文章上方(RWD)_靈異事件簿",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21696",
+      "placement_name": "MW_336x280文章頁(RWD)_爆漫畫-exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21498",
+      "placement_name": "MW_336x280_內容頁_悅讀小說_exchange",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22096",
+      "placement_name": "MW_文中創意_Ｍiku's Blog-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "Remark",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "版位壞掉了,目前修復中,不知道幾時會好",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "Banner +文中版位",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "要喊先找媒體22200，不得已才找富盈22062、22063",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "價格高+FR須保證，建議有指名才開",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "網站改版不開放",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12291",
+      "placement_name": "MW-300x250_文中創意__匯流新聞網",
+      "media_target": 1000.0,
+      "remark": ""
+    }
+  ],
+  "文中320x480": [
+    {
+      "placement_id": "20283",
+      "placement_name": "MW_文中創意320x480_popo筆記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11432",
+      "placement_name": "MW_320x480_文中創意_窩客島",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11417",
+      "placement_name": "MW_320x480_文中創意_台灣達人秀",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12761",
+      "placement_name": "MW_320x480_文中創意_工商時報new",
+      "media_target": 80000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15265",
+      "placement_name": "MW_320x480文中創意_商周",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19011",
+      "placement_name": "MW_320x480_文中創意_良醫健康網",
+      "media_target": 1000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22084",
+      "placement_name": "MW_320x480_文中創意_鏡新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21318",
+      "placement_name": "MW_320x480_文中創意_太報",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18773",
+      "placement_name": "MW_320x480_文中創意_媽媽經",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19044",
+      "placement_name": "MW_320x480_文中創意_玩具人",
+      "media_target": 24000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22087",
+      "placement_name": "MW_320x480_文中創意_商周財富網",
+      "media_target": 5000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22086",
+      "placement_name": "MW_320x480_文中創意_商周自學網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22099",
+      "placement_name": "MW_320x480_文中創意_遠見_城市學",
+      "media_target": 2000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22100",
+      "placement_name": "MW_320x480_文中創意_遠見_健康遠見",
+      "media_target": 2000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22101",
+      "placement_name": "MW_320x480_文中創意_遠見_遠見雜誌",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22102",
+      "placement_name": "MW_320x480_文中創意_遠見_ESG遠見",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20615",
+      "placement_name": "MW_文中創意320x480_綠色工廠-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20614",
+      "placement_name": "MW_文中創意320x480_哇哇3C日誌-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7329",
+      "placement_name": "MW_文中創意320x480_小老婆汽機車資訊網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22058",
+      "placement_name": "MW_文中創意320x480_小老婆汽機車資訊網-測試",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15006",
+      "placement_name": "MW_文中創意320x480_小老婆汽機車資訊網-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15261",
+      "placement_name": "MW_文中創意320x480_UDN聯合新聞mobile-news (專案用)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15262",
+      "placement_name": "MW_文中創意320x480_UDN聯合新聞-style (專案用)",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14735",
+      "placement_name": "MW_文中創意320x480_經理人_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14765",
+      "placement_name": "MW_文中創意320x480_數位時代_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14247",
+      "placement_name": "MW_文中創意320x480_四季線上影視-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14773",
+      "placement_name": "MW_文中創意320x480_民視新聞-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "8246",
+      "placement_name": "MW_文中創意320x480_鏡週刊",
+      "media_target": 500.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7333",
+      "placement_name": "MW-內文全屏-TSNA體育新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11327",
+      "placement_name": "MW_文中創意320x480_今周刊New",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21763",
+      "placement_name": "MW_文中創意320x480_TVBS-女人我最大_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21768",
+      "placement_name": "MW_文中創意320x480_TVBS-健康2.0_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21773",
+      "placement_name": "MW_文中創意320x480_TVBS-食尚玩家_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21904",
+      "placement_name": "MW_文中創意320x480_TVBS-新聞網_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21994",
+      "placement_name": "MW_文中創意_Juksy_mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21995",
+      "placement_name": "MW_文中創意_Juksy_mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10327",
+      "placement_name": "MW_文中320x480_關鍵評論網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18342",
+      "placement_name": "MW_320x480文中創意_運動視界_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "20692",
+      "placement_name": "MW_320x480文中創意_every little d_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21299",
+      "placement_name": "MW_320x480文中創意_關鍵評論網_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21339",
+      "placement_name": "MW_320x480文中創意_COOL3C-HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21308",
+      "placement_name": "MW_320x480文中創意_INSIDE_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18511",
+      "placement_name": "MW_文中創意320x480_Recipe_Bottom_愛料理-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17259",
+      "placement_name": "MW_320x480文中創意_文章內頁兩個文字段落後_電影神搜_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13163",
+      "placement_name": "MW_文中創意320x480_東森新聞網",
+      "media_target": 11000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13164",
+      "placement_name": "MW_文中創意300x250_東森新聞網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17189",
+      "placement_name": "MW_文中創意320x480_造咖",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18957",
+      "placement_name": "MW_文中創意320x480_東森地產王",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21212",
+      "placement_name": "MW_文中創意320x480_東森財經新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17232",
+      "placement_name": "MW_文中創意320x480_華視-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13845",
+      "placement_name": "MW_文中創意320x480_keketravel",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14827",
+      "placement_name": "MW_320x480_文中創意_kikinote",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18454",
+      "placement_name": "MW_文中創意320x480_韓粉日常-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22200",
+      "placement_name": "MW_320x480_文中創意_PopDaily",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14253",
+      "placement_name": "MW_文中創意320x480_樂天市場購物網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15218",
+      "placement_name": "MW_320x480文中創意_今健康-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "15252",
+      "placement_name": "MW_文中創意320x480_Beauty 美人圈",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16978",
+      "placement_name": "MW_文中創意320x480_妞新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16970",
+      "placement_name": "MW_文中創意320x480_Hami任務牆",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17161",
+      "placement_name": "MW_320x480_文中創意_記者爆料網-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21484",
+      "placement_name": "MW_320x480_文中創意_記者新聞網-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18294",
+      "placement_name": "MW_320x480文中創意_FTNN新聞網-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21814",
+      "placement_name": "MW_文中創意320x480_知新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11877",
+      "placement_name": "MW_文中創意_MOOK景點家",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12070",
+      "placement_name": "MW_320x480_文中創意_鉅亨網",
+      "media_target": 6500.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11874",
+      "placement_name": "MW_文中創意_車訊",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11889",
+      "placement_name": "MW_320x480_文中創意_Basketball Top5",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22109",
+      "placement_name": "MW_320x480_文中創意_好好玩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21907",
+      "placement_name": "MB_文中創意320x480_噓新聞",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22062",
+      "placement_name": "MW_文中創意_PopDaily-1",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22063",
+      "placement_name": "MW_文中創意_PopDaily-2",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9632",
+      "placement_name": "MW_文中320x480_運動視界",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22136",
+      "placement_name": "MW_文中創意_行遍天下-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16977",
+      "placement_name": "MW_文中創意320x480_大人物",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12072",
+      "placement_name": "MW_320x480_文中創意_kpopn",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12078",
+      "placement_name": "MW_320x480_文中創意_動誌",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22085",
+      "placement_name": "MW_320x480_文中創意_科技紫微",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21319",
+      "placement_name": "MW_320x480_文中創意_商妮吃喝遊樂",
+      "media_target": 1000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22088",
+      "placement_name": "MW_320x480_文中創意_kpopdays",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22108",
+      "placement_name": "MW_320x480_文中創意_韓基地",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22149",
+      "placement_name": "MW_320x480_文中創意_POPO筆記",
+      "media_target": 1300.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22150",
+      "placement_name": "MW_320x480_文中創意_POPO筆記2",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21920",
+      "placement_name": "MW_文中創意320x480_人物誌",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "19238",
+      "placement_name": "MW_320x480_文中創意_8book",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21224",
+      "placement_name": "MW_文中創意320x480_8novel",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9644",
+      "placement_name": "MW_卷軸影音_85小說網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9625",
+      "placement_name": "MW_卷軸影音_小鎮資訊",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12654",
+      "placement_name": "MW_文中創意320x480_RO守遊資料庫",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "9745",
+      "placement_name": "MW_文中創意320x480-賽肥膩膩",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17218",
+      "placement_name": "MW_320x480文中創意_文章頁文中2_人車事-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21985",
+      "placement_name": "MW_336x280_文中創意_熱血台中",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21930",
+      "placement_name": "MW_文中創意_書中字有黃金屋-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21931",
+      "placement_name": "MW_文中創意_稅美人-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21932",
+      "placement_name": "MW_文中創意_玩桌遊-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21933",
+      "placement_name": "MW_文中創意_運動BBS-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22012",
+      "placement_name": "MW_文中創意_老王隔壁-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22129",
+      "placement_name": "MW_文中創意_愛下電子書 HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22145",
+      "placement_name": "MW_336x280_文中創意_Teepr亮新聞 HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22146",
+      "placement_name": "MW_336x280_文中創意1_知新聞 HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22147",
+      "placement_name": "MW_336x280_文中創意_知新聞2 HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22157",
+      "placement_name": "MW_336x280_文中創意_方格子 HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18018",
+      "placement_name": "MW_320x480文中創意_文章頁文中第一顆_歐搜哇_HB",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18952",
+      "placement_name": "MW_iGood_List_Bottom_文中創意320x480_iGood",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12859",
+      "placement_name": "MW_320x480_文中創意_歡閱閣sunflyday",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12860",
+      "placement_name": "MW_320x480_文中創意_czbooks",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13175",
+      "placement_name": "MW_320x480_文中創意_EATMARY",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18758",
+      "placement_name": "MW_置底創意_ezneering",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11538",
+      "placement_name": "MW_320*480文中創意_星星的話",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12059",
+      "placement_name": "MW_文中創意320x480_二次元fun",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11577",
+      "placement_name": "MW_內文全屏_我的感人故事",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11821",
+      "placement_name": "MW_320x480_文中創意_芭樂貓的美食日記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "10795",
+      "placement_name": "MW_內文全屏_爆新聞omg",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "11439",
+      "placement_name": "CF_320x480_MYTEST",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "12934",
+      "placement_name": "MW_文中320x480_肖準紫微神算",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "13545",
+      "placement_name": "CF__william-test_0510",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14738",
+      "placement_name": "MW_320x480_文中創意_稷下書院-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "14740",
+      "placement_name": "MW_320x480_文中創意_石頭小說-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "16959",
+      "placement_name": "MW_320x480_文中創意_提莫書屋-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17002",
+      "placement_name": "MW_320x480文中創意_Pls watch-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22171",
+      "placement_name": "MW_320x480_文中創意_賴傳媒",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "17275",
+      "placement_name": "MW_320x480_文思泉湧-點子網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18997",
+      "placement_name": "MW_320x480_文中創意_訓練家情報網-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "18898",
+      "placement_name": "MW_文中創意320x480_荷花動漫筆記",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21407",
+      "placement_name": "MW_文中創意320x480_知識網",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "21698",
+      "placement_name": "MW_320x480文中創意_爆漫畫-Mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22096",
+      "placement_name": "MW_文中創意_Ｍiku's Blog-mobile",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "Remark",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "網站有鎖時段\n15-17",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "喊量須達1000",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "要喊先找媒體22200，不得已才找富盈22062、22063",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "價格高+FR須保證，建議有指名才開",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "網站已關閉此版位",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "網站改版不開放",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "網站目前不接Rich Media",
+      "placement_name": "",
+      "media_target": 0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22516",
+      "placement_name": "MW_320x480_文中創意_匯流新聞",
+      "media_target": 1000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "22514",
+      "placement_name": "MW_320x480_文中創意_MoneyDJ",
+      "media_target": 7000.0,
+      "remark": ""
+    },
+    {
+      "placement_id": "7295",
+      "placement_name": "MW_文中創意320x480_Cmoney",
+      "media_target": 0,
+      "remark": ""
+    }
+  ]
+}

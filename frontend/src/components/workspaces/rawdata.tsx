@@ -5,6 +5,7 @@ import type { RowData } from "./shared";
 import type { RawdataCapability } from "../../shell/workflowCapabilities";
 import { formatDisplayValue, formatNumber } from "../../utils/format";
 import { buildDspDateOptions, collectDspFacetOptions } from "../../shell/dspRawdataFilters";
+import { isSummableCell, numValue } from "./shared";
 
 type RawdataWorkspaceProps = {
   workflow: Workflow;
@@ -121,6 +122,21 @@ function resolveDspRawdataVisibleColumns(columns: string[], mode: DspRawdataView
 
 function clampColumnWidth(width: number): number {
   return Math.max(RAWDATA_COLUMN_WIDTH_MIN, Math.min(RAWDATA_COLUMN_WIDTH_MAX, Math.round(width)));
+}
+
+function buildTableTotals(rows: RowData[], columns: string[]): Record<string, number | null> {
+  const totals: Record<string, number | null> = {};
+  for (const column of columns) {
+    const samples = rows
+      .map((row) => row[column])
+      .filter((value) => String(value ?? "").trim() !== "");
+    if (samples.length === 0 || !samples.every((value) => isSummableCell(value))) {
+      totals[column] = null;
+      continue;
+    }
+    totals[column] = samples.reduce<number>((acc, value) => acc + numValue(value), 0);
+  }
+  return totals;
 }
 
 function loadStoredColumnWidths(storageKey: string): RawdataColumnWidths {
@@ -456,6 +472,7 @@ export function RawdataWorkspace({
   if (!hasEditableInVisible && editableColumns.length > 0 && visibleColumns.length > 0) {
     visibleColumns[visibleColumns.length - 1] = editableColumns[0];
   }
+  const tableTotals = useMemo(() => buildTableTotals(rows, visibleColumns), [rows, visibleColumns]);
   const rowStatusRows = rows.map((row, idx) => {
     const rowOrderRaw = row.row_order;
     const rowOrder = typeof rowOrderRaw === "number" || typeof rowOrderRaw === "string" ? rowOrderRaw : idx;
@@ -672,6 +689,18 @@ export function RawdataWorkspace({
               );
             })}
           </tbody>
+          <tfoot>
+            <tr className="table-total-row">
+              {visibleColumns.map((col, idx) => {
+                const total = tableTotals[col];
+                return (
+                  <td key={`total-${col}`}>
+                    {idx === 0 ? "總計" : total === null ? "" : formatNumber(total)}
+                  </td>
+                );
+              })}
+            </tr>
+          </tfoot>
         </table>
       </div>
       <SaveBar

@@ -471,6 +471,60 @@ class Phase2ServicesTests(unittest.TestCase):
                     week_end="2026-05-03",
                 )
 
+    def test_validate_dsp_export_request_only_gates_ui_flow(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = self._setup_project(Path(td))
+            svc = CanonicalService(repo)
+            svc.save(
+                workflow="dsp",
+                rows=[self._full_row()],
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            artifact_root = Path(td) / "artifacts"
+            export_out = svc.export(
+                workflow="dsp",
+                artifact_root=artifact_root,
+                template_version="v1",
+                rule_version="v1",
+            )
+            self.assertTrue(Path(str(export_out["artifact_path"])).exists())
+            self.assertEqual(str(export_out.get("delivery_snapshot_token") or ""), "")
+            self.assertEqual(str(export_out.get("delivery_run_id") or ""), "")
+
+            with self.assertRaisesRegex(PermissionError, "tab4 delivery required"):
+                svc.validate_dsp_export_request(
+                    workflow="dsp",
+                    main_tab="dsp_tab4",
+                    sub_tab="overview",
+                    template_version="v1",
+                    rule_version="v1",
+                )
+
+            delivered = svc.mark_tab4_delivery(
+                workflow="dsp",
+                main_tab="dsp_tab3",
+                sub_tab="pivot",
+                template_version="v1",
+                rule_version="v1",
+            )
+            delivery_meta = svc.validate_dsp_export_request(
+                workflow="dsp",
+                main_tab="dsp_tab4",
+                sub_tab="overview",
+                template_version="v1",
+                rule_version="v1",
+            )
+            self.assertEqual(
+                delivery_meta["delivery_snapshot_token"],
+                str(delivered["delivery_snapshot_token"]),
+            )
+            self.assertEqual(
+                delivery_meta["delivery_run_id"],
+                str(delivered["run_id"]),
+            )
+
     def test_save_rejects_contract_unknown_fields(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = self._setup_project(Path(td))
@@ -672,6 +726,113 @@ class Phase2ServicesTests(unittest.TestCase):
                 self.assertEqual(adjustment[2], "SSP_A2")
             finally:
                 conn.close()
+
+    def test_ssp_media_save_writes_run_and_audit_log(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = self._setup_project(Path(td))
+            svc = CanonicalService(repo)
+
+            out = svc.save_ssp_media_slots(
+                runtime_env="test",
+                slots=[
+                    {
+                        "category": "蓋板",
+                        "slot_order": 0,
+                        "placement_id": "M100",
+                        "placement_name": "Media Slot",
+                        "media_target": 1000,
+                        "is_active": True,
+                    }
+                ],
+                template_version="v1",
+                rule_version="v1",
+            )
+            self.assertEqual(out["status"], "ok")
+            self.assertEqual(out["runtime_env"], "test")
+            self.assertEqual(out["row_count"], 1)
+            self.assertTrue(str(out["run_id"]).startswith("run-"))
+
+            conn = sqlite3.connect(str(repo.db_path))
+            try:
+                run = conn.execute(
+                    """
+                    SELECT run_type, workflow, template_version, rule_version, detail_json
+                    FROM run_log
+                    WHERE run_id = ?
+                    """,
+                    (out["run_id"],),
+                ).fetchone()
+                self.assertIsNotNone(run)
+                assert run is not None
+                self.assertEqual(run[0], "ssp_media_save")
+                self.assertEqual(run[1], "ssp")
+                self.assertEqual(run[2], "v1")
+                self.assertEqual(run[3], "v1")
+                detail = json.loads(str(run[4]))
+                self.assertEqual(str(detail.get("runtime_env") or ""), "test")
+                self.assertEqual(int(detail.get("row_count") or 0), 1)
+                self.assertTrue(str(detail.get("template_id") or ""))
+                self.assertTrue(str(detail.get("mapping_version") or ""))
+                self.assertTrue(str(detail.get("rule_hash") or ""))
+
+                audit = conn.execute(
+                    """
+                    SELECT event_type, scope, status, payload_json
+                    FROM audit_log
+                    WHERE event_type = 'ssp_media_save'
+                    ORDER BY id DESC
+                    LIMIT 1
+                    """
+                ).fetchone()
+                self.assertIsNotNone(audit)
+                assert audit is not None
+                self.assertEqual(audit[0], "ssp_media_save")
+                self.assertEqual(audit[1], "service")
+                self.assertEqual(audit[2], "ok")
+                payload = json.loads(str(audit[3]))
+                self.assertEqual(str(payload.get("workflow") or ""), "ssp")
+                self.assertEqual(str(payload.get("run_id") or ""), out["run_id"])
+                self.assertEqual(str(payload.get("template_version") or ""), "v1")
+                self.assertEqual(str(payload.get("rule_version") or ""), "v1")
+                self.assertEqual(str(payload.get("runtime_env") or ""), "test")
+                self.assertEqual(int(payload.get("row_count") or 0), 1)
+                self.assertTrue(str(payload.get("canonical_token") or ""))
+            finally:
+                conn.close()
+
+    def test_ssp_export_falls_back_to_canonical_rows_when_ssp_raw_empty(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = self._setup_project(Path(td))
+            svc = CanonicalService(repo)
+
+            svc.save(
+                workflow="ssp",
+                rows=[self._full_row(經銷商="SSP_FALLBACK", 最終經銷商="SSP_CANONICAL")],
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            snapshot = svc.resolve_ssp_effective_snapshot()
+            self.assertEqual(snapshot["source"], "canonical_raw")
+            self.assertEqual(set(snapshot["manual_fields"]), set(repo.modify_allowed_columns))
+
+            export_out = svc.export(
+                workflow="ssp",
+                artifact_root=Path(td) / "artifacts",
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            wb = load_workbook(Path(export_out["artifact_path"]), data_only=True)
+            try:
+                ws_data = wb["canonical_data"]
+                headers = [cell.value for cell in ws_data[1]]
+                first_row = dict(zip(headers, [cell.value for cell in ws_data[2]]))
+                self.assertEqual(headers, repo.canonical_columns)
+                self.assertEqual(first_row["經銷商"], "SSP_FALLBACK")
+                self.assertEqual(first_row["最終經銷商"], "SSP_CANONICAL")
+            finally:
+                wb.close()
 
 
 if __name__ == "__main__":

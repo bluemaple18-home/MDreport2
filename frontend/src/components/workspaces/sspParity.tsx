@@ -39,9 +39,6 @@ type SupplierSummary = {
 type VisibilityMode = "all" | "anomaly";
 
 const DOD_THRESHOLD_MILLION = 500;
-const DAILY_SUMMARY_TOTAL_ROWS = 15;
-const DAILY_SUMMARY_HEADER_ROWS = 2;
-const DAILY_SUMMARY_BODY_LIMIT = DAILY_SUMMARY_TOTAL_ROWS - DAILY_SUMMARY_HEADER_ROWS;
 function normalizeSupplier(row: RowData): string {
   return String(row["supplier_name"] ?? "未分類供應商").trim() || "未分類供應商";
 }
@@ -224,6 +221,23 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
     return anomalyWorkbench.supplierSummaries.filter((item) => item.anomalyDayCount > 0 || item.anomalySiteCount > 0);
   }, [anomalyWorkbench.supplierSummaries, visibilityMode]);
 
+  const dailyTotals = useMemo(() => {
+    const totals = new Map<string, { requests: number; impressions: number }>();
+    for (const date of anomalyWorkbench.dateKeysDesc) {
+      totals.set(date, { requests: 0, impressions: 0 });
+    }
+    for (const supplier of filteredSuppliers) {
+      for (const date of anomalyWorkbench.dateKeysDesc) {
+        const current = totals.get(date) || { requests: 0, impressions: 0 };
+        const daily = supplier.dailyMetrics[date] ?? { requests: 0, impressions: 0 };
+        current.requests += daily.requests;
+        current.impressions += daily.impressions;
+        totals.set(date, current);
+      }
+    }
+    return totals;
+  }, [anomalyWorkbench.dateKeysDesc, filteredSuppliers]);
+
   const anomalySuppliers = useMemo(
     () => filteredSuppliers.filter((item) => item.anomalyDayCount > 0 || item.anomalySiteCount > 0),
     [filteredSuppliers],
@@ -272,6 +286,11 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
           </Panel>
 
           <Panel title="每日總表" subtitle="主視圖：供應商按最新請求數排序，日期由新到舊。">
+            <div className="ssp-anomaly-daily-meta">
+              <span>顯示 15 列視窗</span>
+              <span>供應商總數: {formatNumber(filteredSuppliers.length)}</span>
+              <span>可上下 / 左右捲動查看更多資料</span>
+            </div>
             <div className="table-wrap ssp-anomaly-daily-table" data-testid="ssp-anomaly-daily-summary">
               <table>
                 <thead>
@@ -294,7 +313,7 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredSuppliers.slice(0, DAILY_SUMMARY_BODY_LIMIT).map((supplier) => {
+                  {filteredSuppliers.map((supplier) => {
                     const isSupplierAnomaly = supplier.anomalyDayCount > 0 || supplier.anomalySiteCount > 0;
                     return (
                       <tr key={supplier.supplier} className={isSupplierAnomaly ? "ssp-anomaly-summary-row-risk" : ""}>
@@ -314,9 +333,25 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
                           );
                         })}
                       </tr>
-                    );
-                  })}
+                      );
+                    })}
                 </tbody>
+                <tfoot>
+                  <tr className="table-total-row">
+                    <td>總計</td>
+                    {anomalyWorkbench.dateKeysDesc.map((date) => {
+                      const total = dailyTotals.get(date) ?? { requests: 0, impressions: 0 };
+                      const fr = total.requests > 0 ? (total.impressions / total.requests) * 100 : 0;
+                      return (
+                        <Fragment key={`total-${date}`}>
+                          <td>{formatNumber(total.requests)}</td>
+                          <td>{formatNumber(total.impressions)}</td>
+                          <td>{formatPercent(fr)}</td>
+                        </Fragment>
+                      );
+                    })}
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </Panel>

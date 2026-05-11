@@ -7,6 +7,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
+DEFAULT_MANIFEST_REL = "bootstrap.manifest.json"
+ENV_MANIFEST_MAP = {
+    "prod": "bootstrap.manifest.json",
+    "test": "bootstrap.test.manifest.json",
+}
+
 REQUIRED_TABLES = {
     "schema_migrations",
     "canonical_raw",
@@ -38,7 +44,11 @@ class AcceptanceGateError(RuntimeError):
 class BootstrapConfig:
     root: Path
     manifest_path: Path
+    manifest_rel: str
+    runtime_env: str
     db_path: Path
+    artifact_root: Path
+    data_seed_root: Path
     target_version: str
     template_seed_path: Path
     rule_seed_path: Path
@@ -70,20 +80,47 @@ def _normalize_feature_flags(raw_flags: object) -> dict[str, bool]:
     return flags
 
 
-def build_config(root: Path, manifest_rel: str = "bootstrap.manifest.json") -> BootstrapConfig:
-    manifest_path = (root / manifest_rel).resolve()
+def normalize_runtime_env(value: object) -> str:
+    raw = str(value or "").strip().lower()
+    if raw in {"prod", "production"}:
+        return "prod"
+    if raw in {"test", "testing"}:
+        return "test"
+    return ""
+
+
+def resolve_manifest_rel(manifest_rel: str | None = None, runtime_env: str | None = None) -> str:
+    explicit = str(manifest_rel or "").strip()
+    if explicit:
+        return explicit
+    env = normalize_runtime_env(runtime_env)
+    if env:
+        return ENV_MANIFEST_MAP[env]
+    return DEFAULT_MANIFEST_REL
+
+
+def build_config(root: Path, manifest_rel: str | None = None, runtime_env: str | None = None) -> BootstrapConfig:
+    resolved_manifest_rel = resolve_manifest_rel(manifest_rel, runtime_env)
+    manifest_path = (root / resolved_manifest_rel).resolve()
     manifest = load_manifest(manifest_path)
 
     db_path = (root / str(manifest.get("db", {}).get("path", "data/mdrep.sqlite"))).resolve()
+    artifact_root = (root / str(manifest.get("artifact_root", "artifacts"))).resolve()
+    data_seed_root = (root / str(manifest.get("data_seed", {}).get("root", "data_seed"))).resolve()
     target_version = str(manifest.get("schema", {}).get("target_version", "0001"))
     template_seed = str(manifest.get("template_registry", {}).get("seed", "templates/template_registry.seed.json"))
     rule_seed = str(manifest.get("rule_registry", {}).get("seed", "templates/ruleset.seed.json"))
     feature_flags = _normalize_feature_flags(manifest.get("feature_flags", {}))
+    normalized_env = normalize_runtime_env(runtime_env) or normalize_runtime_env(manifest.get("runtime_env") or manifest.get("env")) or "prod"
 
     return BootstrapConfig(
         root=root,
         manifest_path=manifest_path,
+        manifest_rel=resolved_manifest_rel,
+        runtime_env=normalized_env,
         db_path=db_path,
+        artifact_root=artifact_root,
+        data_seed_root=data_seed_root,
         target_version=target_version,
         template_seed_path=(root / template_seed).resolve(),
         rule_seed_path=(root / rule_seed).resolve(),
@@ -288,18 +325,18 @@ def _collect_missing_bindings(conn: sqlite3.Connection) -> list[dict[str, str]]:
     return missing_bindings
 
 
-def get_feature_flags(root: Path, manifest_rel: str = "bootstrap.manifest.json") -> dict[str, bool]:
-    cfg = build_config(root, manifest_rel)
+def get_feature_flags(root: Path, manifest_rel: str | None = None, runtime_env: str | None = None) -> dict[str, bool]:
+    cfg = build_config(root, manifest_rel, runtime_env)
     return dict(cfg.feature_flags)
 
 
-def evaluate_acceptance_gate(root: Path, manifest_rel: str = "bootstrap.manifest.json") -> dict:
-    cfg = build_config(root, manifest_rel)
+def evaluate_acceptance_gate(root: Path, manifest_rel: str | None = None, runtime_env: str | None = None) -> dict:
+    cfg = build_config(root, manifest_rel, runtime_env)
     enabled = bool(cfg.feature_flags.get("strict_acceptance_gate", False))
     if not enabled:
         return {"enabled": False, "status": "skipped"}
 
-    health = bootstrap_health(root, manifest_rel)
+    health = bootstrap_health(root, cfg.manifest_rel, runtime_env)
     if health.get("status") != "ok":
         return {
             "enabled": True,
@@ -314,8 +351,8 @@ def evaluate_acceptance_gate(root: Path, manifest_rel: str = "bootstrap.manifest
     }
 
 
-def ensure_acceptance_gate(root: Path, manifest_rel: str = "bootstrap.manifest.json") -> dict:
-    gate = evaluate_acceptance_gate(root, manifest_rel)
+def ensure_acceptance_gate(root: Path, manifest_rel: str | None = None, runtime_env: str | None = None) -> dict:
+    gate = evaluate_acceptance_gate(root, manifest_rel, runtime_env)
     if gate.get("enabled") and gate.get("status") != "ok":
         raise AcceptanceGateError(
             reason_code=str(gate.get("reason_code") or "STRICT_ACCEPTANCE_GATE_FAILED"),
@@ -324,8 +361,8 @@ def ensure_acceptance_gate(root: Path, manifest_rel: str = "bootstrap.manifest.j
     return gate
 
 
-def bootstrap_init(root: Path, manifest_rel: str = "bootstrap.manifest.json") -> dict:
-    cfg = build_config(root, manifest_rel)
+def bootstrap_init(root: Path, manifest_rel: str | None = None, runtime_env: str | None = None) -> dict:
+    cfg = build_config(root, manifest_rel, runtime_env)
     migration_path = cfg.root / "migrations" / f"{cfg.target_version}_initial.sql"
     if not migration_path.exists():
         migration_path = cfg.root / "migrations" / f"{cfg.target_version}.sql"
@@ -333,10 +370,10 @@ def bootstrap_init(root: Path, manifest_rel: str = "bootstrap.manifest.json") ->
         raise FileNotFoundError(f"找不到 migration: {cfg.target_version}")
 
     required_dirs = [
-        cfg.root / "artifacts",
+        cfg.artifact_root,
         cfg.root / "templates",
         cfg.root / "contracts",
-        cfg.root / "data",
+        cfg.db_path.parent,
     ]
     for d in required_dirs:
         d.mkdir(parents=True, exist_ok=True)
@@ -388,6 +425,10 @@ def bootstrap_init(root: Path, manifest_rel: str = "bootstrap.manifest.json") ->
 
     return {
         "db_path": str(cfg.db_path),
+        "artifact_root": str(cfg.artifact_root),
+        "data_seed_root": str(cfg.data_seed_root),
+        "runtime_env": cfg.runtime_env,
+        "manifest": cfg.manifest_rel,
         "target_version": cfg.target_version,
         "template_seed_count": tpl_count,
         "rule_seed_count": rule_count,
@@ -403,8 +444,9 @@ def bootstrap_init(root: Path, manifest_rel: str = "bootstrap.manifest.json") ->
     }
 
 
-def bootstrap_health(root: Path, manifest_rel: str = "bootstrap.manifest.json") -> dict:
-    manifest_path = (root / manifest_rel).resolve()
+def bootstrap_health(root: Path, manifest_rel: str | None = None, runtime_env: str | None = None) -> dict:
+    resolved_manifest_rel = resolve_manifest_rel(manifest_rel, runtime_env)
+    manifest_path = (root / resolved_manifest_rel).resolve()
     if not manifest_path.exists():
         return {
             "status": "fail",
@@ -415,7 +457,7 @@ def bootstrap_health(root: Path, manifest_rel: str = "bootstrap.manifest.json") 
             },
         }
     try:
-        cfg = build_config(root, manifest_rel)
+        cfg = build_config(root, resolved_manifest_rel, runtime_env)
     except json.JSONDecodeError as exc:
         return {
             "status": "fail",
@@ -442,7 +484,11 @@ def bootstrap_health(root: Path, manifest_rel: str = "bootstrap.manifest.json") 
 
     checks: dict[str, object] = {
         "manifest_path": str(cfg.manifest_path),
+        "manifest": cfg.manifest_rel,
+        "runtime_env": cfg.runtime_env,
         "db_path": str(cfg.db_path),
+        "artifact_root": str(cfg.artifact_root),
+        "data_seed_root": str(cfg.data_seed_root),
         "target_version": cfg.target_version,
         "migration_path": str(migration_path),
         "template_seed_path": str(cfg.template_seed_path),

@@ -28,6 +28,11 @@ from infra.sqlite.bootstrap import (
     build_config,
     ensure_acceptance_gate,
     get_feature_flags,
+    resolve_manifest_rel,
+)
+from infra.sqlite.data_seed import (
+    promote_seed_canonical_to_live,
+    rebuild_canonical_from_seed,
 )
 from infra.sqlite.repository import SQLiteRepository
 
@@ -37,6 +42,7 @@ FRONTEND_DIST_DIR = ROOT_DIR / "frontend" / "dist"
 @dataclass(frozen=True)
 class UiContext:
     root: Path
+    runtime_env: str
     manifest_rel: str
     workflow: str
     template_version: str
@@ -53,18 +59,75 @@ def _read_recent_rows(conn: sqlite3.Connection, sql: str, params: tuple[Any, ...
     return out
 
 
-def _build_service(root: Path, manifest_rel: str) -> CanonicalService:
-    ensure_acceptance_gate(root, manifest_rel)
-    cfg = build_config(root, manifest_rel)
-    feature_flags = get_feature_flags(root, manifest_rel)
+def _build_service(root: Path, manifest_rel: str, runtime_env: str | None = None) -> CanonicalService:
+    ensure_acceptance_gate(root, manifest_rel, runtime_env)
+    cfg = build_config(root, manifest_rel, runtime_env)
+    feature_flags = get_feature_flags(root, manifest_rel, runtime_env)
     repo = SQLiteRepository(cfg.db_path, project_root=root)
     return CanonicalService(repo, feature_flags=feature_flags)
 
 
+def _resolve_artifact_root_within_scope(*, root: Path, artifact_scope_root: Path, artifact_root_raw: object) -> Path:
+    scoped_root = artifact_scope_root.resolve()
+    if not isinstance(artifact_root_raw, str) or not artifact_root_raw.strip():
+        return scoped_root
+
+    candidate = Path(artifact_root_raw.strip())
+    resolved = (root / candidate).resolve() if not candidate.is_absolute() else candidate.resolve()
+    try:
+        resolved.relative_to(scoped_root)
+    except ValueError as exc:
+        raise PermissionError("artifact_root out of allowed artifact scope") from exc
+    return resolved
+
+
+def _resolve_ui_context(
+    *,
+    root: Path,
+    runtime_env_raw: object,
+    manifest_raw: object,
+    artifact_root_raw: object,
+    workflow: str,
+    template_version: str,
+    rule_version: str,
+) -> UiContext:
+    runtime_env = str(runtime_env_raw or "").strip()
+    manifest_rel = resolve_manifest_rel(str(manifest_raw or "").strip() or None, runtime_env or None)
+    cfg = build_config(root, manifest_rel, runtime_env or None)
+    artifact_root = _resolve_artifact_root_within_scope(
+        root=root,
+        artifact_scope_root=cfg.artifact_root,
+        artifact_root_raw=artifact_root_raw,
+    )
+    return UiContext(
+        root=root,
+        runtime_env=cfg.runtime_env,
+        manifest_rel=cfg.manifest_rel,
+        workflow=workflow,
+        template_version=template_version,
+        rule_version=rule_version,
+        artifact_root=artifact_root,
+    )
+
+
+def _resolve_fetch_range(*, single_date: object, start_day: object, end_day: object) -> tuple[str, str]:
+    raw_date = str(single_date or "").strip()
+    raw_start = str(start_day or "").strip()
+    raw_end = str(end_day or "").strip()
+    if raw_date:
+        if raw_start or raw_end:
+            raise ValueError("date cannot be combined with start_day/end_day")
+        return raw_date, raw_date
+    if not raw_start or not raw_end:
+        raise ValueError("fetch_ssp_api requires date or both start_day/end_day")
+    return raw_start, raw_end
+
+
 def collect_runtime_status(ctx: UiContext) -> dict[str, Any]:
-    health = bootstrap_health(ctx.root, ctx.manifest_rel)
+    health = bootstrap_health(ctx.root, ctx.manifest_rel, ctx.runtime_env)
     summary: dict[str, Any] = {
         "root": str(ctx.root),
+        "runtime_env": ctx.runtime_env,
         "manifest": ctx.manifest_rel,
         "canonical_source": "sqlite",
         "workflow": ctx.workflow,
@@ -151,9 +214,11 @@ def collect_runtime_status(ctx: UiContext) -> dict[str, Any]:
 
 
 def collect_workflow_frame(ctx: UiContext) -> dict[str, Any]:
-    health = bootstrap_health(ctx.root, ctx.manifest_rel)
+    health = bootstrap_health(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+    cfg = build_config(ctx.root, ctx.manifest_rel, ctx.runtime_env)
     summary: dict[str, Any] = {
         "root": str(ctx.root),
+        "runtime_env": ctx.runtime_env,
         "manifest": ctx.manifest_rel,
         "canonical_source": "sqlite",
         "workflow": ctx.workflow,
@@ -184,15 +249,24 @@ def collect_workflow_frame(ctx: UiContext) -> dict[str, Any]:
 
     try:
         repo = SQLiteRepository(db_path, project_root=ctx.root)
+        service = CanonicalService(repo, feature_flags=get_feature_flags(ctx.root, ctx.manifest_rel, ctx.runtime_env))
         if ctx.workflow == "ssp":
-            rows = repo.read_ssp_raw_rows()
-            columns = ["row_order", *repo.workflow_columns(ctx.workflow), "updated_at"]
+            snapshot = service.resolve_ssp_effective_snapshot()
+            rows = list(snapshot["rows"])
+            columns = list(snapshot["columns"])
+            summary["source_table"] = str(snapshot["source"])
+            summary["field_names"] = list(snapshot["field_names"])
+            summary["manual_fields"] = list(snapshot["manual_fields"])
+            summary["ssp_media_demand"] = repo.resolve_ssp_media_demand_config(
+                ctx.runtime_env,
+                cfg.data_seed_root,
+            )
         else:
             rows = repo.read_canonical_rows(ctx.workflow)
             columns = ["row_order", *repo.canonical_columns, "updated_at"]
+            summary["field_names"] = list(repo.canonical_columns)
+            summary["manual_fields"] = list(repo.modify_allowed_columns)
         summary["columns"] = columns
-        summary["field_names"] = list(repo.workflow_columns(ctx.workflow)) if ctx.workflow == "ssp" else list(repo.canonical_columns)
-        summary["manual_fields"] = [] if ctx.workflow == "ssp" else list(repo.modify_allowed_columns)
         summary["rows"] = rows
         summary["row_count"] = len(rows)
         summary["pivot_preview"] = [
@@ -213,7 +287,6 @@ def collect_workflow_frame(ctx: UiContext) -> dict[str, Any]:
                     "delivery_ready": bool(tab4_delivery_state.get("ready")),
                     "delivery_reason": str(tab4_delivery_state.get("reason") or ""),
                 }
-            service = CanonicalService(repo, feature_flags=get_feature_flags(ctx.root, ctx.manifest_rel))
             canonical_rows = repo.read_canonical_rows(ctx.workflow)
             fallback_year = max(
                 (resolved[0] for row in canonical_rows if (resolved := _resolve_year_month(row)) is not None),
@@ -230,6 +303,48 @@ def collect_workflow_frame(ctx: UiContext) -> dict[str, Any]:
     return summary
 
 
+def collect_ssp_media_demand_view(
+    ctx: UiContext,
+    *,
+    category: str,
+    source: str,
+    start_date: str,
+    end_date: str,
+    scope_mode: str,
+    day_limit: int,
+    threshold: float,
+    only_unmet: bool,
+) -> dict[str, Any]:
+    health = bootstrap_health(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+    cfg = build_config(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+    checks = health.get("checks") if isinstance(health, dict) else None
+    db_path_text = str(checks.get("db_path") or "") if isinstance(checks, dict) else ""
+    if not db_path_text:
+        return {"view": {}, "config": {}}
+    db_path = Path(db_path_text)
+    if not db_path.exists():
+        return {"view": {}, "config": {}}
+
+    repo = SQLiteRepository(db_path, project_root=ctx.root)
+    config = repo.resolve_ssp_media_demand_config(ctx.runtime_env, cfg.data_seed_root)
+    view = repo.resolve_ssp_media_demand_view(
+        runtime_env=ctx.runtime_env,
+        data_seed_root=cfg.data_seed_root,
+        category=category,
+        source=source,
+        start_date=start_date,
+        end_date=end_date,
+        scope_mode=scope_mode,
+        day_limit=day_limit,
+        threshold=threshold,
+        only_unmet=only_unmet,
+    )
+    return {
+        "config": config,
+        "view": view,
+    }
+
+
 def dispatch_action(ctx: UiContext, payload: dict[str, Any]) -> dict[str, Any]:
     action = str(payload.get("action") or "").strip()
     if not action:
@@ -242,11 +357,109 @@ def dispatch_action(ctx: UiContext, payload: dict[str, Any]) -> dict[str, Any]:
     sub_tab = str(payload.get("sub_tab") or "")
 
     if action == "bootstrap":
-        return bootstrap_init(ctx.root, ctx.manifest_rel)
+        return bootstrap_init(ctx.root, ctx.manifest_rel, ctx.runtime_env)
     if action == "health":
-        return bootstrap_health(ctx.root, ctx.manifest_rel)
+        return bootstrap_health(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+    if action == "seed_rebuild":
+        bootstrap_init(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+        service = _build_service(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+        seed_root_raw = payload.get("seed_root")
+        seed_manifest_raw = payload.get("seed_manifest_rel")
+        if not isinstance(seed_manifest_raw, str):
+            seed_manifest_raw = payload.get("seed_manifest")
+        seed_root_override = str(seed_root_raw).strip() if isinstance(seed_root_raw, str) and seed_root_raw.strip() else None
+        seed_manifest_rel = str(seed_manifest_raw).strip() if isinstance(seed_manifest_raw, str) and seed_manifest_raw.strip() else "manifests/seed_manifest.json"
+        return rebuild_canonical_from_seed(
+            ctx.root,
+            ctx.manifest_rel,
+            service=service,
+            seed_root_override=seed_root_override,
+            seed_manifest_rel=seed_manifest_rel,
+            workflow_filter=[workflow],
+            template_version=template_version,
+            rule_version=rule_version,
+        )
+    if action == "seed_promote_live":
+        bootstrap_init(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+        service = _build_service(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+        seed_root_raw = payload.get("seed_root")
+        source_db_raw = payload.get("source_db_rel")
+        seed_root_override = str(seed_root_raw).strip() if isinstance(seed_root_raw, str) and seed_root_raw.strip() else None
+        source_db_rel = str(source_db_raw).strip() if isinstance(source_db_raw, str) and source_db_raw.strip() else None
+        return promote_seed_canonical_to_live(
+            ctx.root,
+            ctx.manifest_rel,
+            service=service,
+            seed_root_override=seed_root_override,
+            source_db_rel=source_db_rel,
+            workflow=workflow,
+            template_version=template_version,
+            rule_version=rule_version,
+        )
+    if action == "fetch_ssp_api":
+        bootstrap_init(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+        if workflow != "ssp":
+            raise ValueError("fetch_ssp_api only supports ssp workflow")
+        if payload.get("mdreport_config") not in (None, "") or payload.get("mdreportConfig") not in (None, ""):
+            raise ValueError("mdreport-config 已移除；請改用 email/password 或對應環境變數")
+        service = _build_service(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+        start_day, end_day = _resolve_fetch_range(
+            single_date=payload.get("date"),
+            start_day=payload.get("start_day") or payload.get("startDay"),
+            end_day=payload.get("end_day") or payload.get("endDay"),
+        )
+        return service.fetch_ssp_api(
+            start_day=start_day,
+            end_day=end_day,
+            template_version=template_version,
+            rule_version=rule_version,
+            email=str(payload.get("email") or "").strip() or None,
+            password=str(payload.get("password") or "").strip() or None,
+            scope_check_url=str(payload.get("scope_check_url") or payload.get("scopeCheckUrl") or "").strip() or None,
+            api_base_url=str(payload.get("api_base_url") or payload.get("apiBaseUrl") or "").strip() or None,
+            auth_decrypt_key=str(payload.get("auth_decrypt_key") or payload.get("authDecryptKey") or "").strip() or None,
+            service_id=int(payload["service_id"]) if payload.get("service_id") not in (None, "") else (int(payload["serviceId"]) if payload.get("serviceId") not in (None, "") else None),
+            source_name=str(payload.get("source_name") or payload.get("sourceName") or "").strip() or None,
+            timeout_seconds=int(payload["timeout_seconds"]) if payload.get("timeout_seconds") not in (None, "") else (int(payload["timeoutSeconds"]) if payload.get("timeoutSeconds") not in (None, "") else None),
+        )
+    if action == "fetch_dsp_api":
+        bootstrap_init(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+        if workflow != "dsp":
+            raise ValueError("fetch_dsp_api only supports dsp workflow")
+        if payload.get("mdreport_config") not in (None, "") or payload.get("mdreportConfig") not in (None, ""):
+            raise ValueError("mdreport-config 已移除；請改用 email/password 或對應環境變數")
+        service = _build_service(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+        start_day, end_day = _resolve_fetch_range(
+            single_date=payload.get("date"),
+            start_day=payload.get("start_day") or payload.get("startDay"),
+            end_day=payload.get("end_day") or payload.get("endDay"),
+        )
+        return service.fetch_dsp_api(
+            start_day=start_day,
+            end_day=end_day,
+            template_version=template_version,
+            rule_version=rule_version,
+            email=str(payload.get("email") or "").strip() or None,
+            password=str(payload.get("password") or "").strip() or None,
+            scope_check_url=str(payload.get("scope_check_url") or payload.get("scopeCheckUrl") or "").strip() or None,
+            api_base_url=str(payload.get("api_base_url") or payload.get("apiBaseUrl") or "").strip() or None,
+            auth_decrypt_key=str(payload.get("auth_decrypt_key") or payload.get("authDecryptKey") or "").strip() or None,
+            service_id=int(payload["service_id"]) if payload.get("service_id") not in (None, "") else (int(payload["serviceId"]) if payload.get("serviceId") not in (None, "") else None),
+            source_name=str(payload.get("source_name") or payload.get("sourceName") or "").strip() or None,
+            timeout_seconds=int(payload["timeout_seconds"]) if payload.get("timeout_seconds") not in (None, "") else (int(payload["timeoutSeconds"]) if payload.get("timeoutSeconds") not in (None, "") else None),
+        )
 
-    service = _build_service(ctx.root, ctx.manifest_rel)
+    service = _build_service(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+    if action == "ssp_media_save":
+        slots = payload.get("ssp_media_slots")
+        if not isinstance(slots, list):
+            raise ValueError("ssp_media_slots must be list")
+        return service.save_ssp_media_slots(
+            runtime_env=ctx.runtime_env,
+            slots=slots,
+            template_version=template_version,
+            rule_version=rule_version,
+        )
     if action == "save":
         rows = payload.get("rows")
         if not isinstance(rows, list):
@@ -278,30 +491,30 @@ def dispatch_action(ctx: UiContext, payload: dict[str, Any]) -> dict[str, Any]:
         )
 
     if action == "export":
-        artifact_root = payload.get("artifact_root")
-        resolved_artifact_root = ctx.artifact_root
-        if isinstance(artifact_root, str) and artifact_root.strip():
-            resolved_artifact_root = (ctx.root / artifact_root).resolve()
         request_week_start = payload.get("period_week_start")
         request_week_end = payload.get("period_week_end")
         if not isinstance(request_week_start, str):
             request_week_start = payload.get("week_start")
         if not isinstance(request_week_end, str):
             request_week_end = payload.get("week_end")
+        delivery_meta: dict[str, str] = {}
         if workflow == "dsp":
-            if main_tab != "dsp_tab4":
-                raise PermissionError("dsp export must be triggered from dsp_tab4")
-            if sub_tab not in {"overview"}:
-                raise PermissionError("dsp export sub_tab out of scope")
+            delivery_meta = service.validate_dsp_export_request(
+                workflow="dsp",
+                main_tab=main_tab,
+                sub_tab=sub_tab,
+                template_version=template_version,
+                rule_version=rule_version,
+            )
         return service.export(
             workflow=workflow,
-            artifact_root=resolved_artifact_root,
+            artifact_root=ctx.artifact_root,
             template_version=template_version,
             rule_version=rule_version,
-            main_tab=main_tab or None,
-            sub_tab=sub_tab or None,
             week_start=request_week_start.strip() if isinstance(request_week_start, str) and request_week_start.strip() else None,
             week_end=request_week_end.strip() if isinstance(request_week_end, str) and request_week_end.strip() else None,
+            delivery_snapshot_token=delivery_meta.get("delivery_snapshot_token"),
+            delivery_run_id=delivery_meta.get("delivery_run_id"),
         )
 
     if action == "tab4_delivery":
@@ -341,7 +554,7 @@ def _frontend_unavailable_page() -> str:
   </head>
   <body>
     <h1>React frontend artifact not found</h1>
-    <p>請先在 <code>/Users/matt/MDREPROT2/frontend</code> 執行 <code>pnpm build</code>，再由本 UI shell 提供靜態前端入口。</p>
+    <p>請先在 <code>frontend</code> 執行 <code>pnpm build</code>，再由本 UI shell 提供靜態前端入口。</p>
     <p>backend runtime API 仍可用：<code>/api/status</code>、<code>/api/frame</code>、<code>/api/action</code></p>
   </body>
 </html>
@@ -349,7 +562,7 @@ def _frontend_unavailable_page() -> str:
 
 
 class UiRequestHandler(BaseHTTPRequestHandler):
-    server_version = "MDREPUIShell/0.1"
+    server_version = "MDREPUIShell/0.2.0"
 
     def _json(self, status: int, payload: dict[str, Any]) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -404,14 +617,14 @@ class UiRequestHandler(BaseHTTPRequestHandler):
             params = parse_qs(parsed.query)
             try:
                 root = Path(str(params.get("root", ["."])[0])).resolve()
-                artifact_root_rel = str(params.get("artifact_root", ["artifacts"])[0])
-                ctx = UiContext(
+                ctx = _resolve_ui_context(
                     root=root,
-                    manifest_rel=str(params.get("manifest", ["bootstrap.manifest.json"])[0]),
+                    runtime_env_raw=params.get("env", [""])[0],
+                    manifest_raw=params.get("manifest", [""])[0],
+                    artifact_root_raw=str(params.get("artifact_root", [""])[0]),
                     workflow=str(params.get("workflow", ["dsp"])[0]),
                     template_version=str(params.get("template_version", ["v1"])[0]),
                     rule_version=str(params.get("rule_version", ["v1"])[0]),
-                    artifact_root=(root / artifact_root_rel).resolve(),
                 )
                 artifact_path_raw = str(params.get("artifact_path", [""])[0]).strip()
                 if not artifact_path_raw:
@@ -430,28 +643,54 @@ class UiRequestHandler(BaseHTTPRequestHandler):
             return
         if path.startswith("/api/status"):
             params = parse_qs(parsed.query)
-            ctx = UiContext(
+            ctx = _resolve_ui_context(
                 root=Path(str(params.get("root", ["."])[0])).resolve(),
-                manifest_rel=str(params.get("manifest", ["bootstrap.manifest.json"])[0]),
+                runtime_env_raw=params.get("env", [""])[0],
+                manifest_raw=params.get("manifest", [""])[0],
+                artifact_root_raw=str(params.get("artifact_root", [""])[0]),
                 workflow=str(params.get("workflow", ["dsp"])[0]),
                 template_version=str(params.get("template_version", ["v1"])[0]),
                 rule_version=str(params.get("rule_version", ["v1"])[0]),
-                artifact_root=(Path(str(params.get("root", ["."])[0])).resolve() / str(params.get("artifact_root", ["artifacts"])[0])).resolve(),
             )
             payload = collect_runtime_status(ctx)
             self._json(HTTPStatus.OK, {"status": "ok", "result": payload})
             return
         if path.startswith("/api/frame"):
             params = parse_qs(parsed.query)
-            ctx = UiContext(
+            ctx = _resolve_ui_context(
                 root=Path(str(params.get("root", ["."])[0])).resolve(),
-                manifest_rel=str(params.get("manifest", ["bootstrap.manifest.json"])[0]),
+                runtime_env_raw=params.get("env", [""])[0],
+                manifest_raw=params.get("manifest", [""])[0],
+                artifact_root_raw=str(params.get("artifact_root", [""])[0]),
                 workflow=str(params.get("workflow", ["dsp"])[0]),
                 template_version=str(params.get("template_version", ["v1"])[0]),
                 rule_version=str(params.get("rule_version", ["v1"])[0]),
-                artifact_root=(Path(str(params.get("root", ["."])[0])).resolve() / str(params.get("artifact_root", ["artifacts"])[0])).resolve(),
             )
             payload = collect_workflow_frame(ctx)
+            self._json(HTTPStatus.OK, {"status": "ok", "result": payload})
+            return
+        if path.startswith("/api/ssp/media-demand"):
+            params = parse_qs(parsed.query)
+            ctx = _resolve_ui_context(
+                root=Path(str(params.get("root", ["."])[0])).resolve(),
+                runtime_env_raw=params.get("env", [""])[0],
+                manifest_raw=params.get("manifest", [""])[0],
+                artifact_root_raw=str(params.get("artifact_root", [""])[0]),
+                workflow="ssp",
+                template_version=str(params.get("template_version", ["v1"])[0]),
+                rule_version=str(params.get("rule_version", ["v1"])[0]),
+            )
+            payload = collect_ssp_media_demand_view(
+                ctx,
+                category=str(params.get("category", [""])[0]),
+                source=str(params.get("source", ["__all__"])[0]),
+                start_date=str(params.get("period_week_start", [""])[0]),
+                end_date=str(params.get("period_week_end", [""])[0]),
+                scope_mode=str(params.get("scope_mode", ["all"])[0]),
+                day_limit=int(str(params.get("day_limit", ["7"])[0]) or "7"),
+                threshold=float(str(params.get("threshold", ["100"])[0]) or "100"),
+                only_unmet=str(params.get("only_unmet", ["0"])[0]).lower() in {"1", "true", "yes", "on"},
+            )
             self._json(HTTPStatus.OK, {"status": "ok", "result": payload})
             return
         if path.startswith("/api/"):
@@ -479,15 +718,14 @@ class UiRequestHandler(BaseHTTPRequestHandler):
             if not isinstance(payload, dict):
                 raise ValueError("payload must be object")
             root = Path(str(payload.get("root") or ".")).resolve()
-            manifest_rel = str(payload.get("manifest") or "bootstrap.manifest.json")
-            artifact_root = (root / str(payload.get("artifact_root") or "artifacts")).resolve()
-            ctx = UiContext(
+            ctx = _resolve_ui_context(
                 root=root,
-                manifest_rel=manifest_rel,
+                runtime_env_raw=payload.get("env"),
+                manifest_raw=payload.get("manifest"),
+                artifact_root_raw=payload.get("artifact_root"),
                 workflow=str(payload.get("workflow") or "dsp"),
                 template_version=str(payload.get("template_version") or "v1"),
                 rule_version=str(payload.get("rule_version") or "v1"),
-                artifact_root=artifact_root,
             )
             result = dispatch_action(ctx, payload)
             self._json(HTTPStatus.OK, {"status": "ok", "result": result})

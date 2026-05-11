@@ -1,0 +1,54 @@
+{
+  "keyword_fields": ["經銷商", "訂單", "素材", "素材樣板", "廣告形式", "尺寸"],
+  "display_320x480_templates": ["直播廣告", "直撥廣告", "Zip", "圖文", "圖像"],
+  "distributor_aliases": [
+    {
+      "from": "營銷事業處",
+      "to": "[台灣]域動行銷股份有限公司"
+    }
+  ],
+  "internal_distributor_exact": [
+    "[台灣]域動行銷股份有限公司",
+    "域動行銷-MD",
+    "域動行銷-PM&RD",
+    "策略發展部",
+    "QA經銷商"
+  ],
+  "internal_distributor_keywords": ["域動"],
+  "io_commission_keywords": ["momo", "momo直播", "momolive"],
+  "dooh_keywords": ["dooh"],
+  "dooh_beiliu_keywords": ["北流"],
+  "dooh_commission_keywords": ["委刊", "委刊待補", "委刊編號"],
+  "hb_vendor_keywords": ["appier", "bridgewell", "宇匯", "criteo", "rtbhouse", "teads", "ucfunnel", "酷比"],
+  "preroll_keywords": ["preroll", "pre-roll", "pre roll"],
+  "ad_format_dooh_keywords": ["北流"],
+  "ad_format_dooh_size_keywords": ["2048x2560"],
+  "ad_format_video_keywords": ["影音", "scroller"],
+  "ad_format_creative_keywords": [
+    "特效",
+    "蓋板",
+    "蓋版",
+    "彈出",
+    "上翻",
+    "拆封",
+    "玩轉",
+    "內文",
+    "經典畫廊",
+    "旋轉",
+    "磁浮",
+    "對焦",
+    "頁緣",
+    "圖卡",
+    "變身",
+    "變形",
+    "跑馬燈",
+    "雙喜臨門",
+    "置底滑動",
+    "漂浮",
+    "幻燈片",
+    "上拉純圖",
+    "創意置底banner",
+    "移動大看板(圖片)",
+    "開場特效"
+  ]
+}

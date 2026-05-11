@@ -11,7 +11,9 @@ from pathlib import Path
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
 
+from infra.dsp_api import DspApiClient, normalize_dsp_report_rows, resolve_dsp_api_settings
 from infra.sqlite.repository import SQLiteRepository
+from infra.ssp_api import SspApiClient, normalize_ssp_report_rows, resolve_ssp_api_settings
 
 DSP_TEMPLATE_SHEET_NAMES = [
     "2025年_MF_合作績效統計總表",
@@ -34,6 +36,7 @@ DETAIL_INPUT_ROWS = (
 DATE_PREFIX_RE = re.compile(r"^(\d{4})[-/](\d{1,2})")
 TEMPLATE_YEAR_PREFIX_RE = re.compile(r"^(\d{4})")
 TEMPLATE_MMDD_RANGE_RE = re.compile(r"_(\d{4})-(\d{4})$")
+WORKBOOK_ILLEGAL_CHAR_RE = re.compile(r"[\x00-\x08\x0B-\x0C\x0E-\x1F]")
 
 TAB4_MONTH_LABELS = [f"{idx + 1}月" for idx in range(MONTH_COUNT)]
 TAB4_DETAIL_SECTION_SPECS = [
@@ -163,6 +166,12 @@ def _to_number(value: object) -> float:
     return out
 
 
+def _sanitize_workbook_cell_value(value: object) -> object:
+    if isinstance(value, str):
+        return WORKBOOK_ILLEGAL_CHAR_RE.sub("", value)
+    return value
+
+
 def _is_formula(value: object) -> bool:
     return isinstance(value, str) and value.startswith("=")
 
@@ -191,6 +200,32 @@ class CanonicalService:
         if not self._feature_flags.get("enable_test_hooks", False):
             return {}
         return {"test_hooks_enabled": True}
+
+    def resolve_ssp_effective_snapshot(self) -> dict[str, object]:
+        with self.repo.connect() as conn:
+            return self._resolve_ssp_effective_snapshot_in_tx(conn)
+
+    def _resolve_ssp_effective_snapshot_in_tx(self, conn) -> dict[str, object]:
+        ssp_rows = self.repo.read_ssp_raw_rows_in_tx(conn)
+        if ssp_rows:
+            field_names = list(self.repo.workflow_columns("ssp"))
+            return {
+                "source": "ssp_raw",
+                "rows": ssp_rows,
+                "columns": ["row_order", *field_names, "updated_at"],
+                "field_names": field_names,
+                "manual_fields": [],
+            }
+
+        field_names = list(self.repo.canonical_columns)
+        canonical_rows = self.repo.read_canonical_rows_in_tx(conn, "ssp")
+        return {
+            "source": "canonical_raw",
+            "rows": canonical_rows,
+            "columns": ["row_order", *field_names, "updated_at"],
+            "field_names": field_names,
+            "manual_fields": list(self.repo.modify_allowed_columns),
+        }
 
     def _resolve_export_period(self, *, week_start: str | None, week_end: str | None) -> tuple[str, str]:
         has_start = bool(week_start)
@@ -815,6 +850,62 @@ class CanonicalService:
             out["test_hooks_enabled"] = True
         return out
 
+    def save_ssp_media_slots(
+        self,
+        *,
+        runtime_env: str,
+        slots: list[dict],
+        template_version: str,
+        rule_version: str,
+    ) -> dict:
+        resolved_runtime_env = str(runtime_env or "").strip() or "prod"
+        with self.repo.connect() as conn:
+            self.repo.resolve_trace_binding(conn, "ssp", template_version, rule_version)
+            written = self.repo.replace_ssp_media_slots_in_tx(conn, resolved_runtime_env, slots)
+            trace = self.repo.build_trace_meta(conn, "ssp", template_version, rule_version)
+            run_id = self.repo.insert_run_log(
+                conn,
+                run_type="ssp_media_save",
+                workflow="ssp",
+                status="ok",
+                trace=trace,
+                detail={
+                    "runtime_env": resolved_runtime_env,
+                    "row_count": written,
+                },
+            )
+            marker = self._trace_marker(workflow="ssp", run_type="ssp_media_save", run_id=run_id)
+            audit_payload = {
+                "workflow": "ssp",
+                "run_id": run_id,
+                "template_version": template_version,
+                "rule_version": rule_version,
+                "canonical_token": trace.canonical_token,
+                "runtime_env": resolved_runtime_env,
+                "row_count": written,
+                **self._extra_debug_payload(),
+            }
+            if marker:
+                audit_payload["trace_marker"] = marker
+            self.repo.append_audit_event(
+                conn,
+                event_type="ssp_media_save",
+                scope="service",
+                status="ok",
+                payload=audit_payload,
+            )
+        out = {
+            "status": "ok",
+            "runtime_env": resolved_runtime_env,
+            "row_count": written,
+            "run_id": run_id,
+        }
+        if marker:
+            out["trace_marker"] = marker
+        if self._feature_flags.get("enable_test_hooks", False):
+            out["test_hooks_enabled"] = True
+        return out
+
     def modify(self, *, workflow: str, updates: list[dict], template_version: str, rule_version: str) -> dict:
         self._field_contract.validate_modify_updates(updates)
         with self.repo.connect() as conn:
@@ -863,6 +954,186 @@ class CanonicalService:
         if self._feature_flags.get("enable_test_hooks", False):
             out["test_hooks_enabled"] = True
         return out
+
+    def fetch_ssp_api(
+        self,
+        *,
+        start_day: str,
+        end_day: str,
+        template_version: str,
+        rule_version: str,
+        email: str | None = None,
+        password: str | None = None,
+        scope_check_url: str | None = None,
+        api_base_url: str | None = None,
+        auth_decrypt_key: str | None = None,
+        service_id: int | None = None,
+        source_name: str | None = None,
+        timeout_seconds: int | None = None,
+    ) -> dict:
+        settings = resolve_ssp_api_settings(
+            email=email,
+            password=password,
+            scope_check_url=scope_check_url,
+            api_base_url=api_base_url,
+            auth_decrypt_key=auth_decrypt_key,
+            service_id=service_id,
+            source_name=source_name,
+            timeout_seconds=timeout_seconds,
+        )
+        bundle = SspApiClient(settings).fetch_report_bundle(start_day=start_day, end_day=end_day)
+        rows = normalize_ssp_report_rows(
+            [row for row in bundle["rows"] if isinstance(row, dict)],
+            source_name=settings.source_name,
+        )
+        auth = bundle.get("auth") if isinstance(bundle.get("auth"), dict) else {}
+        auth_user = auth.get("user") if isinstance(auth.get("user"), dict) else {}
+        login = bundle.get("login") if isinstance(bundle.get("login"), dict) else {}
+        login_user_id = int(auth_user.get("id") or login.get("id") or 0)
+        login_email = str(auth_user.get("email") or login.get("email") or "")
+
+        with self.repo.connect() as conn:
+            self.repo.resolve_trace_binding(conn, "ssp", template_version, rule_version)
+            changed = self.repo.save_ssp_raw_rows(conn, rows)
+            self.repo.save_canonical_rows(conn, "ssp", [])
+            trace = self.repo.build_trace_meta(conn, "ssp", template_version, rule_version)
+            detail = {
+                "start_day": start_day,
+                "end_day": end_day,
+                "row_count": changed,
+                "records_total": int(bundle.get("records_total") or 0),
+                "report_id": int(bundle.get("report_id") or 0),
+                "report_ids": list(bundle.get("report_ids") or []),
+                "chunk_mode": str(bundle.get("chunk_mode") or "single"),
+                "chunk_days": int(bundle.get("chunk_days") or 1),
+                "service_id": int(auth.get("service_id") or 0),
+                "source_name": settings.source_name,
+                "login_user_id": login_user_id,
+                "login_email": login_email,
+            }
+            run_id = self.repo.insert_run_log(
+                conn,
+                run_type="fetch_ssp_api",
+                workflow="ssp",
+                status="ok",
+                trace=trace,
+                detail=detail,
+            )
+            self.repo.append_audit_event(
+                conn,
+                event_type="fetch_ssp_api",
+                scope="service",
+                status="ok",
+                payload={"run_id": run_id, **detail},
+            )
+            conn.commit()
+
+        return {
+            "status": "ok",
+            "workflow": "ssp",
+            "run_id": run_id,
+            "start_day": start_day,
+            "end_day": end_day,
+            "row_count": changed,
+            "records_total": int(bundle.get("records_total") or 0),
+            "report_id": int(bundle.get("report_id") or 0),
+            "report_ids": list(bundle.get("report_ids") or []),
+            "chunk_mode": str(bundle.get("chunk_mode") or "single"),
+            "chunk_days": int(bundle.get("chunk_days") or 1),
+            "service_id": int(auth.get("service_id") or 0),
+            "login_user_id": login_user_id,
+            "login_email": login_email,
+            "source_name": settings.source_name,
+            "sum_row": bundle.get("sum_row") if isinstance(bundle.get("sum_row"), dict) else {},
+        }
+
+    def fetch_dsp_api(
+        self,
+        *,
+        start_day: str,
+        end_day: str,
+        template_version: str,
+        rule_version: str,
+        email: str | None = None,
+        password: str | None = None,
+        scope_check_url: str | None = None,
+        api_base_url: str | None = None,
+        auth_decrypt_key: str | None = None,
+        service_id: int | None = None,
+        source_name: str | None = None,
+        timeout_seconds: int | None = None,
+    ) -> dict:
+        settings = resolve_dsp_api_settings(
+            email=email,
+            password=password,
+            scope_check_url=scope_check_url,
+            api_base_url=api_base_url,
+            auth_decrypt_key=auth_decrypt_key,
+            service_id=service_id,
+            source_name=source_name,
+            timeout_seconds=timeout_seconds,
+        )
+        bundle = DspApiClient(settings).fetch_report_bundle(start_day=start_day, end_day=end_day)
+        rows = normalize_dsp_report_rows(
+            [row for row in bundle["rows"] if isinstance(row, dict)],
+            source_name=settings.source_name,
+        )
+        normalized_rows = self._field_contract.validate_and_normalize_save_rows(rows)
+
+        with self.repo.connect() as conn:
+            self.repo.resolve_trace_binding(conn, "dsp", template_version, rule_version)
+            written = self.repo.save_canonical_rows(conn, "dsp", normalized_rows)
+            trace = self.repo.build_trace_meta(conn, "dsp", template_version, rule_version)
+            model = bundle.get("model") if isinstance(bundle.get("model"), dict) else {}
+            detail = {
+                "start_day": start_day,
+                "end_day": end_day,
+                "row_count": written,
+                "records_total": int(bundle.get("records_total") or 0),
+                "job_id": str(bundle.get("job_id") or ""),
+                "job_ids": list(bundle.get("job_ids") or []),
+                "chunk_mode": str(bundle.get("chunk_mode") or "single"),
+                "chunk_days": int(bundle.get("chunk_days") or 1),
+                "service_id": int((bundle.get("auth") or {}).get("service_id") or 0),
+                "source_name": settings.source_name,
+                "login_user_id": int((((bundle.get("auth") or {}).get("user") or {}) if isinstance((bundle.get("auth") or {}).get("user"), dict) else {}).get("id") or 0),
+                "login_email": str((((bundle.get("auth") or {}).get("user") or {}) if isinstance((bundle.get("auth") or {}).get("user"), dict) else {}).get("email") or ""),
+                "job_status": int(model.get("status") or 0),
+            }
+            run_id = self.repo.insert_run_log(
+                conn,
+                run_type="fetch_dsp_api",
+                workflow="dsp",
+                status="ok",
+                trace=trace,
+                detail=detail,
+            )
+            self.repo.append_audit_event(
+                conn,
+                event_type="fetch_dsp_api",
+                scope="service",
+                status="ok",
+                payload={"run_id": run_id, **detail},
+            )
+            conn.commit()
+
+        return {
+            "status": "ok",
+            "workflow": "dsp",
+            "run_id": run_id,
+            "start_day": start_day,
+            "end_day": end_day,
+            "row_count": written,
+            "records_total": int(bundle.get("records_total") or 0),
+            "job_id": str(bundle.get("job_id") or ""),
+            "job_ids": list(bundle.get("job_ids") or []),
+            "chunk_mode": str(bundle.get("chunk_mode") or "single"),
+            "chunk_days": int(bundle.get("chunk_days") or 1),
+            "service_id": int((bundle.get("auth") or {}).get("service_id") or 0),
+            "login_user_id": int((((bundle.get("auth") or {}).get("user") or {}) if isinstance((bundle.get("auth") or {}).get("user"), dict) else {}).get("id") or 0),
+            "login_email": str((((bundle.get("auth") or {}).get("user") or {}) if isinstance((bundle.get("auth") or {}).get("user"), dict) else {}).get("email") or ""),
+            "source_name": settings.source_name,
+        }
 
     def mark_tab4_delivery(
         self,
@@ -925,6 +1196,35 @@ class CanonicalService:
             out["test_hooks_enabled"] = True
         return out
 
+    def validate_dsp_export_request(
+        self,
+        *,
+        workflow: str,
+        main_tab: str,
+        sub_tab: str,
+        template_version: str,
+        rule_version: str,
+    ) -> dict[str, str]:
+        if workflow != "dsp":
+            raise ValueError("dsp export gate only supports dsp workflow")
+        if main_tab != "dsp_tab4":
+            raise PermissionError("dsp export must be triggered from dsp_tab4")
+        if sub_tab not in {"overview"}:
+            raise PermissionError("dsp export sub_tab out of scope")
+        with self.repo.connect() as conn:
+            self.repo.resolve_trace_binding(conn, workflow, template_version, rule_version)
+            delivery_state = self.repo.assert_tab4_delivery_ready(conn, workflow)
+            trace = self.repo.build_trace_meta(conn, workflow, template_version, rule_version)
+        delivery_snapshot_token = str(delivery_state.get("delivery_snapshot_token") or "")
+        if not delivery_snapshot_token:
+            raise PermissionError("tab4 delivery snapshot token missing")
+        if delivery_snapshot_token != trace.canonical_token:
+            raise PermissionError("tab4 delivery snapshot mismatch with canonical")
+        return {
+            "delivery_snapshot_token": delivery_snapshot_token,
+            "delivery_run_id": str(delivery_state.get("last_delivery_run_id") or ""),
+        }
+
     def export(
         self,
         *,
@@ -936,6 +1236,8 @@ class CanonicalService:
         sub_tab: str | None = None,
         week_start: str | None = None,
         week_end: str | None = None,
+        delivery_snapshot_token: str | None = None,
+        delivery_run_id: str | None = None,
     ) -> dict:
         artifact_root.mkdir(parents=True, exist_ok=True)
         resolved_week_start, resolved_week_end = self._resolve_export_period(
@@ -949,24 +1251,18 @@ class CanonicalService:
         artifact_path = artifact_root / artifact_name
         with self.repo.connect() as conn:
             self.repo.resolve_trace_binding(conn, workflow, template_version, rule_version)
-            delivery_state: dict[str, object] | None = None
-            if workflow == "dsp":
-                if main_tab != "dsp_tab4":
-                    raise PermissionError("dsp export must be triggered from dsp_tab4")
-                delivery_state = self.repo.assert_tab4_delivery_ready(conn, workflow)
-                if sub_tab not in {"overview"}:
-                    raise PermissionError("dsp export sub_tab out of scope")
-            rows = self.repo.read_canonical_rows_in_tx(conn, workflow)
+            export_rows: list[dict]
+            export_columns: list[str]
+            if workflow == "ssp":
+                snapshot = self._resolve_ssp_effective_snapshot_in_tx(conn)
+                export_rows = list(snapshot["rows"])
+                export_columns = list(snapshot["field_names"])
+            else:
+                export_rows = self.repo.read_canonical_rows_in_tx(conn, workflow)
+                export_columns = list(self.repo.canonical_columns)
             trace = self.repo.build_trace_meta(conn, workflow, template_version, rule_version)
-            delivery_snapshot_token = ""
-            delivery_run_id = ""
-            if delivery_state is not None:
-                delivery_snapshot_token = str(delivery_state.get("delivery_snapshot_token") or "")
-                delivery_run_id = str(delivery_state.get("last_delivery_run_id") or "")
-                if not delivery_snapshot_token:
-                    raise PermissionError("tab4 delivery snapshot token missing")
-                if delivery_snapshot_token != trace.canonical_token:
-                    raise PermissionError("tab4 delivery snapshot mismatch with canonical")
+            export_delivery_snapshot_token = str(delivery_snapshot_token or "")
+            export_delivery_run_id = str(delivery_run_id or "")
             try:
                 if workflow == "dsp":
                     template_path = self._resolve_dsp_export_template_path(
@@ -976,7 +1272,7 @@ class CanonicalService:
                     self._hydrate_dsp_template_workbook(
                         template_path=template_path,
                         artifact_path=artifact_path,
-                        rows=rows,
+                        rows=export_rows,
                         week_start=resolved_week_start,
                         week_end=resolved_week_end,
                     )
@@ -985,10 +1281,9 @@ class CanonicalService:
                     try:
                         ws_data = wb.active
                         ws_data.title = "canonical_data"
-                        data_columns = self.repo.canonical_columns
-                        ws_data.append(data_columns)
-                        for row in rows:
-                            ws_data.append([row.get(col, "") for col in data_columns])
+                        ws_data.append(export_columns)
+                        for row in export_rows:
+                            ws_data.append([_sanitize_workbook_cell_value(row.get(col, "")) for col in export_columns])
 
                         ws_meta = wb.create_sheet("metadata")
                         ws_meta.append(["key", "value"])
@@ -1015,11 +1310,11 @@ class CanonicalService:
                     trace=trace,
                     detail={
                         "artifact_path": str(artifact_path),
-                        "row_count": len(rows),
+                        "row_count": len(export_rows),
                         "week_start": resolved_week_start,
                         "week_end": resolved_week_end,
-                        "delivery_snapshot_token": delivery_snapshot_token,
-                        "delivery_run_id": delivery_run_id,
+                        "delivery_snapshot_token": export_delivery_snapshot_token,
+                        "delivery_run_id": export_delivery_run_id,
                     },
                 )
                 self.repo.insert_publish_run(
@@ -1042,11 +1337,11 @@ class CanonicalService:
                     "canonical_token": trace.canonical_token,
                     "artifact_path": str(artifact_path),
                     "artifact_checksum": checksum,
-                    "row_count": len(rows),
+                    "row_count": len(export_rows),
                     "week_start": resolved_week_start,
                     "week_end": resolved_week_end,
-                    "delivery_snapshot_token": delivery_snapshot_token,
-                    "delivery_run_id": delivery_run_id,
+                    "delivery_snapshot_token": export_delivery_snapshot_token,
+                    "delivery_run_id": export_delivery_run_id,
                     **self._extra_debug_payload(),
                 }
                 if marker:
@@ -1067,13 +1362,13 @@ class CanonicalService:
             "run_id": run_id,
             "artifact_path": str(artifact_path),
             "artifact_checksum": checksum,
-            "row_count": len(rows),
+            "row_count": len(export_rows),
             "week_start": resolved_week_start,
             "week_end": resolved_week_end,
         }
         if workflow == "dsp":
-            out["delivery_snapshot_token"] = delivery_snapshot_token
-            out["delivery_run_id"] = delivery_run_id
+            out["delivery_snapshot_token"] = export_delivery_snapshot_token
+            out["delivery_run_id"] = export_delivery_run_id
         if marker:
             out["trace_marker"] = marker
         if self._feature_flags.get("enable_test_hooks", False):

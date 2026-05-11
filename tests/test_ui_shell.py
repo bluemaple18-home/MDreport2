@@ -20,7 +20,10 @@ from openpyxl.utils import get_column_letter
 import app.ui_shell as ui_shell_module
 from app.main import run_cli
 from app.ui_shell import UiContext, UiRequestHandler, collect_runtime_status, collect_workflow_frame, dispatch_action
-from infra.sqlite.bootstrap import AcceptanceGateError
+from infra.dsp_api import DspApiSettings
+from infra.ssp_api import SspApiSettings
+from infra.sqlite.bootstrap import AcceptanceGateError, build_config
+from infra.sqlite.repository import SQLiteRepository
 
 
 class UiShellTests(unittest.TestCase):
@@ -146,15 +149,19 @@ class UiShellTests(unittest.TestCase):
             export_wb.close()
             template_wb.close()
 
-    def _make_project(self, root: Path) -> None:
+    def _make_project(self, root: Path, *, include_ssp_template: bool = True) -> None:
         src = Path(__file__).resolve().parents[1]
         (root / "migrations").mkdir(parents=True, exist_ok=True)
         (root / "templates").mkdir(parents=True, exist_ok=True)
         (root / "contracts").mkdir(parents=True, exist_ok=True)
+        (root / "data_seed" / "templates_rules_mapping").mkdir(parents=True, exist_ok=True)
+        (root / "data_seed_test" / "templates_rules_mapping").mkdir(parents=True, exist_ok=True)
         (root / "migrations" / "0001_initial.sql").write_text((src / "migrations" / "0001_initial.sql").read_text(encoding="utf-8"), encoding="utf-8")
         (root / "templates" / "template_registry.seed.json").write_text((src / "templates" / "template_registry.seed.json").read_text(encoding="utf-8"), encoding="utf-8")
         (root / "templates" / "ruleset.seed.json").write_text((src / "templates" / "ruleset.seed.json").read_text(encoding="utf-8"), encoding="utf-8")
         self._write_dsp_tab4_template(root / "templates" / "dsp_tab4_template.xlsx")
+        if include_ssp_template:
+            self._write_ssp_media_template(root / "templates" / "ssp_template.xlsx")
         sidecar_src = src / "templates" / "dsp_tab4_template.xlsx.period.json"
         if sidecar_src.exists():
             (root / "templates" / "dsp_tab4_template.xlsx.period.json").write_text(
@@ -163,6 +170,19 @@ class UiShellTests(unittest.TestCase):
             )
         (root / "contracts" / "fields_contract.json").write_text((src / "contracts" / "fields_contract.json").read_text(encoding="utf-8"), encoding="utf-8")
         (root / "bootstrap.manifest.json").write_text((src / "bootstrap.manifest.json").read_text(encoding="utf-8"), encoding="utf-8")
+        (root / "bootstrap.test.manifest.json").write_text((src / "bootstrap.test.manifest.json").read_text(encoding="utf-8"), encoding="utf-8")
+        default_group_overrides = {
+            "蓋板": [{"placement_id": 8435, "placement_name": "MW_蓋版_COOL", "remark": "prod", "media_target": 1000}],
+            "置底": [{"placement_id": 17236, "placement_name": "MW_置底創意_UDN聯合新聞", "remark": "", "media_target": 1200}],
+            "置底展開": [{"placement_id": 22218, "placement_name": "MW_置底(展開)_上報", "remark": "", "media_target": 800}],
+            "文中300x250": [{"placement_id": 16980, "placement_name": "MW_文中創意300x250_大人物", "remark": "", "media_target": 900}],
+            "文中320x480": [{"placement_id": 16977, "placement_name": "MW_文中創意320x480_大人物", "remark": "", "media_target": 700}],
+        }
+        for rel_path in (
+            root / "data_seed" / "templates_rules_mapping" / "group_overrides.json",
+            root / "data_seed_test" / "templates_rules_mapping" / "group_overrides.json",
+        ):
+            rel_path.write_text(json.dumps(default_group_overrides, ensure_ascii=False), encoding="utf-8")
 
     def _write_dsp_tab4_template(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -231,9 +251,47 @@ class UiShellTests(unittest.TestCase):
         finally:
             wb.close()
 
+    def _write_ssp_media_template(self, path: Path) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        wb = Workbook()
+        template_rows = [
+            ("蓋板", 8435, "MW_蓋版_COOL", "頭部媒體", True, "60-80%", 1000, "prod"),
+            ("置底", 17236, "MW_置底創意_UDN聯合新聞", "新聞站", False, "55-75%", 1200, ""),
+            ("置底展開", 22218, "MW_置底(展開)_上報", "討論站", True, "50-70%", 800, ""),
+            ("文中300x250", 16980, "MW_文中創意300x250_大人物", "內容站", False, "45-65%", 900, ""),
+            ("文中320x480", 16977, "MW_文中創意320x480_大人物", "內容站", True, "40-60%", 700, ""),
+        ]
+        try:
+            ws_master = wb.active
+            ws_master.title = "版位編號"
+            ws_master["A1"] = "版位"
+            for row_idx, (_, placement_id, _, _, _, _, _, _) in enumerate(template_rows, start=2):
+                ws_master[f"A{row_idx}"] = placement_id
+
+            for category, placement_id, placement_name, media_quality, need_call, target_fr, media_target, remark in template_rows:
+                ws = wb.create_sheet(category)
+                ws["A1"] = "Remark"
+                ws["B1"] = "版位"
+                ws["C1"] = "版位名稱"
+                ws["D1"] = "媒體質量"
+                ws["E1"] = "需喊量"
+                ws["F1"] = "目標FR"
+                ws["G1"] = "預估量(7-22點)"
+                ws["A2"] = remark
+                ws["B2"] = placement_id
+                ws["C2"] = placement_name
+                ws["D2"] = media_quality
+                ws["E2"] = need_call
+                ws["F2"] = target_fr
+                ws["G2"] = media_target
+            wb.save(path)
+        finally:
+            wb.close()
+
     def _ctx(self, root: Path, workflow: str = "dsp") -> UiContext:
         return UiContext(
             root=root,
+            runtime_env="prod",
             manifest_rel="bootstrap.manifest.json",
             workflow=workflow,
             template_version="v1",
@@ -247,6 +305,213 @@ class UiShellTests(unittest.TestCase):
             code = run_cli(argv)
         payload = json.loads(stdout.getvalue() or "{}")
         return code, payload
+
+    def _mock_ssp_fetch_bundle(self) -> dict[str, object]:
+        return {
+            "auth": {
+                "service_id": 14,
+                "token": "ssp-service-token",
+                "user": {"id": 2072, "email": "matt@clickforce.com.tw"},
+            },
+            "login": {"id": 2072, "email": "matt@clickforce.com.tw"},
+            "report_id": 174425,
+            "records_total": 1,
+            "sum_row": {"request": 2885, "impress": 1386, "profit": 2.08},
+            "rows": [
+                {
+                    "data_time": "2026-05-11 00:00:00",
+                    "supplier_id": "1",
+                    "supplierName": "域動測試",
+                    "site_id": "784",
+                    "siteName": "DEMO link",
+                    "zone_id": "10230",
+                    "zoneName": "DEMO LINK 專用",
+                    "request": "2885",
+                    "impress": "1386",
+                    "click": "0",
+                    "profit": "2.08",
+                    "advertiser_mu": "8.32",
+                }
+            ],
+        }
+
+    def _mock_ssp_fetch_bundle_multi_day(self) -> dict[str, object]:
+        return {
+            "auth": {
+                "service_id": 14,
+                "token": "ssp-service-token",
+                "user": {"id": 2072, "email": "matt@clickforce.com.tw"},
+            },
+            "login": {"id": 2072, "email": "matt@clickforce.com.tw"},
+            "report_id": 174426,
+            "report_ids": [174425, 174426],
+            "records_total": 3,
+            "chunk_mode": "daily",
+            "chunk_days": 2,
+            "sum_row": {"request": 3000, "impress": 1500, "profit": 4.0},
+            "rows": [
+                {
+                    "data_time": "2026-05-10 00:00:00",
+                    "supplier_id": "1",
+                    "supplierName": "域動測試",
+                    "site_id": "784",
+                    "siteName": "DEMO link",
+                    "zone_id": "10230",
+                    "zoneName": "DEMO LINK 專用",
+                    "request": "1000",
+                    "impress": "500",
+                    "click": "0",
+                    "profit": "1.50",
+                    "advertiser_mu": "4.10",
+                },
+                {
+                    "data_time": "2026-05-10 01:00:00",
+                    "supplier_id": "1",
+                    "supplierName": "域動測試",
+                    "site_id": "784",
+                    "siteName": "DEMO link",
+                    "zone_id": "10230",
+                    "zoneName": "DEMO LINK 專用",
+                    "request": "500",
+                    "impress": "250",
+                    "click": "0",
+                    "profit": "0.50",
+                    "advertiser_mu": "1.20",
+                },
+                {
+                    "data_time": "2026-05-11 00:00:00",
+                    "supplier_id": "1",
+                    "supplierName": "域動測試",
+                    "site_id": "784",
+                    "siteName": "DEMO link",
+                    "zone_id": "10230",
+                    "zoneName": "DEMO LINK 專用",
+                    "request": "1500",
+                    "impress": "750",
+                    "click": "0",
+                    "profit": "2.00",
+                    "advertiser_mu": "3.02",
+                },
+            ],
+        }
+
+    def _mock_dsp_fetch_bundle(self) -> dict[str, object]:
+        return {
+            "auth": {
+                "service_id": 10,
+                "token": "dsp-service-token",
+                "user": {"id": 2072, "email": "matt@clickforce.com.tw"},
+            },
+            "job_id": "35cffe17660dad7fbdfb7080ffa2f1a6",
+            "records_total": 1,
+            "model": {"status": 1},
+            "rows": [
+                {
+                    "data_time": "2026-05-10",
+                    "distributor_id": "[台灣]域動行銷股份有限公司",
+                    "campaign_id": "(42031)活動",
+                    "creative_id": "(314928)0422_純蓋板",
+                    "size_id": "純蓋板",
+                    "content_type": "HTML/JS",
+                    "campaign_mu": 10934.99,
+                    "distributor_mu": 9000.11,
+                    "advertiser_mu": 8000.22,
+                }
+            ],
+        }
+
+    def _make_seed_canonical_dsp_db(self, root: Path, *, seed_root: str = "data_seed") -> Path:
+        seed_db = root / seed_root / "canonical" / "mdreport_dsp.sqlite"
+        seed_db.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(str(seed_db))
+        try:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS dsp_rawdata (
+                  row_order INTEGER PRIMARY KEY,
+                  日期時間 TEXT NOT NULL DEFAULT '',
+                  經銷商 TEXT NOT NULL DEFAULT '',
+                  訂單 TEXT NOT NULL DEFAULT '',
+                  素材 TEXT NOT NULL DEFAULT '',
+                  廣告形式 TEXT NOT NULL DEFAULT '',
+                  尺寸 TEXT NOT NULL DEFAULT '',
+                  素材樣板 TEXT NOT NULL DEFAULT '',
+                  執行金額 REAL NOT NULL DEFAULT 0.0,
+                  系統營收 REAL NOT NULL DEFAULT 0.0,
+                  媒體費用 REAL NOT NULL DEFAULT 0.0,
+                  原始經銷商 TEXT NOT NULL DEFAULT '',
+                  原始廣告形式 TEXT NOT NULL DEFAULT '',
+                  最終經銷商 TEXT NOT NULL DEFAULT '',
+                  規則命中_經銷商 TEXT NOT NULL DEFAULT '',
+                  最終來源_經銷商 TEXT NOT NULL DEFAULT '',
+                  分類層級B TEXT NOT NULL DEFAULT '',
+                  分類層級C TEXT NOT NULL DEFAULT '',
+                  分類層級D TEXT NOT NULL DEFAULT '',
+                  最終廣告形式 TEXT NOT NULL DEFAULT '',
+                  規則命中_廣告形式 TEXT NOT NULL DEFAULT '',
+                  最終來源_廣告形式 TEXT NOT NULL DEFAULT '',
+                  updated_at TEXT NOT NULL DEFAULT ''
+                )
+                """
+            )
+            conn.execute(
+                """
+                INSERT INTO dsp_rawdata(
+                  row_order, 日期時間, 經銷商, 訂單, 素材, 廣告形式, 尺寸, 素材樣板, 執行金額, 系統營收, 媒體費用,
+                  原始經銷商, 原始廣告形式, 最終經銷商, 規則命中_經銷商, 最終來源_經銷商,
+                  分類層級B, 分類層級C, 分類層級D, 最終廣告形式, 規則命中_廣告形式, 最終來源_廣告形式, updated_at
+                ) VALUES
+                (0, '2026-05-01 00:00:00', 'A', 'O1', 'C1', 'Banner', '300x250', 'tplA', 10.0, 12.5, 8.0,
+                 'A', 'Banner', 'API_PROMOTED_A1', 'r1', 'api', 'B1', 'C1', 'D1', 'Banner', 'r2', 'api', '2026-05-09T00:00:00')
+                """
+            )
+            conn.commit()
+        finally:
+            conn.close()
+        return seed_db
+
+    def _make_seed_canonical_ssp_truth_db(self, root: Path, *, seed_root: str = "data_seed") -> Path:
+        seed_db = root / seed_root / "canonical" / "mdreport.sqlite"
+        seed_db.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(str(seed_db))
+        try:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS raw (
+                  source TEXT,
+                  ts TEXT,
+                  date TEXT,
+                  hour INTEGER,
+                  placement_id INTEGER,
+                  placement_name TEXT,
+                  request INTEGER,
+                  impression INTEGER,
+                  clicks INTEGER,
+                  revenue REAL,
+                  dsp_amount REAL,
+                  order_id TEXT,
+                  order_name TEXT,
+                  supplier_id INTEGER,
+                  supplier_name TEXT,
+                  site_id INTEGER,
+                  site_name TEXT
+                )
+                """
+            )
+            conn.execute(
+                """
+                INSERT INTO raw(
+                  source, ts, date, hour, placement_id, placement_name, request, impression, clicks,
+                  revenue, dsp_amount, order_id, order_name, supplier_id, supplier_name, site_id, site_name
+                ) VALUES
+                ('times_api', '2026-05-05 10:00:00', '2026-05-05', 10, 2001, '版位A_300x250', 320, 4500, 11, 500.0, 420.0, 'O-100', '訂單A', 7, '時報供應商A', 701, 'times-site-A'),
+                ('times_api', '2026-05-05 11:00:00', '2026-05-05', 11, 2002, '版位B_320x480', 280, 3900, 12, 450.0, 360.0, 'O-101', '訂單B', 8, '時報供應商B', 702, 'times-site-B')
+                """
+            )
+            conn.commit()
+        finally:
+            conn.close()
+        return seed_db
 
     def test_ui_shell_runtime_actions_and_status(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -299,6 +564,621 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual(after["health"]["status"], "ok")
             self.assertGreaterEqual(len(after["recent"]["run_log"]), 3)
             self.assertGreaterEqual(len(after["recent"]["audit_log"]), 1)
+
+    def test_seed_rebuild_action_restores_rows_from_seed_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root)
+
+            dispatch_action(ctx, {"action": "bootstrap"})
+            seed_row = self._full_row(最終經銷商="RAW_API_A1", 最終來源_經銷商="api")
+            raw_root = root / "raw-inbox"
+            raw_root.mkdir(parents=True, exist_ok=True)
+            (raw_root / "dsp_rawdata_20260506_150144_recalc.json").write_text(
+                json.dumps([seed_row], ensure_ascii=False),
+                encoding="utf-8",
+            )
+            code, payload = self._run_cli_json(
+                [
+                    "--root",
+                    str(root),
+                    "seed-bootstrap",
+                    "--raw-source",
+                    "raw-inbox",
+                ]
+            )
+            self.assertEqual(code, 0)
+            self.assertEqual(payload["status"], "ok")
+
+            dispatch_action(
+                ctx,
+                {
+                    "action": "save",
+                    "rows": [self._full_row(最終經銷商="LIVE_DIRTY_A9", 最終來源_經銷商="manual")],
+                },
+            )
+
+            rebuild_out = dispatch_action(
+                ctx,
+                {
+                    "action": "seed_rebuild",
+                    "workflow": "dsp",
+                },
+            )
+            self.assertEqual(rebuild_out["status"], "ok")
+            self.assertEqual(int(rebuild_out["files_used"]), 1)
+            self.assertEqual(int(rebuild_out["workflows"]["dsp"]["row_count"]), 1)
+
+            conn = sqlite3.connect(str(root / "data" / "mdrep.sqlite"))
+            try:
+                row = conn.execute(
+                    """
+                    SELECT 最終經銷商, 最終來源_經銷商
+                    FROM canonical_raw
+                    WHERE workflow='dsp'
+                    ORDER BY row_order ASC
+                    LIMIT 1
+                    """
+                ).fetchone()
+            finally:
+                conn.close()
+            self.assertEqual(str(row[0]), "RAW_API_A1")
+            self.assertEqual(str(row[1]), "api")
+
+    def test_seed_promote_live_action_rebuilds_prod_and_test_runtime_dbs(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            self._make_seed_canonical_dsp_db(root, seed_root="data_seed")
+            self._make_seed_canonical_ssp_truth_db(root, seed_root="data_seed")
+            self._make_seed_canonical_dsp_db(root, seed_root="data_seed_test")
+            self._make_seed_canonical_ssp_truth_db(root, seed_root="data_seed_test")
+
+            prod_dsp_ctx = self._ctx(root, workflow="dsp")
+            prod_ssp_ctx = self._ctx(root, workflow="ssp")
+            test_dsp_ctx = UiContext(
+                root=root,
+                runtime_env="test",
+                manifest_rel="bootstrap.test.manifest.json",
+                workflow="dsp",
+                template_version="v1",
+                rule_version="v1",
+                artifact_root=(root / "artifacts_test").resolve(),
+            )
+            test_ssp_ctx = UiContext(
+                root=root,
+                runtime_env="test",
+                manifest_rel="bootstrap.test.manifest.json",
+                workflow="ssp",
+                template_version="v1",
+                rule_version="v1",
+                artifact_root=(root / "artifacts_test").resolve(),
+            )
+
+            prod_dsp_out = dispatch_action(prod_dsp_ctx, {"action": "seed_promote_live", "workflow": "dsp"})
+            prod_ssp_out = dispatch_action(prod_ssp_ctx, {"action": "seed_promote_live", "workflow": "ssp"})
+            test_dsp_out = dispatch_action(test_dsp_ctx, {"action": "seed_promote_live", "workflow": "dsp"})
+            test_ssp_out = dispatch_action(test_ssp_ctx, {"action": "seed_promote_live", "workflow": "ssp"})
+
+            self.assertEqual(prod_dsp_out["status"], "ok")
+            self.assertTrue(str(prod_dsp_out["source_db"]).endswith("/data_seed/canonical/mdreport_dsp.sqlite"))
+            self.assertEqual(prod_ssp_out["status"], "ok")
+            self.assertTrue(str(prod_ssp_out["source_db"]).endswith("/data_seed/canonical/mdreport.sqlite"))
+            self.assertEqual(test_dsp_out["status"], "ok")
+            self.assertTrue(str(test_dsp_out["source_db"]).endswith("/data_seed_test/canonical/mdreport_dsp.sqlite"))
+            self.assertEqual(test_ssp_out["status"], "ok")
+            self.assertTrue(str(test_ssp_out["source_db"]).endswith("/data_seed_test/canonical/mdreport.sqlite"))
+
+            prod_conn = sqlite3.connect(str(root / "data" / "mdrep.sqlite"))
+            try:
+                prod_dsp = prod_conn.execute(
+                    "SELECT COUNT(1), MIN(最終經銷商) FROM canonical_raw WHERE workflow='dsp'"
+                ).fetchone()
+                prod_ssp = prod_conn.execute(
+                    "SELECT COUNT(1), MIN(supplier_name) FROM ssp_raw"
+                ).fetchone()
+                prod_ssp_canonical = prod_conn.execute(
+                    "SELECT COUNT(1) FROM canonical_raw WHERE workflow='ssp'"
+                ).fetchone()
+            finally:
+                prod_conn.close()
+            self.assertEqual(int(prod_dsp[0] or 0), 1)
+            self.assertEqual(str(prod_dsp[1]), "API_PROMOTED_A1")
+            self.assertEqual(int(prod_ssp[0] or 0), 2)
+            self.assertEqual(str(prod_ssp[1]), "時報供應商A")
+            self.assertEqual(int(prod_ssp_canonical[0] or 0), 0)
+
+            test_conn = sqlite3.connect(str(root / "data_test" / "mdrep.test.sqlite"))
+            try:
+                test_dsp = test_conn.execute(
+                    "SELECT COUNT(1), MIN(最終經銷商) FROM canonical_raw WHERE workflow='dsp'"
+                ).fetchone()
+                test_ssp = test_conn.execute(
+                    "SELECT COUNT(1), MIN(supplier_name) FROM ssp_raw"
+                ).fetchone()
+                test_ssp_canonical = test_conn.execute(
+                    "SELECT COUNT(1) FROM canonical_raw WHERE workflow='ssp'"
+                ).fetchone()
+            finally:
+                test_conn.close()
+            self.assertEqual(int(test_dsp[0] or 0), 1)
+            self.assertEqual(str(test_dsp[1]), "API_PROMOTED_A1")
+            self.assertEqual(int(test_ssp[0] or 0), 2)
+            self.assertEqual(str(test_ssp[1]), "時報供應商A")
+            self.assertEqual(int(test_ssp_canonical[0] or 0), 0)
+
+            dispatch_action(
+                prod_dsp_ctx,
+                {"action": "tab4_delivery", "main_tab": "dsp_tab3", "sub_tab": "pivot"},
+            )
+            prod_dsp_export = dispatch_action(
+                prod_dsp_ctx,
+                {"action": "export", "main_tab": "dsp_tab4", "sub_tab": "overview"},
+            )
+            prod_ssp_export = dispatch_action(prod_ssp_ctx, {"action": "export"})
+            dispatch_action(
+                test_dsp_ctx,
+                {"action": "tab4_delivery", "main_tab": "dsp_tab3", "sub_tab": "pivot"},
+            )
+            test_dsp_export = dispatch_action(
+                test_dsp_ctx,
+                {"action": "export", "main_tab": "dsp_tab4", "sub_tab": "overview"},
+            )
+            test_ssp_export = dispatch_action(test_ssp_ctx, {"action": "export"})
+
+            self.assertTrue(Path(str(prod_dsp_export["artifact_path"])).exists())
+            self.assertTrue(Path(str(prod_ssp_export["artifact_path"])).exists())
+            self.assertTrue(Path(str(test_dsp_export["artifact_path"])).exists())
+            self.assertTrue(Path(str(test_ssp_export["artifact_path"])).exists())
+            self.assertIn("artifacts_test", str(test_dsp_export["artifact_path"]))
+            self.assertIn("artifacts_test", str(test_ssp_export["artifact_path"]))
+
+    def test_dispatch_action_fetch_ssp_api_writes_ssp_raw_and_clears_canonical_pollution(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="ssp")
+
+            dispatch_action(ctx, {"action": "bootstrap"})
+            dispatch_action(
+                ctx,
+                {
+                    "action": "save",
+                    "workflow": "ssp",
+                    "rows": [self._full_row(最終經銷商="DIRTY_SSP_ROW", 最終來源_經銷商="manual")],
+                },
+            )
+
+            with patch("domain.services.resolve_ssp_api_settings") as mock_settings, patch("domain.services.SspApiClient") as mock_client:
+                mock_settings.return_value = SspApiSettings(email="matt@clickforce.com.tw", password="24450379")
+                mock_client.return_value.fetch_report_bundle.return_value = self._mock_ssp_fetch_bundle()
+
+                out = dispatch_action(
+                    ctx,
+                    {
+                        "action": "fetch_ssp_api",
+                        "workflow": "ssp",
+                        "date": "2026-05-11",
+                    },
+                )
+
+            self.assertEqual(out["status"], "ok")
+            self.assertEqual(int(out["service_id"]), 14)
+            self.assertEqual(int(out["row_count"]), 1)
+            self.assertEqual(int(out["records_total"]), 1)
+            self.assertEqual(int(out["login_user_id"]), 2072)
+            self.assertEqual(str(out["login_email"]), "matt@clickforce.com.tw")
+            self.assertEqual(out["sum_row"], {"request": 2885, "impress": 1386, "profit": 2.08})
+
+            conn = sqlite3.connect(str(root / "data" / "mdrep.sqlite"))
+            try:
+                ssp_row = conn.execute(
+                    """
+                    SELECT source, ts, supplier_name, site_name, placement_name, request, impression, revenue, dsp_amount
+                    FROM ssp_raw
+                    ORDER BY row_order ASC
+                    LIMIT 1
+                    """
+                ).fetchone()
+                canonical_count = conn.execute(
+                    "SELECT COUNT(1) FROM canonical_raw WHERE workflow='ssp'"
+                ).fetchone()
+                run_row = conn.execute(
+                    """
+                    SELECT run_type, workflow, status
+                    FROM run_log
+                    WHERE workflow='ssp'
+                    ORDER BY rowid DESC
+                    LIMIT 1
+                    """
+                ).fetchone()
+            finally:
+                conn.close()
+
+            self.assertEqual(str(ssp_row[0]), "ssp3_api")
+            self.assertEqual(str(ssp_row[1]), "2026-05-11 00:00:00")
+            self.assertEqual(str(ssp_row[2]), "域動測試")
+            self.assertEqual(str(ssp_row[3]), "DEMO link")
+            self.assertEqual(str(ssp_row[4]), "DEMO LINK 專用")
+            self.assertEqual(float(ssp_row[5]), 2885.0)
+            self.assertEqual(float(ssp_row[6]), 1386.0)
+            self.assertEqual(float(ssp_row[7]), 2.08)
+            self.assertEqual(float(ssp_row[8]), 8.32)
+            self.assertEqual(int(canonical_count[0] or 0), 0)
+            self.assertEqual(tuple(str(v) for v in run_row), ("fetch_ssp_api", "ssp", "ok"))
+
+    def test_fetch_ssp_api_cli_uses_runtime_command_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            with patch("domain.services.resolve_ssp_api_settings") as mock_settings, patch("domain.services.SspApiClient") as mock_client:
+                mock_settings.return_value = SspApiSettings(email="matt@clickforce.com.tw", password="24450379")
+                mock_client.return_value.fetch_report_bundle.return_value = self._mock_ssp_fetch_bundle()
+
+                code, payload = self._run_cli_json(
+                    [
+                        "--root",
+                        str(root),
+                        "fetch-ssp-api",
+                        "--date",
+                        "2026-05-11",
+                    ]
+                )
+
+            self.assertEqual(code, 0)
+            self.assertEqual(payload["status"], "ok")
+            result = payload["result"]
+            self.assertEqual(result["workflow"], "ssp")
+            self.assertEqual(result["start_day"], "2026-05-11")
+            self.assertEqual(result["end_day"], "2026-05-11")
+            self.assertEqual(int(result["service_id"]), 14)
+            self.assertEqual(int(result["row_count"]), 1)
+            self.assertEqual(int(result["report_id"]), 174425)
+            self.assertEqual(result["sum_row"], {"request": 2885, "impress": 1386, "profit": 2.08})
+
+    def test_fetch_ssp_api_cli_multi_day_sum_row_is_aggregated(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            with patch("domain.services.resolve_ssp_api_settings") as mock_settings, patch("domain.services.SspApiClient") as mock_client:
+                mock_settings.return_value = SspApiSettings(email="matt@clickforce.com.tw", password="24450379")
+                mock_client.return_value.fetch_report_bundle.return_value = self._mock_ssp_fetch_bundle_multi_day()
+
+                code, payload = self._run_cli_json(
+                    [
+                        "--root",
+                        str(root),
+                        "fetch-ssp-api",
+                        "--start-day",
+                        "2026-05-10",
+                        "--end-day",
+                        "2026-05-11",
+                    ]
+                )
+
+            self.assertEqual(code, 0)
+            self.assertEqual(payload["status"], "ok")
+            result = payload["result"]
+            self.assertEqual(result["workflow"], "ssp")
+            self.assertEqual(result["start_day"], "2026-05-10")
+            self.assertEqual(result["end_day"], "2026-05-11")
+            self.assertEqual(int(result["records_total"]), 3)
+            self.assertEqual(int(result["report_id"]), 174426)
+            self.assertEqual(list(result["report_ids"]), [174425, 174426])
+            self.assertEqual(result["sum_row"], {"request": 3000, "impress": 1500, "profit": 4.0})
+
+    def test_dispatch_action_fetch_ssp_api_accepts_camelcase_auth_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="ssp")
+            bundle = self._mock_ssp_fetch_bundle()
+            bundle["login"] = {}
+            bundle["sum_row"] = {"request": 5770, "impress": 2772, "profit": 4.16}
+            bundle["auth"] = {
+                "service_id": 14,
+                "token": "ssp-service-token",
+                "user": {"id": 3001, "email": "ssp-auth-user@clickforce.com.tw"},
+            }
+
+            def _resolve_no_legacy(
+                *,
+                email: str | None = None,
+                password: str | None = None,
+                scope_check_url: str | None = None,
+                api_base_url: str | None = None,
+                auth_decrypt_key: str | None = None,
+                service_id: int | None = None,
+                source_name: str | None = None,
+                timeout_seconds: int | None = None,
+            ) -> SspApiSettings:
+                self.assertEqual(email, "matt@clickforce.com.tw")
+                self.assertEqual(password, "24450379")
+                self.assertEqual(scope_check_url, "https://example.com/ssp-scope-check")
+                self.assertEqual(api_base_url, "https://example.com/ssp-api")
+                self.assertEqual(auth_decrypt_key, "ssp-auth-key")
+                self.assertEqual(service_id, 14)
+                self.assertEqual(source_name, "ssp3_api")
+                self.assertEqual(timeout_seconds, 15)
+                return SspApiSettings(email="matt@clickforce.com.tw", password="24450379")
+
+            with patch("domain.services.resolve_ssp_api_settings", side_effect=_resolve_no_legacy), patch("domain.services.SspApiClient") as mock_client:
+                mock_client.return_value.fetch_report_bundle.return_value = bundle
+                out = dispatch_action(
+                    ctx,
+                    {
+                        "action": "fetch_ssp_api",
+                        "workflow": "ssp",
+                        "startDay": "2026-05-10",
+                        "endDay": "2026-05-11",
+                        "email": "matt@clickforce.com.tw",
+                        "password": "24450379",
+                        "scopeCheckUrl": "https://example.com/ssp-scope-check",
+                        "apiBaseUrl": "https://example.com/ssp-api",
+                        "authDecryptKey": "ssp-auth-key",
+                        "serviceId": 14,
+                        "sourceName": "ssp3_api",
+                        "timeoutSeconds": 15,
+                    },
+                )
+
+            self.assertEqual(out["status"], "ok")
+            self.assertEqual(out["start_day"], "2026-05-10")
+            self.assertEqual(out["end_day"], "2026-05-11")
+            self.assertEqual(out["sum_row"], {"request": 5770, "impress": 2772, "profit": 4.16})
+            self.assertEqual(int(out["login_user_id"]), 3001)
+            self.assertEqual(str(out["login_email"]), "ssp-auth-user@clickforce.com.tw")
+
+    def test_fetch_dsp_api_cli_accepts_runtime_auth_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+
+            def _resolve_no_legacy(
+                *,
+                email: str | None = None,
+                password: str | None = None,
+                scope_check_url: str | None = None,
+                api_base_url: str | None = None,
+                auth_decrypt_key: str | None = None,
+                service_id: int | None = None,
+                source_name: str | None = None,
+                timeout_seconds: int | None = None,
+            ) -> DspApiSettings:
+                self.assertEqual(email, "matt@clickforce.com.tw")
+                self.assertEqual(password, "24450379")
+                self.assertEqual(scope_check_url, "https://example.com/dsp-scope-check")
+                self.assertEqual(api_base_url, "https://example.com/dsp-api")
+                self.assertEqual(auth_decrypt_key, "dsp-auth-key")
+                self.assertEqual(service_id, 10)
+                self.assertEqual(source_name, "dsp3_api")
+                self.assertEqual(timeout_seconds, 20)
+                return DspApiSettings(email="matt@clickforce.com.tw", password="24450379")
+
+            with patch("domain.services.resolve_dsp_api_settings", side_effect=_resolve_no_legacy), patch("domain.services.DspApiClient") as mock_client:
+                mock_client.return_value.fetch_report_bundle.return_value = self._mock_dsp_fetch_bundle()
+                code, payload = self._run_cli_json(
+                    [
+                        "--root",
+                        str(root),
+                        "fetch-dsp-api",
+                        "--start-day",
+                        "2026-05-10",
+                        "--end-day",
+                        "2026-05-11",
+                        "--email",
+                        "matt@clickforce.com.tw",
+                        "--password",
+                        "24450379",
+                        "--scope-check-url",
+                        "https://example.com/dsp-scope-check",
+                        "--api-base-url",
+                        "https://example.com/dsp-api",
+                        "--auth-decrypt-key",
+                        "dsp-auth-key",
+                        "--service-id",
+                        "10",
+                        "--source-name",
+                        "dsp3_api",
+                        "--timeout-seconds",
+                        "20",
+                    ]
+                )
+
+            self.assertEqual(code, 0)
+            self.assertEqual(payload["status"], "ok")
+            result = payload["result"]
+            self.assertEqual(result["workflow"], "dsp")
+            self.assertEqual(result["start_day"], "2026-05-10")
+            self.assertEqual(result["end_day"], "2026-05-11")
+            self.assertEqual(int(result["service_id"]), 10)
+
+    def test_fetch_api_commands_reject_removed_mdreport_config_surface(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+
+            for command in ("fetch-ssp-api", "fetch-dsp-api"):
+                code, payload = self._run_cli_json(
+                    [
+                        "--root",
+                        str(root),
+                        command,
+                        "--date",
+                        "2026-05-10",
+                        "--mdreport-config",
+                        "/tmp/legacy-api-config.py",
+                    ]
+                )
+                self.assertNotEqual(code, 0)
+                self.assertEqual(payload["error_code"], "CLI_USAGE_ERROR")
+
+    def test_dispatch_action_fetch_ssp_api_rejects_removed_mdreport_config_surface(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="ssp")
+
+            with self.assertRaises(ValueError) as exc_ctx:
+                dispatch_action(
+                    ctx,
+                    {
+                        "action": "fetch_ssp_api",
+                        "workflow": "ssp",
+                        "date": "2026-05-10",
+                        "mdreportConfig": "/tmp/legacy-api-config.py",
+                    },
+                )
+
+            self.assertIn("mdreport-config 已移除", str(exc_ctx.exception))
+
+    def test_dispatch_action_fetch_dsp_api_rejects_removed_mdreport_config_surface(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="dsp")
+
+            with self.assertRaises(ValueError) as exc_ctx:
+                dispatch_action(
+                    ctx,
+                    {
+                        "action": "fetch_dsp_api",
+                        "workflow": "dsp",
+                        "date": "2026-05-10",
+                        "mdreportConfig": "/tmp/legacy-api-config.py",
+                    },
+                )
+
+            self.assertIn("mdreport-config 已移除", str(exc_ctx.exception))
+
+    def test_dispatch_action_fetch_dsp_api_writes_canonical_rows_from_regular_api(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="dsp")
+
+            with patch("domain.services.resolve_dsp_api_settings") as mock_settings, patch("domain.services.DspApiClient") as mock_client:
+                mock_settings.return_value = DspApiSettings(email="matt@clickforce.com.tw", password="24450379")
+                mock_client.return_value.fetch_report_bundle.return_value = self._mock_dsp_fetch_bundle()
+
+                out = dispatch_action(
+                    ctx,
+                    {
+                        "action": "fetch_dsp_api",
+                        "workflow": "dsp",
+                        "date": "2026-05-10",
+                    },
+                )
+
+            self.assertEqual(out["status"], "ok")
+            self.assertEqual(int(out["service_id"]), 10)
+            self.assertEqual(int(out["row_count"]), 1)
+            self.assertEqual(str(out["job_id"]), "35cffe17660dad7fbdfb7080ffa2f1a6")
+            self.assertEqual(str(out["source_name"]), "dsp3_api")
+
+            conn = sqlite3.connect(str(root / "data" / "mdrep.sqlite"))
+            try:
+                row = conn.execute(
+                    """
+                    SELECT 日期時間, 經銷商, 訂單, 素材, 廣告形式, 尺寸, 素材樣板, 執行金額, 系統營收, 媒體費用,
+                           原始經銷商, 最終經銷商, 最終來源_經銷商
+                    FROM canonical_raw
+                    WHERE workflow='dsp'
+                    ORDER BY row_order ASC
+                    LIMIT 1
+                    """
+                ).fetchone()
+                run_row = conn.execute(
+                    """
+                    SELECT run_type, workflow, status
+                    FROM run_log
+                    WHERE workflow='dsp'
+                    ORDER BY rowid DESC
+                    LIMIT 1
+                    """
+                ).fetchone()
+            finally:
+                conn.close()
+
+            self.assertEqual(str(row[0]), "2026-05-10")
+            self.assertEqual(str(row[1]), "[台灣]域動行銷股份有限公司")
+            self.assertEqual(str(row[2]), "(42031)活動")
+            self.assertEqual(str(row[3]), "(314928)0422_純蓋板")
+            self.assertEqual(str(row[4]), "純蓋板")
+            self.assertEqual(str(row[5]), "純蓋板")
+            self.assertEqual(str(row[6]), "HTML/JS")
+            self.assertEqual(float(row[7]), 10934.99)
+            self.assertEqual(float(row[8]), 9000.11)
+            self.assertEqual(float(row[9]), 8000.22)
+            self.assertEqual(str(row[10]), "[台灣]域動行銷股份有限公司")
+            self.assertEqual(str(row[11]), "[台灣]域動行銷股份有限公司")
+            self.assertEqual(str(row[12]), "raw")
+            self.assertEqual(tuple(str(v) for v in run_row), ("fetch_dsp_api", "dsp", "ok"))
+
+    def test_fetch_dsp_api_cli_uses_runtime_command_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            with patch("domain.services.resolve_dsp_api_settings") as mock_settings, patch("domain.services.DspApiClient") as mock_client:
+                mock_settings.return_value = DspApiSettings(email="matt@clickforce.com.tw", password="24450379")
+                mock_client.return_value.fetch_report_bundle.return_value = self._mock_dsp_fetch_bundle()
+
+                code, payload = self._run_cli_json(
+                    [
+                        "--root",
+                        str(root),
+                        "fetch-dsp-api",
+                        "--date",
+                        "2026-05-10",
+                    ]
+                )
+
+            self.assertEqual(code, 0)
+            self.assertEqual(payload["status"], "ok")
+            result = payload["result"]
+            self.assertEqual(result["workflow"], "dsp")
+            self.assertEqual(result["start_day"], "2026-05-10")
+            self.assertEqual(result["end_day"], "2026-05-10")
+            self.assertEqual(int(result["service_id"]), 10)
+            self.assertEqual(int(result["row_count"]), 1)
+            self.assertEqual(str(result["job_id"]), "35cffe17660dad7fbdfb7080ffa2f1a6")
+
+    def test_resolve_ui_context_switches_to_test_env_defaults(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+
+            ctx = ui_shell_module._resolve_ui_context(
+                root=root,
+                runtime_env_raw="test",
+                manifest_raw="",
+                artifact_root_raw="",
+                workflow="dsp",
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            self.assertEqual(ctx.runtime_env, "test")
+            self.assertEqual(ctx.manifest_rel, "bootstrap.test.manifest.json")
+            self.assertTrue(str(ctx.artifact_root).endswith("artifacts_test"))
+
+    def test_resolve_ui_context_rejects_artifact_root_outside_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            outside_root = Path(td).parent / "escaped-artifacts"
+
+            with self.assertRaises(PermissionError):
+                ui_shell_module._resolve_ui_context(
+                    root=root,
+                    runtime_env_raw="",
+                    manifest_raw="",
+                    artifact_root_raw=str(outside_root),
+                    workflow="dsp",
+                    template_version="v1",
+                    rule_version="v1",
+                )
 
     def test_dsp_export_fills_template_inputs_without_overwriting_formulas(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -437,6 +1317,102 @@ class UiShellTests(unittest.TestCase):
                 server.server_close()
                 thread.join(timeout=2.0)
 
+    def test_dsp_export_download_endpoint_rejects_artifact_root_outside_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root)
+            dispatch_action(ctx, {"action": "bootstrap"})
+            dispatch_action(ctx, {"action": "save", "rows": [self._full_row(最終經銷商="OUTSIDE_SCOPE_A1")]})
+            dispatch_action(
+                ctx,
+                {
+                    "action": "tab4_delivery",
+                    "main_tab": "dsp_tab3",
+                    "sub_tab": "pivot",
+                },
+            )
+            export_out = dispatch_action(
+                ctx,
+                {
+                    "action": "export",
+                    "main_tab": "dsp_tab4",
+                    "sub_tab": "overview",
+                },
+            )
+            artifact_path = Path(str(export_out.get("artifact_path") or ""))
+            self.assertTrue(artifact_path.exists())
+
+            try:
+                server = ThreadingHTTPServer(("127.0.0.1", 0), UiRequestHandler)
+            except PermissionError:
+                self.skipTest("sandbox 禁止本地 socket bind，略過 download endpoint scope guard")
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                host, port = server.server_address
+                query = urlencode(
+                    {
+                        "root": str(root),
+                        "manifest": "bootstrap.manifest.json",
+                        "workflow": "dsp",
+                        "template_version": "v1",
+                        "rule_version": "v1",
+                        "artifact_root": str(root.parent / "escaped-artifacts"),
+                        "artifact_path": str(artifact_path),
+                    }
+                )
+                with self.assertRaises(HTTPError) as exc_ctx:
+                    urlopen(Request(f"http://{host}:{port}/api/export/download?{query}"))
+                self.assertEqual(exc_ctx.exception.code, 400)
+                error_payload = json.loads(exc_ctx.exception.read().decode("utf-8"))
+                self.assertEqual(error_payload.get("error_code"), "DOWNLOAD_FAILED")
+                self.assertIn("artifact_root out of allowed artifact scope", str(error_payload.get("message") or ""))
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2.0)
+
+    def test_api_action_rejects_artifact_root_outside_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+
+            try:
+                server = ThreadingHTTPServer(("127.0.0.1", 0), UiRequestHandler)
+            except PermissionError:
+                self.skipTest("sandbox 禁止本地 socket bind，略過 api/action scope guard")
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                host, port = server.server_address
+                req = Request(
+                    f"http://{host}:{port}/api/action",
+                    data=json.dumps(
+                        {
+                            "action": "health",
+                            "root": str(root),
+                            "manifest": "bootstrap.manifest.json",
+                            "workflow": "dsp",
+                            "template_version": "v1",
+                            "rule_version": "v1",
+                            "artifact_root": str(root.parent / "escaped-artifacts"),
+                        }
+                    ).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with self.assertRaises(HTTPError) as exc_ctx:
+                    urlopen(req)
+                self.assertEqual(exc_ctx.exception.code, 400)
+                error_payload = json.loads(exc_ctx.exception.read().decode("utf-8"))
+                self.assertEqual(error_payload.get("error_code"), "UI_ACTION_FAILED")
+                self.assertIn("artifact_root out of allowed artifact scope", str(error_payload.get("message") or ""))
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2.0)
+
     def test_ui_shell_strict_gate_respected(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -467,6 +1443,296 @@ class UiShellTests(unittest.TestCase):
             self.assertIn("audit_log", status["recent"])
             # JSON serializable snapshot for UI rendering.
             json.dumps(status, ensure_ascii=False)
+
+    def test_ssp_frame_falls_back_to_canonical_rows_when_ssp_raw_empty(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="ssp")
+            dispatch_action(ctx, {"action": "bootstrap"})
+            dispatch_action(
+                ctx,
+                {
+                    "action": "save",
+                    "workflow": "ssp",
+                    "rows": [self._full_row(經銷商="SSP_FRAME", 最終經銷商="SSP_FRAME_CANONICAL")],
+                },
+            )
+
+            frame = collect_workflow_frame(ctx)
+            self.assertEqual(frame.get("source_table"), "canonical_raw")
+            self.assertEqual(frame.get("row_count"), 1)
+            self.assertIn("經銷商", frame.get("field_names") or [])
+            self.assertIn("最終經銷商", frame.get("manual_fields") or [])
+            self.assertEqual((frame.get("rows") or [{}])[0].get("經銷商"), "SSP_FRAME")
+            self.assertEqual((frame.get("rows") or [{}])[0].get("最終經銷商"), "SSP_FRAME_CANONICAL")
+
+    def test_ssp_media_demand_config_loads_defaults_and_saves_per_env(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            prod_ctx = self._ctx(root, workflow="ssp")
+            test_ctx = UiContext(
+                root=root,
+                runtime_env="test",
+                manifest_rel="bootstrap.test.manifest.json",
+                workflow="ssp",
+                template_version="v1",
+                rule_version="v1",
+                artifact_root=(root / "artifacts_test").resolve(),
+            )
+            dispatch_action(prod_ctx, {"action": "bootstrap"})
+            dispatch_action(test_ctx, {"action": "bootstrap"})
+
+            prod_frame = collect_workflow_frame(prod_ctx)
+            prod_media = prod_frame.get("ssp_media_demand") or {}
+            self.assertEqual(prod_media.get("storage_source"), "defaults")
+            self.assertEqual(prod_media.get("defaults_source"), "template+json")
+            self.assertEqual(prod_media.get("template_path"), str((root / "templates" / "ssp_template.xlsx").resolve()))
+            self.assertEqual(
+                prod_media.get("group_overrides_path"),
+                str((root / "data_seed" / "templates_rules_mapping" / "group_overrides.json").resolve()),
+            )
+            self.assertEqual(len(prod_media.get("categories") or []), 5)
+            self.assertGreaterEqual(len(prod_media.get("slots") or []), 5)
+            self.assertTrue(any(str(slot.get("media_quality") or "").strip() for slot in (prod_media.get("slots") or [])))
+            self.assertTrue(any(str(slot.get("target_fr") or "").strip() for slot in (prod_media.get("slots") or [])))
+
+            save_out = dispatch_action(
+                test_ctx,
+                {
+                    "action": "ssp_media_save",
+                    "ssp_media_slots": [
+                        {
+                            "category": "蓋板",
+                            "slot_order": 0,
+                            "placement_id": "99999",
+                            "placement_name": "TEST_SLOT",
+                            "media_quality": "知名媒體",
+                            "need_call": True,
+                            "target_fr": "60-80%",
+                            "remark": "test env only",
+                            "media_target": 3210,
+                            "is_active": True,
+                        }
+                    ],
+                },
+            )
+            self.assertEqual(save_out.get("status"), "ok")
+            self.assertEqual(int(save_out.get("row_count") or 0), 1)
+            self.assertTrue(str(save_out.get("run_id") or "").startswith("run-"))
+
+            cfg = build_config(root, test_ctx.manifest_rel, test_ctx.runtime_env)
+            conn = sqlite3.connect(str(cfg.db_path))
+            try:
+                run_row = conn.execute(
+                    """
+                    SELECT run_type, workflow, template_version, rule_version, detail_json
+                    FROM run_log
+                    WHERE run_id = ?
+                    """,
+                    (str(save_out.get("run_id") or ""),),
+                ).fetchone()
+                self.assertIsNotNone(run_row)
+                assert run_row is not None
+                self.assertEqual(str(run_row[0]), "ssp_media_save")
+                self.assertEqual(str(run_row[1]), "ssp")
+                self.assertEqual(str(run_row[2]), "v1")
+                self.assertEqual(str(run_row[3]), "v1")
+                run_detail = json.loads(str(run_row[4]))
+                self.assertEqual(str(run_detail.get("runtime_env") or ""), "test")
+                self.assertEqual(int(run_detail.get("row_count") or 0), 1)
+                self.assertTrue(str(run_detail.get("template_id") or ""))
+                self.assertTrue(str(run_detail.get("mapping_version") or ""))
+                self.assertTrue(str(run_detail.get("rule_hash") or ""))
+
+                audit_row = conn.execute(
+                    """
+                    SELECT event_type, scope, status, payload_json
+                    FROM audit_log
+                    WHERE event_type = 'ssp_media_save'
+                    ORDER BY id DESC
+                    LIMIT 1
+                    """
+                ).fetchone()
+                self.assertIsNotNone(audit_row)
+                assert audit_row is not None
+                self.assertEqual(str(audit_row[0]), "ssp_media_save")
+                self.assertEqual(str(audit_row[1]), "service")
+                self.assertEqual(str(audit_row[2]), "ok")
+                audit_payload = json.loads(str(audit_row[3]))
+                self.assertEqual(str(audit_payload.get("workflow") or ""), "ssp")
+                self.assertEqual(str(audit_payload.get("run_id") or ""), str(save_out.get("run_id") or ""))
+                self.assertEqual(str(audit_payload.get("template_version") or ""), "v1")
+                self.assertEqual(str(audit_payload.get("rule_version") or ""), "v1")
+                self.assertTrue(str(audit_payload.get("canonical_token") or ""))
+                self.assertEqual(str(audit_payload.get("runtime_env") or ""), "test")
+                self.assertEqual(int(audit_payload.get("row_count") or 0), 1)
+            finally:
+                conn.close()
+
+            refreshed_test = collect_workflow_frame(test_ctx).get("ssp_media_demand") or {}
+            refreshed_prod = collect_workflow_frame(prod_ctx).get("ssp_media_demand") or {}
+            self.assertEqual(refreshed_test.get("storage_source"), "db")
+            self.assertEqual((refreshed_test.get("slots") or [{}])[0].get("placement_id"), "99999")
+            self.assertEqual((refreshed_test.get("slots") or [{}])[0].get("media_quality"), "知名媒體")
+            self.assertEqual((refreshed_test.get("slots") or [{}])[0].get("need_call"), True)
+            self.assertEqual((refreshed_test.get("slots") or [{}])[0].get("target_fr"), "60-80%")
+            self.assertEqual((refreshed_test.get("slots") or [{}])[0].get("media_target"), 3210.0)
+            self.assertEqual(refreshed_prod.get("storage_source"), "defaults")
+            self.assertNotEqual((refreshed_prod.get("slots") or [{}])[0].get("placement_id"), "99999")
+
+    def test_ssp_media_demand_config_uses_json_only_when_local_template_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root, include_ssp_template=False)
+            ctx = self._ctx(root, workflow="ssp")
+            dispatch_action(ctx, {"action": "bootstrap"})
+
+            media = (collect_workflow_frame(ctx).get("ssp_media_demand") or {})
+            slots = media.get("slots") or []
+            self.assertEqual(media.get("storage_source"), "defaults")
+            self.assertEqual(media.get("defaults_source"), "json")
+            self.assertEqual(media.get("template_path"), "")
+            self.assertEqual(
+                media.get("group_overrides_path"),
+                str((root / "data_seed" / "templates_rules_mapping" / "group_overrides.json").resolve()),
+            )
+            self.assertEqual((slots[0] if slots else {}).get("placement_id"), "8435")
+            self.assertEqual((slots[0] if slots else {}).get("placement_name"), "MW_蓋版_COOL")
+            self.assertEqual((slots[0] if slots else {}).get("media_quality"), "")
+            self.assertEqual((slots[0] if slots else {}).get("target_fr"), "")
+
+    def test_ssp_media_demand_view_honors_scope_and_source_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="ssp")
+            dispatch_action(ctx, {"action": "bootstrap"})
+            dispatch_action(
+                ctx,
+                {
+                    "action": "ssp_media_save",
+                    "ssp_media_slots": [
+                        {"category": "蓋板", "slot_order": 0, "placement_id": "111", "placement_name": "A", "remark": "", "media_target": 100, "is_active": True},
+                        {"category": "蓋板", "slot_order": 1, "placement_id": "222", "placement_name": "B", "remark": "", "media_target": 100, "is_active": True},
+                        {"category": "蓋板", "slot_order": 2, "placement_id": "333", "placement_name": "C", "remark": "", "media_target": 100, "is_active": True},
+                    ],
+                },
+            )
+
+            cfg = build_config(root, "bootstrap.manifest.json", "prod")
+            repo = SQLiteRepository(cfg.db_path, project_root=root)
+            repo.replace_ssp_raw_rows(
+                [
+                    {
+                        "source": "times_api",
+                        "ts": "2026-05-10 23:00:00",
+                        "date": "2026-05-10",
+                        "hour": 23,
+                        "placement_id": 111,
+                        "placement_name": "A",
+                        "request": 200,
+                        "impression": 80,
+                        "clicks": 4,
+                        "revenue": 50,
+                        "dsp_amount": 30,
+                    },
+                    {
+                        "source": "times_api",
+                        "ts": "2026-05-10 11:00:00",
+                        "date": "2026-05-10",
+                        "hour": 11,
+                        "placement_id": 222,
+                        "placement_name": "B",
+                        "request": 100,
+                        "impression": 60,
+                        "clicks": 3,
+                        "revenue": 40,
+                        "dsp_amount": 20,
+                    },
+                    {
+                        "source": "backup_api",
+                        "ts": "2026-05-10 12:00:00",
+                        "date": "2026-05-10",
+                        "hour": 12,
+                        "placement_id": 222,
+                        "placement_name": "B",
+                        "request": 250,
+                        "impression": 90,
+                        "clicks": 5,
+                        "revenue": 55,
+                        "dsp_amount": 35,
+                    },
+                    {
+                        "source": "times_api",
+                        "ts": "2026-05-09 11:00:00",
+                        "date": "2026-05-09",
+                        "hour": 11,
+                        "placement_id": 333,
+                        "placement_name": "C",
+                        "request": 999,
+                        "impression": 300,
+                        "clicks": 10,
+                        "revenue": 70,
+                        "dsp_amount": 50,
+                    },
+                ]
+            )
+
+            view = repo.resolve_ssp_media_demand_view(
+                runtime_env="prod",
+                data_seed_root=cfg.data_seed_root,
+                category="蓋板",
+                source="__all__",
+                start_date="2026-05-01",
+                end_date="2026-05-10",
+                scope_mode="all",
+                day_limit=7,
+                threshold=60,
+                only_unmet=False,
+            )
+            rows = view.get("rows") or []
+            self.assertEqual([row["slot"]["placement_id"] for row in rows], ["222", "111", "333"])
+            self.assertEqual(view.get("source"), "__all__")
+            self.assertAlmostEqual(float(rows[0]["latest_compliance_rate"]), 350.0)
+            self.assertAlmostEqual(float(rows[0]["metrics_by_date"]["2026-05-10"]["all"]["complianceRate"]), 350.0)
+            self.assertAlmostEqual(float(rows[1]["latest_compliance_rate"]), 200.0)
+            self.assertAlmostEqual(float(rows[0]["latest_request"]), 350.0)
+
+            unmet_view = repo.resolve_ssp_media_demand_view(
+                runtime_env="prod",
+                data_seed_root=cfg.data_seed_root,
+                category="蓋板",
+                source="__all__",
+                start_date="2026-05-01",
+                end_date="2026-05-10",
+                scope_mode="all",
+                day_limit=7,
+                threshold=250,
+                only_unmet=True,
+            )
+            unmet_rows = unmet_view.get("rows") or []
+            self.assertEqual([row["slot"]["placement_id"] for row in unmet_rows], ["111"])
+
+            scoped_view = repo.resolve_ssp_media_demand_view(
+                runtime_env="prod",
+                data_seed_root=cfg.data_seed_root,
+                category="蓋板",
+                source="times_api",
+                start_date="2026-05-01",
+                end_date="2026-05-10",
+                scope_mode="07-22",
+                day_limit=7,
+                threshold=150,
+                only_unmet=True,
+            )
+            scoped_rows = scoped_view.get("rows") or []
+            self.assertEqual(scoped_view.get("source"), "times_api")
+            self.assertEqual(scoped_view.get("scope_mode"), "07-22")
+            self.assertEqual([row["slot"]["placement_id"] for row in scoped_rows], ["222"])
+            self.assertAlmostEqual(float(scoped_rows[0]["latest_request"]), 100.0)
+            self.assertAlmostEqual(float(scoped_rows[0]["latest_compliance_rate"]), 100.0)
 
     def test_tab4_delivery_state_relocks_after_rawdata_save(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -1025,6 +2291,27 @@ class UiShellTests(unittest.TestCase):
                             )
                         )
                         self.assertGreaterEqual(first_header_width_after_switch, first_header_width_after_resize - 4)
+                        date_bucket = page.locator("[data-testid='dsp-rawdata-date-bucket']")
+                        page.wait_for_function(
+                            """() => {
+                              const el = document.querySelector("[data-testid='dsp-rawdata-date-bucket']");
+                              return !!el && el.value === "two_weeks_ago";
+                            }"""
+                        )
+                        self.assertEqual(date_bucket.input_value(), "two_weeks_ago")
+                        date_bucket.select_option("last_week")
+                        page.wait_for_timeout(120)
+                        page.get_by_role("button", name="展開詳細").click()
+                        with page.expect_response(lambda resp: resp.request.method == "GET" and "/api/frame" in resp.url):
+                            page.get_by_role("button", name="Refresh Frame").click()
+                        page.wait_for_function(
+                            """() => {
+                              const el = document.querySelector("[data-testid='dsp-rawdata-date-bucket']");
+                              return !!el && el.value === "two_weeks_ago";
+                            }"""
+                        )
+                        self.assertEqual(date_bucket.input_value(), "two_weeks_ago")
+                        self.assertTrue(main_rawdata_table.get_by_text("2026-05-01").first.is_visible())
                         page.reload(wait_until="domcontentloaded")
                         page.locator("[data-testid='main-tab-dsp-tab3']").click()
                         page.locator("[data-testid='sub-tab-rawdata']").click()
@@ -1103,7 +2390,11 @@ class UiShellTests(unittest.TestCase):
                         self.assertIn("last_action: modify", result_workspace.inner_text())
                         self.assertIn("result_status: ok", result_workspace.inner_text())
                         self.assertIn(f"run_id: {modify_run_id}", result_workspace.inner_text())
-                        self.assertIn(f"rows: {self._fmt_num(len(frame_rows))}", result_workspace.inner_text())
+                        result_text = result_workspace.inner_text()
+                        self.assertTrue(
+                            f"rows: {len(frame_rows)}" in result_text or f"rows: {self._fmt_num(len(frame_rows))}" in result_text,
+                            result_text,
+                        )
                         modify_status_payload = page.evaluate(
                             """async ({root, manifest}) => {
                               const q = new URLSearchParams({
@@ -1382,7 +2673,12 @@ class UiShellTests(unittest.TestCase):
                         self.assertEqual(export_frame_payload.get("status"), "ok")
                         export_row_count = int(((export_frame_payload.get("result") or {}).get("row_count") or 0))
                         self.assertGreaterEqual(export_row_count, 1)
-                        self.assertIn(f"rows: {self._fmt_num(export_row_count)}", export_result_workspace.inner_text())
+                        export_result_text = export_result_workspace.inner_text()
+                        self.assertTrue(
+                            f"rows: {export_row_count}" in export_result_text
+                            or f"rows: {self._fmt_num(export_row_count)}" in export_result_text,
+                            export_result_text,
+                        )
                         page.locator("[data-testid='result-segment-action']").click()
                         self.assertIn(export_artifact_path, page.locator("pre.json-view").inner_text())
                         page.locator("[data-testid='result-segment-state']").click()
@@ -1423,49 +2719,7 @@ class UiShellTests(unittest.TestCase):
                         self.assertIsInstance(save_payload, dict)
                         self.assertEqual(save_payload.get("action"), "save")
                         save_result = save_resp.value.json()
-                        if str(save_result.get("status")) != "ok":
-                            save_retry = page.evaluate(
-                                """async ({root, manifest}) => {
-                                  const params = new URLSearchParams({
-                                    root,
-                                    manifest,
-                                    workflow: "dsp",
-                                    template_version: "v1",
-                                    rule_version: "v1",
-                                    artifact_root: "artifacts",
-                                  });
-                                  const frameResp = await fetch(`/api/frame?${params.toString()}`);
-                                  const framePayload = await frameResp.json();
-                                  const result = framePayload.result || {};
-                                  const fieldNames = Array.isArray(result.field_names) ? result.field_names : [];
-                                  const rows = Array.isArray(result.rows)
-                                    ? result.rows.map((row) => {
-                                        const out = {};
-                                        for (const key of fieldNames) {
-                                          out[key] = row?.[key];
-                                        }
-                                        return out;
-                                      })
-                                    : [];
-                                  const saveResp = await fetch('/api/action', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                      root,
-                                      manifest,
-                                      workflow: "dsp",
-                                      template_version: "v1",
-                                      rule_version: "v1",
-                                      artifact_root: "artifacts",
-                                      action: "save",
-                                      rows,
-                                    }),
-                                  });
-                                  return await saveResp.json();
-                                }""",
-                                {"root": str(root), "manifest": "bootstrap.manifest.json"},
-                            )
-                            self.assertEqual(str(save_retry.get("status")), "ok")
+                        self.assertEqual(str(save_result.get("status")), "ok")
                         page.locator("[data-testid='main-tab-dsp-tab4']").click()
                         page.wait_for_function(
                             """() => {
@@ -1496,12 +2750,19 @@ class UiShellTests(unittest.TestCase):
                             "rawdata_saved",
                         )
 
-                        # SSP parity：只保留 anomaly 主視圖，不再提供 volume 與 sub tabs。
+                        # SSP parity：成效救火與媒體要量都必須可切換且可見。
                         page.get_by_role("button", name="Use SSP").click()
                         main_ssp_anomaly = page.locator("[data-testid='main-tab-ssp-anomaly']")
+                        main_ssp_media_demand = page.locator("[data-testid='main-tab-ssp-media-demand']")
                         main_ssp_anomaly.click()
                         self.assertEqual(main_ssp_anomaly.get_attribute("aria-selected"), "true")
                         self.assertEqual(page.locator("[data-testid='main-tab-ssp-volume']").count(), 0)
+                        self.assertEqual(main_ssp_media_demand.count(), 1)
+                        self.assertEqual(page.locator("[data-testid='sub-tabs']").count(), 0)
+                        self.assertEqual(page.locator("[data-testid='sub-tab-overview']").count(), 0)
+                        self.assertEqual(page.locator("[data-testid='sub-tab-rawdata']").count(), 0)
+                        self.assertEqual(page.locator("[data-testid='sub-tab-pivot']").count(), 0)
+                        self.assertEqual(page.locator("[data-testid='sub-tab-result']").count(), 0)
                         ssp_anomaly_workspace = page.locator("section.panel", has_text="SSP 成效異常 Workspace").first
                         self.assertTrue(ssp_anomaly_workspace.is_visible())
                         self.assertTrue(ssp_anomaly_workspace.get_by_text("控制列").first.is_visible())
@@ -1530,18 +2791,40 @@ class UiShellTests(unittest.TestCase):
                             first_supplier_detail = page.locator("[data-testid='ssp-anomaly-suppliers-accordion'] details").first
                             if first_supplier_detail.count() > 0:
                                 self.assertFalse(first_supplier_detail.evaluate("el => el.hasAttribute('open')"))
+
+                        main_ssp_media_demand.click()
+                        self.assertEqual(main_ssp_media_demand.get_attribute("aria-selected"), "true")
                         self.assertEqual(page.locator("[data-testid='sub-tabs']").count(), 0)
-                        self.assertEqual(page.locator("[data-testid='sub-tab-overview']").count(), 0)
-                        self.assertEqual(page.locator("[data-testid='sub-tab-rawdata']").count(), 0)
-                        self.assertEqual(page.locator("[data-testid='sub-tab-pivot']").count(), 0)
-                        self.assertEqual(page.locator("[data-testid='sub-tab-result']").count(), 0)
-                        page.wait_for_timeout(100)
+                        ssp_media_workspace = page.locator("section.panel", has_text="SSP 媒體要量 Workspace").first
+                        self.assertTrue(ssp_media_workspace.is_visible())
+                        self.assertTrue(page.locator("[data-testid='ssp-media-workbench']").is_visible())
+                        page.locator("[data-testid='ssp-media-toggle-summary']").click()
+                        page.wait_for_function(
+                            """() => !!document.querySelector("[data-testid='ssp-media-kpi']")"""
+                        )
+                        self.assertTrue(page.locator("[data-testid='ssp-media-kpi']").is_visible())
+                        self.assertTrue(page.locator("[data-testid='ssp-media-category-tabs']").is_visible())
+                        self.assertTrue(page.locator("[data-testid='ssp-media-threshold']").is_visible())
+                        self.assertTrue(page.locator("[data-testid='ssp-media-only-unmet-toggle']").is_visible())
+                        self.assertEqual(page.locator("[data-testid='ssp-media-toggle-slot-editor']").count(), 1)
+                        self.assertEqual(page.locator("[data-testid='ssp-media-slot-editor']").count(), 0)
+                        self.assertTrue(page.locator("[data-testid='ssp-media-demand-table']").is_visible())
+                        self.assertEqual(page.locator("[data-testid='ssp-media-category-蓋板']").count(), 1)
+                        self.assertEqual(page.locator("[data-testid='ssp-media-category-置底']").count(), 1)
+                        self.assertEqual(page.locator("[data-testid='ssp-media-category-置底展開']").count(), 1)
+                        self.assertEqual(page.locator("[data-testid='ssp-media-category-文中300x250']").count(), 1)
+                        self.assertEqual(page.locator("[data-testid='ssp-media-category-文中320x480']").count(), 1)
+                        self.assertEqual(page.locator("[data-testid='ssp-anomaly-visibility-mode']").count(), 0)
+
+                        page.wait_for_function("() => window.location.search.includes('main_tab=ssp_media_demand')")
+                        self.assertIn("main_tab=ssp_media_demand", page.url)
                         self.assertNotIn("sub_tab=", page.url)
                         runtime_strip_text = page.locator(".workbench-runtime-strip").inner_text()
-                        self.assertNotIn("sub_tab:", runtime_strip_text)
+                        self.assertIn("main: ssp_media_demand", runtime_strip_text)
                         self.assertNotIn("rawdata", runtime_strip_text.lower())
+                        self.assertTrue(page.locator("[data-testid='ssp-media-kpi']").is_visible())
 
-                        # 最小 happy path：SSP 自訂 period 後觸發 action，確認 payload 帶最新週期。
+                        # 最小 happy path：SSP 直接改日期區間後觸發 action，確認 payload 帶最新週期。
                         captured_actions: list[dict] = []
 
                         def _capture_action_request(req: object) -> None:
@@ -1559,9 +2842,9 @@ class UiShellTests(unittest.TestCase):
                                     captured_actions.append(body)
 
                         page.on("request", _capture_action_request)
-                        page.locator("[data-testid='period-preset']").select_option("custom")
-                        page.locator("[data-testid='period-week-start']").fill("2026-05-05")
-                        page.locator("[data-testid='period-week-end']").fill("2026-05-11")
+                        page.locator("[data-testid='period-range-toggle']").click()
+                        page.locator("[data-testid='period-range-day-2026-05-05']").click()
+                        page.locator("[data-testid='period-range-day-2026-05-11']").click()
                         page.get_by_role("button", name="展開詳細").click()
                         with page.expect_response(lambda resp: resp.request.method == "POST" and "/api/action" in resp.url):
                             page.get_by_role("button", name="Health").click()
@@ -1700,7 +2983,7 @@ class UiShellTests(unittest.TestCase):
                             self.assertEqual(modify_result.get("error_code"), "UI_ACTION_FAILED")
                             page.wait_for_timeout(120)
                             self.assertEqual(target_input.input_value(), after_value)
-                            self.assertIn(f"dirty_rows: {self._fmt_num(1)}", rawdata_workspace.inner_text())
+                            self.assertIn("dirty_rows: 1", rawdata_workspace.inner_text())
                         finally:
                             browser.close()
             finally:

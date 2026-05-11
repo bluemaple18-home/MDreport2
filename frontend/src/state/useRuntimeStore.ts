@@ -13,10 +13,13 @@ import type {
   RuntimeEnvelope,
   RuntimeFrameResult,
   RuntimeStatusResult,
+  SspMediaDemandSlot,
   SubTab,
   Workflow,
 } from "../types";
+import { resolvePreferredDspDateBucket } from "../shell/dspRawdataFilters";
 import {
+  defaultPeriodStateByWorkflow,
   defaultMainTabByWorkflow,
   defaultDirtyState,
   defaultResultState,
@@ -87,6 +90,39 @@ function parseJsonArray(text: string, fieldName: "rows" | "updates"): Array<Reco
   });
 }
 
+export function normalizeSaveRowsPayload(
+  rows: Array<Record<string, unknown>>,
+  fieldNames?: string[],
+): Array<Record<string, unknown>> {
+  const frameOnlySaveKeys = new Set(["row_order", "updated_at"]);
+  const normalizedFields = Array.isArray(fieldNames)
+    ? fieldNames.filter((field) => typeof field === "string" && field.trim() !== "")
+    : [];
+
+  if (normalizedFields.length > 0) {
+    return rows.map((row) => {
+      const normalized: Record<string, unknown> = {};
+      for (const field of normalizedFields) {
+        if (Object.prototype.hasOwnProperty.call(row, field)) {
+          normalized[field] = row[field];
+        }
+      }
+      return normalized;
+    });
+  }
+
+  return rows.map((row) => {
+    const normalized: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(row)) {
+      if (frameOnlySaveKeys.has(key)) {
+        continue;
+      }
+      normalized[key] = value;
+    }
+    return normalized;
+  });
+}
+
 function safeArrayLength(text: string): number {
   try {
     return parseJsonArray(text, "updates").length;
@@ -138,6 +174,7 @@ function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
           ...state,
           ctx: { ...state.ctx, workflow: action.value },
           route: { workflow: action.value, mainTab: nextMainTab, subTab: nextSubTab },
+          period: defaultPeriodStateByWorkflow(action.value),
         };
       }
     case "set_main_tab":
@@ -253,6 +290,32 @@ export function useRuntimeStore() {
     [dispatch],
   );
 
+  const syncDspRawdataDateBucket = useCallback(
+    (framePayload: RuntimeEnvelope<RuntimeFrameResult>) => {
+      if (state.ctx.workflow !== "dsp" || state.route.subTab !== "rawdata") {
+        return;
+      }
+      const rows = Array.isArray(framePayload.result?.rows)
+        ? (framePayload.result?.rows as Array<Record<string, unknown>>)
+        : [];
+      if (rows.length === 0) {
+        return;
+      }
+      const preferredBucket = resolvePreferredDspDateBucket(rows);
+      if (preferredBucket === state.dspRawdataFilters.dateBucket) {
+        return;
+      }
+      dispatch({
+        type: "set_dsp_rawdata_filters",
+        value: {
+          ...state.dspRawdataFilters,
+          dateBucket: preferredBucket,
+        },
+      });
+    },
+    [dispatch, state.ctx.workflow, state.dspRawdataFilters, state.route.subTab],
+  );
+
   const refreshRuntime = useCallback(async () => {
     dispatch({ type: "busy", value: true });
     try {
@@ -263,10 +326,11 @@ export function useRuntimeStore() {
       dispatch({ type: "set_status", payload: statusPayload });
       syncTab4DeliveryState(statusPayload);
       dispatch({ type: "set_frame", payload: framePayload });
+      syncDspRawdataDateBucket(framePayload);
     } finally {
       dispatch({ type: "busy", value: false });
     }
-  }, [state.ctx, syncTab4DeliveryState]);
+  }, [state.ctx, syncDspRawdataDateBucket, syncTab4DeliveryState]);
 
   const refreshStatus = useCallback(async () => {
     dispatch({ type: "busy", value: true });
@@ -284,10 +348,11 @@ export function useRuntimeStore() {
     try {
       const payload = await fetchFrame(state.ctx);
       dispatch({ type: "set_frame", payload });
+      syncDspRawdataDateBucket(payload);
     } finally {
       dispatch({ type: "busy", value: false });
     }
-  }, [state.ctx]);
+  }, [state.ctx, syncDspRawdataDateBucket]);
 
   const runActionWithResult = useCallback(
     async (
@@ -295,6 +360,7 @@ export function useRuntimeStore() {
       overrides?: {
         rows?: Array<Record<string, unknown>>;
         updates?: Array<Record<string, unknown>>;
+        sspMediaSlots?: SspMediaDemandSlot[];
         route?: ActionRouteOverride;
       },
     ): Promise<RuntimeEnvelope<Record<string, unknown>>> => {
@@ -311,10 +377,17 @@ export function useRuntimeStore() {
         payload.period_week_start = state.period.weekStart;
         payload.period_week_end = state.period.weekEnd;
         if (action === "save") {
-          payload.rows = overrides?.rows ?? parseJsonArray(state.rowsJson, "rows");
+          const inputRows = overrides?.rows ?? parseJsonArray(state.rowsJson, "rows");
+          const allowedFieldNames = Array.isArray(state.framePayload?.result?.field_names)
+            ? state.framePayload.result.field_names
+            : undefined;
+          payload.rows = normalizeSaveRowsPayload(inputRows, allowedFieldNames);
         }
         if (action === "modify") {
           payload.updates = overrides?.updates ?? parseJsonArray(state.updatesJson, "updates");
+        }
+        if (action === "ssp_media_save") {
+          payload.ssp_media_slots = overrides?.sspMediaSlots ?? [];
         }
 
         const result = await postAction(state.ctx, payload);
@@ -330,6 +403,7 @@ export function useRuntimeStore() {
         dispatch({ type: "set_status", payload: statusPayload });
         syncTab4DeliveryState(statusPayload);
         dispatch({ type: "set_frame", payload: framePayload });
+        syncDspRawdataDateBucket(framePayload);
         return result;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -348,7 +422,17 @@ export function useRuntimeStore() {
         dispatch({ type: "busy", value: false });
       }
     },
-    [state.ctx, state.period, state.resultState, state.route.mainTab, state.route.subTab, state.rowsJson, state.updatesJson, syncTab4DeliveryState],
+    [
+      state.ctx,
+      state.framePayload,
+      state.period,
+      state.resultState,
+      state.route.mainTab,
+      state.route.subTab,
+      state.rowsJson,
+      state.updatesJson,
+      syncTab4DeliveryState,
+    ],
   );
 
   const runAction = useCallback(
@@ -357,6 +441,7 @@ export function useRuntimeStore() {
       overrides?: {
         rows?: Array<Record<string, unknown>>;
         updates?: Array<Record<string, unknown>>;
+        sspMediaSlots?: SspMediaDemandSlot[];
         route?: ActionRouteOverride;
       },
     ): Promise<boolean> => {

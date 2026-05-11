@@ -5,3 +5,4 @@ export { PivotWorkspace } from "./pivot";
 export { ResultWorkspace } from "./result";
 export { Tab4Workspace } from "./tab4";
 export { SspParityWorkspace } from "./sspParity";
+export { SspMediaDemandWorkspace } from "./sspMediaDemand";

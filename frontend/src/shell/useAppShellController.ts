@@ -3,8 +3,8 @@ import type { RecentMap } from "../components/workspaces/shared";
 import { buildExportDownloadUrl } from "../api/runtimeApi";
 import { getMainTabOptions, getSubTabOptions } from "../state/runtimeContract";
 import { useRuntimeStore } from "../state/useRuntimeStore";
-import type { DspRawdataFilters, MainTab, RuntimeFrameResult, SubTab, Workflow } from "../types";
-import { defaultDspRawdataFilters, filterDspRawdataRows, resolvePreferredDspDateBucket } from "./dspRawdataFilters";
+import type { DspRawdataFilters, MainTab, RuntimeFrameResult, SspMediaDemandConfig, SspMediaDemandSlot, SubTab, Workflow } from "../types";
+import { filterDspRawdataRows, resolvePreferredDspDateBucket } from "./dspRawdataFilters";
 import { useRawdataEditingController } from "./useRawdataEditingController";
 import { getWorkflowCapability, getWorkspaceVisibilityCapability } from "./workflowCapabilities";
 
@@ -35,6 +35,7 @@ export function useAppShellController() {
   const tab4TemplateSummary = frameResult?.tab4_preview_template_summary || null;
   const tab4TemplateDetail = frameResult?.tab4_preview_template_detail || null;
   const tab4PreviewContract = frameResult?.tab4_preview_contract || null;
+  const sspMediaDemandConfig = frameResult?.ssp_media_demand as SspMediaDemandConfig | undefined;
   const manualFields = frameResult?.manual_fields || [];
   const workflowCapability = useMemo(() => getWorkflowCapability(state.route.workflow), [state.route.workflow]);
   const rawdataCapability = workflowCapability.rawdata;
@@ -87,9 +88,6 @@ export function useAppShellController() {
     if (allRows.length === 0) {
       return;
     }
-    if (state.dspRawdataFilters.dateBucket !== defaultDspRawdataFilters.dateBucket) {
-      return;
-    }
     const preferredBucket = resolvePreferredDspDateBucket(allRows);
     if (preferredBucket !== state.dspRawdataFilters.dateBucket) {
       dispatch({
@@ -118,6 +116,7 @@ export function useAppShellController() {
     tab4TemplateSummary,
     tab4TemplateDetail,
     tab4PreviewContract,
+    sspMediaDemandConfig,
     filteredRows,
     manualFields,
     mainTabOptions,
@@ -129,7 +128,7 @@ export function useAppShellController() {
     setWorkflow: (workflow: Workflow) => dispatch({ type: "set_workflow", value: workflow }),
     setMainTab: (mainTab: MainTab) => dispatch({ type: "set_main_tab", value: mainTab }),
     setSubTab: (subTab: SubTab) => dispatch({ type: "set_subtab", value: subTab }),
-    setPeriodPreset: (preset: "current_week" | "last_week" | "custom") => dispatch({ type: "set_period_preset", value: preset }),
+    setPeriodPreset: (preset: "current_week" | "last_week" | "last_7_days" | "last_14_days" | "custom") => dispatch({ type: "set_period_preset", value: preset }),
     setPeriodWindow: (weekStart: string, weekEnd: string) => dispatch({ type: "set_period_window", weekStart, weekEnd }),
     setRowFilter: (value: string) => dispatch({ type: "set_row_filter", value }),
     setRowLimit: (value: number) => dispatch({ type: "set_row_limit", value }),
@@ -185,6 +184,10 @@ export function useAppShellController() {
     handleReturnToPivotForDelivery: () => {
       dispatch({ type: "set_main_tab", value: "dsp_tab3" });
       dispatch({ type: "set_subtab", value: "pivot" });
+    },
+    handleSspMediaSave: async (slots: SspMediaDemandSlot[]) => {
+      const result = await runActionWithResult("ssp_media_save", { sspMediaSlots: slots });
+      return result.status === "ok";
     },
     handleEdit: rawdataEditing.handleEdit,
     handleRevertCell: rawdataEditing.handleRevertCell,

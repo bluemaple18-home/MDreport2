@@ -567,12 +567,21 @@ def rebuild_canonical_from_seed(
     rebuilt: dict[str, object] = {}
     for workflow in sorted(grouped_rows.keys()):
         rows = grouped_rows[workflow]
-        result = save_fn(
-            workflow=workflow,
-            rows=rows,
-            template_version=template_version,
-            rule_version=rule_version,
-        )
+        if workflow == "ssp":
+            result = _restore_ssp_truth_rows(
+                service,
+                workflow=workflow,
+                rows=rows,
+                template_version=template_version,
+                rule_version=rule_version,
+            )
+        else:
+            result = save_fn(
+                workflow=workflow,
+                rows=rows,
+                template_version=template_version,
+                rule_version=rule_version,
+            )
         rebuilt[workflow] = {
             "row_count": len(rows),
             "run_id": str(result.get("run_id", "")) if isinstance(result, dict) else "",
@@ -707,6 +716,51 @@ def _read_rows_from_ssp_raw_db(source_db_path: Path) -> list[dict]:
         conn.close()
 
 
+def _restore_ssp_truth_rows(
+    service: object,
+    *,
+    workflow: str,
+    rows: list[dict],
+    template_version: str,
+    rule_version: str,
+) -> dict[str, object]:
+    repo = getattr(service, "repo", None)
+    if repo is None:
+        raise ValueError("service 缺少 repo")
+    if not callable(getattr(repo, "save_ssp_raw_rows", None)):
+        raise ValueError("repo 缺少 save_ssp_raw_rows 能力")
+    with repo.connect() as conn:
+        repo.resolve_trace_binding(conn, workflow, template_version, rule_version)
+        conn.execute("DELETE FROM canonical_raw WHERE workflow = 'ssp'")
+        written = repo.save_ssp_raw_rows(conn, rows)
+        trace = repo.build_trace_meta(conn, workflow, template_version, rule_version)
+        run_id = repo.insert_run_log(
+            conn,
+            run_type="save",
+            workflow=workflow,
+            status="ok",
+            trace=trace,
+            detail={"row_count": written, "target_table": "ssp_raw"},
+        )
+        repo.append_audit_event(
+            conn,
+            event_type="save",
+            scope="service",
+            status="ok",
+            payload={
+                "workflow": workflow,
+                "run_id": run_id,
+                "template_version": template_version,
+                "rule_version": rule_version,
+                "canonical_token": trace.canonical_token,
+                "row_count": written,
+                "target_table": "ssp_raw",
+            },
+        )
+        conn.commit()
+    return {"run_id": run_id, "row_count": written}
+
+
 def promote_seed_canonical_to_live(
     root: Path,
     manifest_rel: str,
@@ -739,9 +793,6 @@ def promote_seed_canonical_to_live(
     if not rows:
         raise ValueError(f"seed canonical DB 沒有可升版資料: {source_db_path}")
 
-    repo = getattr(service, "repo", None)
-    if repo is None:
-        raise ValueError("service 缺少 repo")
     save_fn = getattr(service, "save", None)
     if workflow_name == "dsp":
         if not callable(save_fn):
@@ -753,38 +804,13 @@ def promote_seed_canonical_to_live(
             rule_version=rule_version,
         )
     else:
-        if not callable(getattr(repo, "save_ssp_raw_rows", None)):
-            raise ValueError("repo 缺少 save_ssp_raw_rows 能力")
-        with repo.connect() as conn:
-            repo.resolve_trace_binding(conn, workflow_name, template_version, rule_version)
-            conn.execute("DELETE FROM canonical_raw WHERE workflow = 'ssp'")
-            written = repo.save_ssp_raw_rows(conn, rows)
-            trace = repo.build_trace_meta(conn, workflow_name, template_version, rule_version)
-            run_id = repo.insert_run_log(
-                conn,
-                run_type="save",
-                workflow=workflow_name,
-                status="ok",
-                trace=trace,
-                detail={"row_count": written, "target_table": "ssp_raw"},
-            )
-            repo.append_audit_event(
-                conn,
-                event_type="save",
-                scope="service",
-                status="ok",
-                payload={
-                    "workflow": workflow_name,
-                    "run_id": run_id,
-                    "template_version": template_version,
-                    "rule_version": rule_version,
-                    "canonical_token": trace.canonical_token,
-                    "row_count": written,
-                    "target_table": "ssp_raw",
-                },
-            )
-            conn.commit()
-        result = {"run_id": run_id, "row_count": written}
+        result = _restore_ssp_truth_rows(
+            service,
+            workflow=workflow_name,
+            rows=rows,
+            template_version=template_version,
+            rule_version=rule_version,
+        )
     return {
         "status": "ok",
         "seed_root": str(layout.seed_root),

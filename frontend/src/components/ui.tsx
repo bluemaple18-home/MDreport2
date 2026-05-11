@@ -214,9 +214,10 @@ type TableContainerProps = {
   rows: Array<Record<string, unknown>>;
   columnFormatters?: Partial<Record<string, (value: unknown) => string>>;
   className?: string;
+  footerRows?: Array<Record<string, unknown>>;
 };
 
-export function TableContainer({ columns, rows, columnFormatters, className }: TableContainerProps) {
+export function TableContainer({ columns, rows, columnFormatters, className, footerRows }: TableContainerProps) {
   return (
     <div className={`table-wrap${className ? ` ${className}` : ""}`}>
       <table>
@@ -238,6 +239,19 @@ export function TableContainer({ columns, rows, columnFormatters, className }: T
             </tr>
           ))}
         </tbody>
+        {Array.isArray(footerRows) && footerRows.length > 0 ? (
+          <tfoot>
+            {footerRows.map((row, idx) => (
+              <tr key={`footer-${idx}`} className="table-total-row">
+                {columns.map((col) => (
+                  <td key={`footer-${idx}-${col}`}>
+                    {columnFormatters?.[col] ? columnFormatters[col]?.(row[col]) ?? "" : formatDisplayValue(row[col])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tfoot>
+        ) : null}
       </table>
     </div>
   );

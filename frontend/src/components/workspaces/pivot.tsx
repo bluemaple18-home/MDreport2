@@ -16,6 +16,7 @@ type PivotWorkspaceProps = {
 type PivotMatrix = {
   columns: string[];
   rows: RowData[];
+  totalRow: RowData;
   topDistributor: string;
   topAdFormat: string;
   topAmount: number;
@@ -58,6 +59,15 @@ function buildPivotMatrix(rows: RowData[]): PivotMatrix {
     return rowPayload;
   });
 
+  const totalRow: RowData = { 經銷商: "總計" };
+  let totalAmount = 0;
+  for (const adFormat of adFormats) {
+    const value = adFormatTotals.get(adFormat) ?? 0;
+    totalRow[adFormat] = value;
+    totalAmount += value;
+  }
+  totalRow["總計"] = totalAmount;
+
   const topDistributor = distributors[0] ?? "n/a";
   const topAdFormat = adFormats[0] ?? "n/a";
   const topAmount = Number(adFormatTotals.get(topAdFormat) ?? 0);
@@ -65,6 +75,7 @@ function buildPivotMatrix(rows: RowData[]): PivotMatrix {
   return {
     columns: ["經銷商", ...adFormats, "總計"],
     rows: pivotRows.slice(0, 50),
+    totalRow,
     topDistributor,
     topAdFormat,
     topAmount,
@@ -122,6 +133,7 @@ export function PivotWorkspace({ rows, columns, busy, workflow, recent, onSendTo
               .filter((column) => column !== "經銷商")
               .map((column) => [column, formatAmount]),
           )}
+          footerRows={[pivotMatrix.totalRow]}
         />
       ) : null}
       <div className="btn-row">

@@ -33,6 +33,7 @@ export default function App() {
           onPeriodPresetChange={controller.setPeriodPreset}
           onPeriodWeekStartChange={(value) => controller.setPeriodWindow(value, controller.state.period.weekEnd)}
           onPeriodWeekEndChange={(value) => controller.setPeriodWindow(controller.state.period.weekStart, value)}
+          onPeriodRangeChange={controller.setPeriodWindow}
         />
 
         <MainWorkspaceRenderer
@@ -65,11 +66,15 @@ export default function App() {
             updatesJson: controller.state.updatesJson,
             busy: controller.state.busy,
             periodLabel: controller.state.period.label,
+            periodWeekStart: controller.state.period.weekStart,
+            periodWeekEnd: controller.state.period.weekEnd,
             dirtyState: controller.state.dirtyState,
             recent: controller.recent,
             resultPayload: controller.state.resultPayload,
             resultState: controller.state.resultState,
             exportDeliverySnapshotToken: controller.exportDeliverySnapshotToken,
+            sspMediaDemandConfig: controller.sspMediaDemandConfig,
+            runtimeContext: controller.state.ctx,
           }}
           actions={{
             setRowFilter: controller.setRowFilter,
@@ -85,6 +90,7 @@ export default function App() {
             refreshFrame: controller.refreshFrame,
             handleSendPivotToTab4: controller.handleSendPivotToTab4,
             handleReturnToPivotForDelivery: controller.handleReturnToPivotForDelivery,
+            handleSspMediaSave: controller.handleSspMediaSave,
           }}
           rawdataView={{
             capability: controller.rawdataCapability,

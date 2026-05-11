@@ -16,6 +16,7 @@ export const FRONTEND_SESSION_KEY = "mdrep.frontend.contract.v1";
 
 export const QUERY_KEYS = {
   root: "root",
+  env: "env",
   manifest: "manifest",
   workflow: "workflow",
   templateVersion: "template_version",
@@ -38,6 +39,7 @@ export const ACCEPTANCE_SELECTORS = {
   mainTabDspTab3: "main-tab-dsp-tab3",
   mainTabDspTab4: "main-tab-dsp-tab4",
   mainTabSspAnomaly: "main-tab-ssp-anomaly",
+  mainTabSspMediaDemand: "main-tab-ssp-media-demand",
   subTabs: "sub-tabs",
   subTabOverview: "sub-tab-overview",
   subTabRawdata: "sub-tab-rawdata",
@@ -45,6 +47,8 @@ export const ACCEPTANCE_SELECTORS = {
   subTabResult: "sub-tab-result",
   periodSelector: "period-selector",
   periodPreset: "period-preset",
+  periodRangeToggle: "period-range-toggle",
+  periodRangePopover: "period-range-popover",
   periodWeekStart: "period-week-start",
   periodWeekEnd: "period-week-end",
   dirtyCounter: "dirty-counter",
@@ -59,12 +63,25 @@ export const ACCEPTANCE_SELECTORS = {
 
 export const defaultRuntimeContext: RuntimeContext = {
   root: ".",
+  env: "prod",
   manifest: "bootstrap.manifest.json",
   workflow: "dsp",
   template_version: "v1",
   rule_version: "v1",
   artifact_root: "artifacts",
 };
+
+function defaultManifestByEnv(env: string): string {
+  return env === "test" ? "bootstrap.test.manifest.json" : "bootstrap.manifest.json";
+}
+
+function defaultArtifactRootByEnv(env: string): string {
+  return env === "test" ? "artifacts_test" : "artifacts";
+}
+
+function parseRuntimeEnv(raw: string | null): RuntimeContext["env"] | null {
+  return raw === "prod" || raw === "test" ? raw : null;
+}
 
 export const defaultRouteState: RouteState = {
   workflow: "dsp",
@@ -121,7 +138,26 @@ function lastWeekRange(): { weekStart: string; weekEnd: string } {
   };
 }
 
-export function buildDefaultPeriodState(): PeriodState {
+function lastNDaysRange(days: number): { weekStart: string; weekEnd: string } {
+  const end = new Date();
+  const start = new Date(end);
+  start.setDate(end.getDate() - (days - 1));
+  return {
+    weekStart: toDateIso(start),
+    weekEnd: toDateIso(end),
+  };
+}
+
+export function buildDefaultPeriodState(workflow: Workflow = "dsp"): PeriodState {
+  if (workflow === "ssp") {
+    const range = lastNDaysRange(7);
+    return {
+      preset: "last_7_days",
+      weekStart: range.weekStart,
+      weekEnd: range.weekEnd,
+      label: `${range.weekStart} ~ ${range.weekEnd}`,
+    };
+  }
   const range = lastWeekRange();
   return {
     preset: "last_week",
@@ -140,6 +176,7 @@ function parseMainTab(raw: string | null): MainTab | null {
     raw === "dsp_tab3"
     || raw === "dsp_tab4"
     || raw === "ssp_anomaly"
+    || raw === "ssp_media_demand"
   ) {
     return raw;
   }
@@ -154,7 +191,14 @@ function parseSubTab(raw: string | null): SubTab | null {
 }
 
 function parsePeriodPreset(raw: string | null): PeriodPreset | null {
-  return raw === "current_week" || raw === "last_week" || raw === "custom" ? raw : null;
+  return raw === "current_week" || raw === "last_week" || raw === "last_7_days" || raw === "last_14_days" || raw === "custom" ? raw : null;
+}
+
+function normalizePeriodPresetByWorkflow(workflow: Workflow, preset: PeriodPreset | null, fallback: PeriodPreset): PeriodPreset {
+  if (workflow === "ssp") {
+    return preset === "custom" || preset === "last_7_days" || preset === "last_14_days" ? preset : fallback;
+  }
+  return preset === "current_week" || preset === "last_week" || preset === "custom" ? preset : fallback;
 }
 
 function buildPeriodLabel(weekStart: string, weekEnd: string): string {
@@ -172,6 +216,24 @@ function applyPreset(preset: PeriodPreset, fallback: PeriodState): PeriodState {
       ...fallback,
       preset,
       label: buildPeriodLabel(fallback.weekStart, fallback.weekEnd),
+    };
+  }
+  if (preset === "last_14_days") {
+    const range = lastNDaysRange(14);
+    return {
+      preset,
+      weekStart: range.weekStart,
+      weekEnd: range.weekEnd,
+      label: buildPeriodLabel(range.weekStart, range.weekEnd),
+    };
+  }
+  if (preset === "last_7_days") {
+    const range = lastNDaysRange(7);
+    return {
+      preset,
+      weekStart: range.weekStart,
+      weekEnd: range.weekEnd,
+      label: buildPeriodLabel(range.weekStart, range.weekEnd),
     };
   }
   const range = preset === "current_week" ? thisWeekRange() : lastWeekRange();
@@ -194,7 +256,10 @@ type PersistedState = {
 
 export function getMainTabOptions(workflow: Workflow): Array<{ value: MainTab; label: string }> {
   if (workflow === "ssp") {
-    return [{ value: "ssp_anomaly", label: "成效異常" }];
+    return [
+      { value: "ssp_anomaly", label: "成效救火" },
+      { value: "ssp_media_demand", label: "媒體要量" },
+    ];
   }
   return [
     { value: "dsp_tab3", label: "Tab3 資料層" },
@@ -203,7 +268,7 @@ export function getMainTabOptions(workflow: Workflow): Array<{ value: MainTab; l
 }
 
 export function getSubTabOptions(mainTab: MainTab): Array<{ value: SubTab; label: string }> {
-  if (mainTab === "ssp_anomaly") {
+  if (mainTab === "ssp_anomaly" || mainTab === "ssp_media_demand") {
     return [];
   }
   if (mainTab === "dsp_tab4") {
@@ -256,9 +321,17 @@ export function restorePersistedState(): PersistedState {
   }
 
   const params = new URLSearchParams(window.location.search);
+  const queryRuntimeEnv = parseRuntimeEnv(params.get(QUERY_KEYS.env));
+  const runtimeEnv = queryRuntimeEnv
+    || parseRuntimeEnv(sessionParsed.ctx?.env || null)
+    || defaultRuntimeContext.env;
+  const queryManifest = params.get(QUERY_KEYS.manifest);
+  const queryArtifactRoot = params.get(QUERY_KEYS.artifactRoot);
+  const forceEnvDefaults = queryRuntimeEnv !== null;
   const workflow = parseWorkflow(params.get(QUERY_KEYS.workflow))
     || parseWorkflow(sessionParsed.route?.workflow || null)
     || defaultRouteState.workflow;
+  const workflowFallbackPeriod = buildDefaultPeriodState(workflow);
   let mainTab = parseMainTab(params.get(QUERY_KEYS.mainTab))
     || parseMainTab(sessionParsed.route?.mainTab || null)
     || defaultMainTabByWorkflow(workflow);
@@ -269,16 +342,19 @@ export function restorePersistedState(): PersistedState {
     || parseSubTab(sessionParsed.route?.subTab || null)
     || defaultRouteState.subTab;
   const subTab = normalizeSubTabByMainTab(mainTab, restoredSubTab);
-  const periodPreset = parsePeriodPreset(params.get(QUERY_KEYS.periodPreset))
-    || parsePeriodPreset(sessionParsed.period?.preset || null)
-    || fallbackPeriod.preset;
+  const periodPreset = normalizePeriodPresetByWorkflow(
+    workflow,
+    parsePeriodPreset(params.get(QUERY_KEYS.periodPreset))
+      || parsePeriodPreset(sessionParsed.period?.preset || null),
+    workflowFallbackPeriod.preset,
+  );
 
   const weekStart = params.get(QUERY_KEYS.periodWeekStart)
     || sessionParsed.period?.weekStart
-    || fallbackPeriod.weekStart;
+    || workflowFallbackPeriod.weekStart;
   const weekEnd = params.get(QUERY_KEYS.periodWeekEnd)
     || sessionParsed.period?.weekEnd
-    || fallbackPeriod.weekEnd;
+    || workflowFallbackPeriod.weekEnd;
 
   const currentPeriod = applyPreset(periodPreset, {
     preset: "custom",
@@ -289,7 +365,11 @@ export function restorePersistedState(): PersistedState {
 
   const ctx: RuntimeContext = {
     root: params.get(QUERY_KEYS.root) || sessionParsed.ctx?.root || defaultRuntimeContext.root,
-    manifest: params.get(QUERY_KEYS.manifest) || sessionParsed.ctx?.manifest || defaultRuntimeContext.manifest,
+    env: runtimeEnv,
+    manifest:
+      queryManifest
+      || (forceEnvDefaults ? defaultManifestByEnv(runtimeEnv) : sessionParsed.ctx?.manifest)
+      || defaultManifestByEnv(runtimeEnv),
     workflow,
     template_version:
       params.get(QUERY_KEYS.templateVersion)
@@ -298,9 +378,9 @@ export function restorePersistedState(): PersistedState {
     rule_version:
       params.get(QUERY_KEYS.ruleVersion) || sessionParsed.ctx?.rule_version || defaultRuntimeContext.rule_version,
     artifact_root:
-      params.get(QUERY_KEYS.artifactRoot)
-      || sessionParsed.ctx?.artifact_root
-      || defaultRuntimeContext.artifact_root,
+      queryArtifactRoot
+      || (forceEnvDefaults ? defaultArtifactRootByEnv(runtimeEnv) : sessionParsed.ctx?.artifact_root)
+      || defaultArtifactRootByEnv(runtimeEnv),
   };
 
   const queryRowLimitRaw = params.get(QUERY_KEYS.rowLimit);
@@ -328,13 +408,14 @@ export function persistState(state: PersistedState): void {
 
   const params = new URLSearchParams(window.location.search);
   params.set(QUERY_KEYS.root, state.ctx.root);
+  params.set(QUERY_KEYS.env, state.ctx.env);
   params.set(QUERY_KEYS.manifest, state.ctx.manifest);
   params.set(QUERY_KEYS.workflow, state.route.workflow);
   params.set(QUERY_KEYS.templateVersion, state.ctx.template_version);
   params.set(QUERY_KEYS.ruleVersion, state.ctx.rule_version);
   params.set(QUERY_KEYS.artifactRoot, state.ctx.artifact_root);
   params.set(QUERY_KEYS.mainTab, state.route.mainTab);
-  if (state.route.mainTab === "ssp_anomaly") {
+  if (getSubTabOptions(state.route.mainTab).length === 0) {
     params.delete(QUERY_KEYS.subTab);
   } else {
     params.set(QUERY_KEYS.subTab, state.route.subTab);
@@ -351,6 +432,10 @@ export function persistState(state: PersistedState): void {
 
 export function updatePeriodPreset(current: PeriodState, preset: PeriodPreset): PeriodState {
   return applyPreset(preset, current);
+}
+
+export function defaultPeriodStateByWorkflow(workflow: Workflow): PeriodState {
+  return buildDefaultPeriodState(workflow);
 }
 
 export function updatePeriodWindow(current: PeriodState, weekStart: string, weekEnd: string): PeriodState {

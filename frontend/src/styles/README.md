@@ -4,7 +4,7 @@
 
 ## 入口與載入順序
 
-- 入口檔：`/Users/matt/MDREPROT2/frontend/src/styles.css`
+- 入口檔：`src/styles.css`
 - 載入順序固定：
   1. `base.css`
   2. `layout.css`

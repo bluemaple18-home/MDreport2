@@ -66,6 +66,7 @@ export function RuntimeUtilityStrip({
   onRefreshStatus,
   onRefreshFrame,
 }: RuntimeUtilityStripProps) {
+  const dedicatedSspMainTab = workflow === "ssp" && (mainTab === "ssp_anomaly" || mainTab === "ssp_media_demand");
   return (
     <section className="panel panel-full workbench-runtime-strip">
       <header className="panel-header">
@@ -79,11 +80,7 @@ export function RuntimeUtilityStrip({
             <span>Service Input</span>
             <span>health: {healthStatus}</span>
             <span>workflow: {workflow}</span>
-            {mainTab === "ssp_anomaly" ? (
-              <span>main: {mainTab}</span>
-            ) : (
-              <span>main/sub: {mainTab} / {subTab}</span>
-            )}
+            <span>{dedicatedSspMainTab ? `main: ${mainTab}` : `main/sub: ${mainTab} / ${subTab}`}</span>
             <span>dirty: {dirtyHasDirty ? "yes" : "no"} ({formatNumber(dirtyManualOverrideCount)})</span>
             <span>run_log: {formatNumber(runLogCount)}</span>
             <span>publish: {formatNumber(publishCount)}</span>
@@ -140,7 +137,7 @@ export function RuntimeUtilityStrip({
                 <div className="status-bar">
                   <span>workflow: {workflow}</span>
                   <span>main_tab: {mainTab}</span>
-                  {mainTab === "ssp_anomaly" ? null : <span>sub_tab: {subTab}</span>}
+                  {dedicatedSspMainTab ? null : <span>sub_tab: {subTab}</span>}
                 </div>
                 <div className="status-bar">
                   <span>Service Input</span>

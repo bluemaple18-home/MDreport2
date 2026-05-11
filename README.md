@@ -33,8 +33,14 @@
 ## Bootstrap Manifest
 預設檔案：`bootstrap.manifest.json`
 
+環境分流：
+- 正式：`bootstrap.manifest.json`
+- 測試：`bootstrap.test.manifest.json`
+- CLI / UI 若帶 `env=test`，且未額外指定 `manifest`，會自動切到測試 manifest。
+
 關鍵欄位：
 - `db.path`
+- `data_seed.root`
 - `schema.target_version`
 - `template_registry.seed`
 - `rule_registry.seed`
@@ -67,7 +73,9 @@
 
 ```bash
 python3 app/main.py --root /path/to/project bootstrap
+python3 app/main.py --root /path/to/project --env test bootstrap
 python3 app/main.py --root /path/to/project health
+python3 app/main.py --root /path/to/project --env test health
 python3 app/main.py --root /path/to/project save \
   --workflow dsp --template-version v1 --rule-version v1 \
   --rows-json /path/to/rows.json
@@ -85,12 +93,20 @@ python3 app/main.py --root /path/to/project seed-promote-live \
   --workflow dsp --source-db-rel canonical/mdreport_dsp.sqlite
 python3 app/main.py --root /path/to/project seed-rebuild \
   --workflow dsp --template-version v1 --rule-version v1
+python3 app/main.py --root /path/to/project fetch-dsp-api \
+  --date 2026-05-10
+python3 app/main.py --root /path/to/project fetch-ssp-api \
+  --date 2026-05-11
 ```
 
 相容 wrapper：`app/bootstrap_init.py`
 - 未指定 command 時會自動補 `bootstrap`
 - `export --workflow dsp` 若未提供 `--main-tab/--sub-tab`，CLI 會預設補 `dsp_tab4/overview` 以符合 DSP export 守門。
 - `POST /api/action` 的 DSP `export` 不會補 route；需由前端/呼叫端明確帶 `main_tab=dsp_tab4`、`sub_tab=overview`。
+- `POST /api/action` 目前也支援 `seed_rebuild`、`seed_promote_live`，可沿用 `workflow / template_version / rule_version / seed_root / source_db_rel` 這組 runtime 契約走 API 重建。
+- `POST /api/action` 目前也支援 `fetch_dsp_api`，正式 auth 走 `scope-check -> service_id=10 -> reports -> view-job`。
+- `POST /api/action` 目前也支援 `fetch_ssp_api`，正式 auth 走 `scope-check -> service_id=14 -> get-login -> report-conditions -> report`。
+- 若只帶 `--env test` 而未指定 `--manifest`，CLI 會自動改用 `bootstrap.test.manifest.json`。
 
 ## CLI 輸出契約（JSON）
 成功：
@@ -143,6 +159,33 @@ python3 app/main.py --root /path/to/project seed-rebuild \
     - `workflow=ssp` -> `data_seed/canonical/mdreport.sqlite`（SSP 單一真相）
   - 可用 `--source-db-rel` 覆寫來源 DB。
   - 行為：將 seed canonical 轉寫進 live `canonical_raw`（SQLite 單一真相不變）
+  - 若走測試環境，對應 seed 根目錄會改用 `data_seed_test/`。
+- SSP 正規 API 抓數：`fetch-ssp-api`
+  - 正式鏈：`POST cua3/api/login/scope-check` → 解密 services payload → 選 `service_id=14` → `GET ssp3-api/get-login` → `POST admin/report-conditions` → `POST admin/report/{id}`
+  - 預設會把資料寫入 live `ssp_raw`，並清空 `canonical_raw WHERE workflow='ssp'`，避免非 API 舊污染繼續混入。
+  - 若指定日期區間，client 會自動改成「逐日查詢 + 節流 + 最後一次性寫回」；這是因為 SSP3 multi-day hourly job 會回空資料，不能直接信。
+  - 帳密解析順序：
+    - `--email / --password`
+    - `MDREP_SSP_EMAIL / MDREP_SSP_PASSWORD`
+    - `MDREPORT_API_EMAIL / MDREPORT_API_PASSWORD`
+  - 常用例子：
+```bash
+python3 app/main.py --root /path/to/project fetch-ssp-api --date 2026-05-11
+python3 app/main.py --root /path/to/project --env test fetch-ssp-api --date 2026-05-11
+```
+- DSP 正規 API 抓數：`fetch-dsp-api`
+  - 正式鏈：`POST cua3/api/login/scope-check` → 解密 services payload → 選 `service_id=10` → `POST dsp3-api/reports` → `GET reports/view-job`
+  - 預設會把資料寫入 live `canonical_raw WHERE workflow='dsp'`，並同步更新 Tab4 delivery 快照，讓後續 `export --workflow dsp` 能直接接續。
+  - 若指定日期區間，client 會自動改成「逐日查詢 + 節流 + 最後一次性寫回」；這是因為 DSP3 multi-day job 會被 server-side 截斷，`page=2/3` 也只會重複同一批資料。
+  - 帳密解析順序：
+    - `--email / --password`
+    - `MDREP_DSP_EMAIL / MDREP_DSP_PASSWORD`
+    - `MDREPORT_API_EMAIL / MDREPORT_API_PASSWORD`
+  - 常用例子：
+```bash
+python3 app/main.py --root /path/to/project fetch-dsp-api --date 2026-05-10
+python3 app/main.py --root /path/to/project --env test fetch-dsp-api --date 2026-05-10
+```
 - 注意：
   - 這張卡只做 seed 骨架，不做舊資料隱式搬運。
   - 若要索引 raw 檔，請透過 `bootstrap.manifest.json.data_seed.raw_sources` 或 CLI `--raw-source` 提供來源目錄。
@@ -179,7 +222,7 @@ python3 -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
 ## Frontend（React + TypeScript + Vite）
-- 新前端骨架位置：`/Users/matt/MDREPROT2/frontend`
+- 新前端骨架位置：`frontend`
 - 僅串接既有 runtime API：
   - `GET /api/status`
   - `GET /api/frame`

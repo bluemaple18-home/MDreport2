@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from app.main import normalize_bootstrap_wrapper_argv
-from infra.sqlite.bootstrap import bootstrap_init
+from infra.sqlite.bootstrap import bootstrap_init, bootstrap_health
 
 
 class BootstrapInitTests(unittest.TestCase):
@@ -56,6 +56,25 @@ class BootstrapInitTests(unittest.TestCase):
                     "artifact_root": "artifacts",
                     "runlog_policy": {"require_checksums": True},
                     "created_at": "2026-05-07T00:00:00+08:00",
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        (root / "bootstrap.test.manifest.json").write_text(
+            json.dumps(
+                {
+                    "project_id": "test-env",
+                    "env": "test",
+                    "db": {"path": "data_test/mdrep.test.sqlite"},
+                    "schema": {"target_version": "0001"},
+                    "template_registry": {"seed": "templates/template_registry.seed.json"},
+                    "rule_registry": {"seed": "templates/ruleset.seed.json"},
+                    "data_seed": {"root": "data_seed_test", "raw_sources": []},
+                    "feature_flags": {"enable_test_hooks": True},
+                    "artifact_root": "artifacts_test",
+                    "runlog_policy": {"require_checksums": True},
+                    "created_at": "2026-05-11T00:00:00+08:00",
                 },
                 ensure_ascii=False,
             ),
@@ -153,6 +172,22 @@ class BootstrapInitTests(unittest.TestCase):
             self.assertEqual(out["feature_flags"]["strict_acceptance_gate"], True)
             self.assertEqual(out["acceptance_gate"]["enabled"], True)
             self.assertEqual(out["acceptance_gate"]["status"], "ok")
+
+    def test_bootstrap_init_can_switch_to_test_env_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+
+            out = bootstrap_init(root, runtime_env="test")
+            self.assertEqual(out["status"], "ok")
+            self.assertEqual(out["runtime_env"], "test")
+            self.assertTrue(str(out["db_path"]).endswith("data_test/mdrep.test.sqlite"))
+            self.assertTrue(str(out["artifact_root"]).endswith("artifacts_test"))
+            self.assertTrue(str(out["data_seed_root"]).endswith("data_seed_test"))
+
+            health = bootstrap_health(root, runtime_env="test")
+            self.assertEqual(health["status"], "ok")
+            self.assertEqual(health["checks"]["runtime_env"], "test")
 
 
 if __name__ == "__main__":
