@@ -1,0 +1,23 @@
+.tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.command-grid .btn-row .btn,
+.tab-row .btn {
+  padding: 7px 11px;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+.btn[role="tab"] {
+  border: 1px solid #c9d7e0;
+}
+
+.btn[role="tab"][aria-selected="true"],
+.btn-tab-active {
+  box-shadow: inset 0 0 0 1px #0f766e66;
+  transform: translateY(-1px);
+}

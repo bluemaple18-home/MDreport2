@@ -1,0 +1,14 @@
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+.pnpm-store/
+.ai/
+.claude/
+.codex/
+artifacts/
+data/
+data_seed/
+frontend/dist/
+frontend/node_modules/
+node_modules/

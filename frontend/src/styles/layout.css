@@ -1,0 +1,170 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.ambient {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(60px);
+  opacity: 0.3;
+  pointer-events: none;
+  animation: drift 14s ease-in-out infinite;
+}
+
+.ambient-a {
+  width: 360px;
+  height: 360px;
+  background: #8bd3c7;
+  top: -120px;
+  left: -80px;
+}
+
+.ambient-b {
+  width: 420px;
+  height: 420px;
+  background: #ffc98c;
+  right: -120px;
+  bottom: -180px;
+  animation-delay: -5s;
+}
+
+.layout {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 28px 0;
+  padding: 0 12px 28px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 10px 22px var(--shadow);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: rise 0.35s ease forwards;
+}
+
+.panel:nth-child(2) {
+  animation-delay: 0.06s;
+}
+
+.panel:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+.panel:nth-child(4) {
+  animation-delay: 0.18s;
+}
+
+.panel:nth-child(5) {
+  animation-delay: 0.24s;
+}
+
+.panel:nth-child(6) {
+  animation-delay: 0.3s;
+}
+
+.panel-full {
+  grid-column: 1 / -1;
+}
+
+.panel-header {
+  padding: 12px 12px 0;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.panel-header p {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+.panel-body {
+  padding: 12px;
+}
+
+.workbench-command-deck {
+  border-color: #a6c4d4;
+  background:
+    linear-gradient(155deg, #fefefecc, #edf3f980),
+    var(--panel);
+  box-shadow: 0 6px 14px #1f34430d;
+}
+
+.command-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.command-cell {
+  min-width: 0;
+}
+
+.command-cell-wide {
+  grid-column: 1 / -1;
+}
+
+.workbench-stage {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: start;
+  width: 100%;
+  min-width: 0;
+}
+
+.workbench-main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+.workbench-main .panel {
+  background: #fffffff2;
+  border-color: #b9c9d4;
+  box-shadow: 0 14px 26px #182c3f14;
+  width: 100%;
+  min-width: 0;
+}
+
+.workbench-main .panel-header h2 {
+  font-size: 14px;
+}
+
+@media (max-width: 960px) {
+  .command-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1220px) and (min-width: 961px) {
+  .command-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .command-cell-wide {
+    grid-column: 1 / -1;
+  }
+}

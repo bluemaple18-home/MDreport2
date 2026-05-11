@@ -1,0 +1,196 @@
+# MDREP Bootstrap Runtime（目前狀態）
+
+本專案已不只 Phase 1 骨架，現況是「可執行的最小 runtime」：
+- `bootstrap` / `health` / `save` / `modify` / `export` 可用
+- SQLite 為唯一真相來源（canonical source of truth）
+- `export` 產出 Excel workbook artifact（非真相來源）
+- DSP / SSP workflow 走同一套契約與流程
+- `audit_log`、`run_log`、`publish_runs`、`evidence_index` 已串接
+- `feature_flags` 與 `strict_acceptance_gate` 已正式接入 runtime
+
+## 範圍（已完成）
+- Bootstrap manifest（檔案式契約）
+- SQLite 單一來源 + migration (`0001_initial` + `schema_migrations`)
+- Template / rule seed 與 binding
+- Canonical save / modify / export 服務層
+- CLI/app shell 公開入口：`app/main.py`
+- Workbook artifact 匯出（`.xlsx`）
+- Audit trail 與追溯欄位
+- Strict acceptance gate（可由 manifest 控制）
+
+## 非範圍（目前仍不做）
+- 完整業務流程擴充（超出 bootstrap/runtime 最小能力）
+- 舊專案資料隱式搬運或自動導入
+- 以 workbook 反寫 canonical（明確禁止）
+
+## 核心邊界
+- SQLite 是唯一真相：`canonical_raw` / `run_log` / `audit_log` / `publish_runs` / `evidence_index`
+- Artifact 只存輸出與證據（例如 `.xlsx`），刪除 artifact 不應改變 canonical
+- `audit_log` 是追溯補強，不是主流程 blocker
+  - service audit：soft-fail
+  - bootstrap audit：soft-fail（回傳 `audit_log_status`）
+
+## Bootstrap Manifest
+預設檔案：`bootstrap.manifest.json`
+
+關鍵欄位：
+- `db.path`
+- `schema.target_version`
+- `template_registry.seed`
+- `rule_registry.seed`
+- `feature_flags`
+- `artifact_root`
+
+目前支援的 `feature_flags`：
+- `enable_test_hooks`：`save/modify/export` 回傳與 audit payload 附加 `test_hooks_enabled`
+- `enable_trace_markers`：`save/modify/export` 回傳與 audit payload 附加 `trace_marker`
+- `strict_acceptance_gate`：控制 gate 是否阻擋主流程（見下節）
+
+目前範例 manifest（`bootstrap.manifest.json`）預設為：
+- `strict_acceptance_gate: true`
+
+## Strict Acceptance Gate 行為
+- `strict_acceptance_gate=true`
+  - service 入口（`save/modify/export`）先跑 gate
+  - 若驗收失敗，CLI 回 `STRICT_ACCEPTANCE_GATE_FAILED`
+- `strict_acceptance_gate=false`
+  - gate 不作為額外 blocker（health 會以 `checks.acceptance_gate.status=warning` 呈現）
+
+注意：
+- gate 只是「額外驗收閘門」；service 本身仍會做 template/rule binding 驗證。
+- 因此即使 `strict_acceptance_gate=false`，若你操作的 workflow 缺少有效 binding，仍可能在 service 階段失敗（例如 `LOOKUP_ERROR`）。
+
+`health` 也會回傳 machine-readable gate 狀態於 `checks.acceptance_gate`。
+
+## CLI 使用方式
+主入口：`app/main.py`
+
+```bash
+python3 app/main.py --root /path/to/project bootstrap
+python3 app/main.py --root /path/to/project health
+python3 app/main.py --root /path/to/project save \
+  --workflow dsp --template-version v1 --rule-version v1 \
+  --rows-json /path/to/rows.json
+python3 app/main.py --root /path/to/project modify \
+  --workflow dsp --template-version v1 --rule-version v1 \
+  --updates-json /path/to/updates.json
+python3 app/main.py --root /path/to/project export \
+  --workflow dsp --template-version v1 --rule-version v1
+python3 app/main.py --root /path/to/project seed-bootstrap \
+  --raw-source raw-inbox
+python3 app/main.py --root /path/to/project seed-import-mdreport \
+  --mdreport-root /path/to/MDreport
+python3 app/main.py --root /path/to/project seed-promote-live \
+  --workflow dsp --source-db-rel canonical/mdreport_dsp.sqlite
+python3 app/main.py --root /path/to/project seed-rebuild \
+  --workflow dsp --template-version v1 --rule-version v1
+```
+
+相容 wrapper：`app/bootstrap_init.py`
+- 未指定 command 時會自動補 `bootstrap`
+
+## CLI 輸出契約（JSON）
+成功：
+```json
+{
+  "status": "ok",
+  "result": {}
+}
+```
+
+失敗：
+```json
+{
+  "status": "error",
+  "error_code": "...",
+  "message": "...",
+  "details": {}
+}
+```
+
+常見錯誤碼：
+- `CLI_USAGE_ERROR`
+- `INVALID_ROWS_JSON` / `INVALID_UPDATES_JSON`
+- `FILE_NOT_FOUND`
+- `LOOKUP_ERROR`
+- `VALIDATION_ERROR`
+- `STRICT_ACCEPTANCE_GATE_FAILED`
+- `MANIFEST_JSON_INVALID`（health）
+- `RULE_BINDING_INCOMPLETE`（health strict gate）
+- `HEALTH_CHECK_EXCEPTION`（例如 `rule_bindings` 全空等基礎健康檢查失敗）
+
+## 舊資料搬家 Seed 骨架（MDREP-DATA-001）
+- 命令：`seed-bootstrap`
+- 目標：建立「可重建」的最小資料骨架，不碰前端 workbench，不改既有 runtime API。
+- 會產生：
+  - `data_seed/raw_seed/`：raw seed 檔（排除 debug/probe/rerun/workbook-first 噪音）
+  - `data_seed/canonical/mdrep.sqlite`：canonical DB snapshot
+  - `data_seed/logs/*.json`：`run_log` / `audit_log` / `publish_runs` / `evidence_index`
+  - `data_seed/templates_rules_mapping/`：manifest、template/rule seed、fields contract
+  - `data_seed/manifests/seed_manifest.json`：raw 檔索引（workflow、source_date、checksum、import_run_id/latest_run_id）
+- 重建命令：`seed-rebuild`
+  - 來源：`data_seed/manifests/seed_manifest.json`
+  - 行為：讀取 raw seed，走既有 `save` 契約重建 canonical（仍寫入 run_log/audit_log）
+- 匯入既有 MDreport：`seed-import-mdreport`
+  - 來源：`<mdreport-root>/artifacts`、`<mdreport-root>/data`
+  - 行為：把 raw seed 與 canonical seed 分層複製到 `data_seed/`，並生成可重建 manifest
+- 升級 seed canonical 成 live DB：`seed-promote-live`
+  - 預設來源：
+    - `workflow=dsp` -> `data_seed/canonical/mdreport_dsp.sqlite`
+    - `workflow=ssp` -> `data_seed/canonical/mdreport.sqlite`（SSP 單一真相）
+  - 可用 `--source-db-rel` 覆寫來源 DB。
+  - 行為：將 seed canonical 轉寫進 live `canonical_raw`（SQLite 單一真相不變）
+- 注意：
+  - 這張卡只做 seed 骨架，不做舊資料隱式搬運。
+  - 若要索引 raw 檔，請透過 `bootstrap.manifest.json.data_seed.raw_sources` 或 CLI `--raw-source` 提供來源目錄。
+
+## Save / Modify / Export 行為
+- `save`：整批覆蓋指定 workflow canonical rows，寫 `run_log` + `audit_log`
+- `modify`：只允許 manual fields（受欄位契約限制），寫 `run_log` + `audit_log`
+- `export`：從 canonical 產生 workbook，並寫 `run_log` + `publish_runs` + `evidence_index` + `audit_log`
+
+`export` 產出：
+- `<artifact_root>/<workflow>_export.xlsx`
+- Sheet：`canonical_data`、`metadata`
+
+## 開發與驗證
+建議環境：Python `uv + .venv`
+
+常用驗證：
+```bash
+python3 -m unittest discover -s tests -p 'test_*.py' -v
+./scripts/smoke_bootstrap.sh
+```
+
+## Frontend（React + TypeScript + Vite）
+- 新前端骨架位置：`/Users/matt/MDREPROT2/frontend`
+- 僅串接既有 runtime API：
+  - `GET /api/status`
+  - `GET /api/frame`
+  - `POST /api/action`
+- 不改 SQLite canonical / save / modify / export 主幹。
+- `app/ui_shell.py` 已收斂為 API + frontend static host；不再維護舊 Python HTML/inline-JS 互動頁主線。
+
+啟動方式（建議先啟 UI runtime）：
+```bash
+# terminal A：啟動既有 python UI runtime（API 提供者）
+python3 app/ui_shell.py --host 127.0.0.1 --port 8510
+
+# terminal B：啟動 React frontend
+cd frontend
+pnpm install
+pnpm dev
+```
+
+預設 Vite 會把 `/api/*` proxy 到 `http://127.0.0.1:8510`。  
+若 runtime 不在預設 port，請用環境變數覆寫：
+```bash
+cd frontend
+VITE_RUNTIME_PROXY_TARGET=http://127.0.0.1:9000 pnpm dev
+```
+
+## 新接手者快速路徑
+1. 先看 `bootstrap.manifest.json` 的 `feature_flags` 與 seed 路徑
+2. 跑 `bootstrap` 再跑 `health`
+3. 用 `save -> modify -> export` 跑一次最小流程
+4. 檢查 SQLite 與 artifact 邊界是否符合預期
