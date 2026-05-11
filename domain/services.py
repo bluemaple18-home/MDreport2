@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import hashlib
 import re
@@ -31,6 +32,97 @@ DETAIL_INPUT_ROWS = (
     84, 85, 86, 87, 88, 89, 90,
 )
 DATE_PREFIX_RE = re.compile(r"^(\d{4})[-/](\d{1,2})")
+TEMPLATE_YEAR_PREFIX_RE = re.compile(r"^(\d{4})")
+TEMPLATE_MMDD_RANGE_RE = re.compile(r"_(\d{4})-(\d{4})$")
+
+TAB4_MONTH_LABELS = [f"{idx + 1}月" for idx in range(MONTH_COUNT)]
+TAB4_DETAIL_SECTION_SPECS = [
+    {
+        "id": "marketing",
+        "year_row": 5,
+        "total_row": 6,
+        "total_label_a": "營銷處 DSP投資額 總計",
+        "total_label_d": "",
+        "detail_label_a": "營銷事業處\n分項績效",
+        "detail_labels": [
+            {"b": "三螢", "c": "一般廣告", "d": ""},
+            {"b": "三螢", "c": "創意", "d": "蓋板/置底(展開&不展)/文中"},
+            {"b": "三螢", "c": "影音", "d": "影音摩天(outstream)"},
+            {"b": "三螢", "c": "影音", "d": "preroll (instream)"},
+            {"b": "DOOH外部", "c": "影音", "d": "前線媒體/presco"},
+            {"b": "DOOH北流", "c": "影音", "d": "北流"},
+            {"b": "CTV", "c": "影音", "d": ""},
+        ],
+    },
+    {
+        "id": "strategy",
+        "year_row": 24,
+        "total_row": 25,
+        "total_label_a": "策略部 DSP投資額 總計",
+        "total_label_d": "",
+        "detail_label_a": "策略部\n分項績效",
+        "detail_labels": [
+            {"b": "三螢", "c": "一般廣告", "d": ""},
+            {"b": "三螢", "c": "創意", "d": "蓋板/置底(展開&不展)/文中"},
+            {"b": "三螢", "c": "影音", "d": "影音摩天(outstream)"},
+            {"b": "三螢", "c": "影音", "d": "preroll (instream)"},
+            {"b": "DOOH外部", "c": "影音", "d": "前線媒體/presco"},
+            {"b": "DOOH北流", "c": "影音", "d": "北流"},
+            {"b": "CTV", "c": "影音", "d": ""},
+        ],
+    },
+    {
+        "id": "external_self",
+        "year_row": 44,
+        "total_row": 45,
+        "total_label_a": "外部經銷(自操) DSP投資額 總計",
+        "total_label_d": "玩藝/春樹/ADGeek等系統自操",
+        "detail_label_a": "外部經銷(自操)\n分項績效",
+        "detail_labels": [
+            {"b": "三螢", "c": "一般廣告", "d": ""},
+            {"b": "三螢", "c": "創意", "d": "蓋板/置底(展開&不展)/文中"},
+            {"b": "三螢", "c": "影音", "d": "影音摩天(outstream)"},
+            {"b": "三螢", "c": "影音", "d": "preroll (instream)"},
+            {"b": "DOOH外部", "c": "影音", "d": "前線媒體/presco"},
+            {"b": "DOOH北流", "c": "影音", "d": "北流"},
+            {"b": "CTV", "c": "影音", "d": ""},
+        ],
+    },
+    {
+        "id": "external_io",
+        "year_row": 63,
+        "total_row": 64,
+        "total_label_a": "外部IO委刊 DSP投資額 總計",
+        "total_label_d": "MOMO、DOOH委刊",
+        "detail_label_a": "外部IO委刊 \n分項績效",
+        "detail_labels": [
+            {"b": "三螢", "c": "一般廣告", "d": ""},
+            {"b": "三螢", "c": "創意", "d": "蓋板/置底(展開&不展)/文中"},
+            {"b": "三螢", "c": "影音", "d": "影音摩天(outstream)"},
+            {"b": "三螢", "c": "影音", "d": "preroll (instream)"},
+            {"b": "DOOH外部", "c": "影音", "d": "前線媒體/presco"},
+            {"b": "DOOH北流", "c": "影音", "d": "北流"},
+            {"b": "CTV", "c": "影音", "d": ""},
+        ],
+    },
+    {
+        "id": "hb_bridge",
+        "year_row": 82,
+        "total_row": 83,
+        "total_label_a": "HB串接 DSP投資額 總計",
+        "total_label_d": "Appier/宇匯Bridgewell /Criteo/ RTBhouse /Teads/ucfunnel少許",
+        "detail_label_a": "HB 串接\n分項績效",
+        "detail_labels": [
+            {"b": "三螢", "c": "一般廣告", "d": ""},
+            {"b": "三螢", "c": "創意", "d": "蓋板/置底(展開&不展)/文中"},
+            {"b": "三螢", "c": "影音", "d": "影音摩天(outstream)"},
+            {"b": "三螢", "c": "影音", "d": "preroll (instream)"},
+            {"b": "DOOH外部", "c": "影音", "d": "前線媒體/presco"},
+            {"b": "DOOH北流", "c": "影音", "d": "北流"},
+            {"b": "CTV", "c": "影音", "d": ""},
+        ],
+    },
+]
 
 
 def _pick_category(row: dict, keys: list[str]) -> str:
@@ -122,16 +214,81 @@ class CanonicalService:
             raise ValueError("week_start must be <= week_end")
         return week_start_date.isoformat(), week_end_date.isoformat()
 
-    def _resolve_dsp_export_template_path(self) -> Path:
-        candidates: list[Path] = []
+    def _dsp_template_candidate_groups(self) -> list[list[Path]]:
+        groups: list[list[Path]] = []
         env_path = os.getenv("MDREP_DSP_TAB4_TEMPLATE_PATH", "").strip()
         if env_path:
-            candidates.append(Path(env_path).expanduser())
+            groups.append([Path(env_path).expanduser()])
         if self.repo.project_root is not None:
-            candidates.append(self.repo.project_root / "templates" / "dsp_tab4_template.xlsx")
-            candidates.append(self.repo.project_root / "templates" / "2026 DSP投資量報表_0101-0503.xlsx")
-        candidates.append(Path("/Users/matt/Downloads/2026 DSP投資量報表_0101-0503.xlsx"))
+            groups.append(
+                [
+                    self.repo.project_root / "templates" / "dsp_tab4_template.xlsx",
+                    self.repo.project_root / "templates" / "2026 DSP投資量報表_0101-0503.xlsx",
+                ]
+            )
+        return groups
 
+    def _extract_template_period_window_from_sidecar(self, template_path: Path) -> tuple[date, date] | None:
+        sidecar_path = template_path.with_name(f"{template_path.name}.period.json")
+        if not sidecar_path.exists():
+            return None
+        try:
+            payload = json.loads(sidecar_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            raise ValueError(f"invalid dsp template period sidecar: {sidecar_path}") from exc
+        if not isinstance(payload, dict):
+            raise ValueError(f"invalid dsp template period sidecar shape: {sidecar_path}")
+        raw_start = str(payload.get("week_start") or payload.get("period_start") or "").strip()
+        raw_end = str(payload.get("week_end") or payload.get("period_end") or "").strip()
+        if not raw_start or not raw_end:
+            raise ValueError(f"dsp template period sidecar requires week_start/week_end: {sidecar_path}")
+        try:
+            start_date = date.fromisoformat(raw_start)
+            end_date = date.fromisoformat(raw_end)
+        except ValueError as exc:
+            raise ValueError(f"dsp template period sidecar must be YYYY-MM-DD: {sidecar_path}") from exc
+        if start_date > end_date:
+            raise ValueError(f"dsp template period sidecar week_start > week_end: {sidecar_path}")
+        return start_date, end_date
+
+    def _extract_template_period_window_from_filename(self, template_path: Path) -> tuple[date, date] | None:
+        name = template_path.stem
+        year_match = TEMPLATE_YEAR_PREFIX_RE.match(name)
+        range_match = TEMPLATE_MMDD_RANGE_RE.search(name)
+        if year_match is None or range_match is None:
+            return None
+        year = int(year_match.group(1))
+        start_mmdd = range_match.group(1)
+        end_mmdd = range_match.group(2)
+        try:
+            start_month = int(start_mmdd[:2])
+            start_day = int(start_mmdd[2:])
+            end_month = int(end_mmdd[:2])
+            end_day = int(end_mmdd[2:])
+            start_date = date(year, start_month, start_day)
+            end_year = year if (end_month, end_day) >= (start_month, start_day) else year + 1
+            end_date = date(end_year, end_month, end_day)
+        except ValueError as exc:
+            raise ValueError(f"invalid dsp template filename period window: {template_path.name}") from exc
+        return start_date, end_date
+
+    def _resolve_dsp_template_period_window(self, template_path: Path) -> tuple[date, date] | None:
+        sidecar_window = self._extract_template_period_window_from_sidecar(template_path)
+        if sidecar_window is not None:
+            return sidecar_window
+        return self._extract_template_period_window_from_filename(template_path)
+
+    def _pick_dsp_template_from_candidates(
+        self,
+        *,
+        candidates: list[Path],
+        week_start_date: date,
+        week_end_date: date,
+        week_start: str,
+        week_end: str,
+    ) -> Path | None:
+        period_bound_candidates: list[tuple[Path, date, date]] = []
+        generic_candidates: list[Path] = []
         for candidate in candidates:
             resolved = candidate.resolve()
             if not (resolved.exists() and resolved.is_file()):
@@ -140,19 +297,53 @@ class CanonicalService:
                 wb = load_workbook(resolved, read_only=True, data_only=True)
                 try:
                     if all(sheet_name in wb.sheetnames for sheet_name in DSP_TEMPLATE_SHEET_NAMES):
-                        return resolved
+                        period_window = self._resolve_dsp_template_period_window(resolved)
+                        if period_window is None:
+                            generic_candidates.append(resolved)
+                            continue
+                        period_start, period_end = period_window
+                        period_bound_candidates.append((resolved, period_start, period_end))
+                        if week_start_date >= period_start and week_end_date <= period_end:
+                            return resolved
                 finally:
                     wb.close()
             except Exception:
                 continue
+        if period_bound_candidates:
+            available_windows = ", ".join(
+                f"{path.name}[{start.isoformat()}..{end.isoformat()}]"
+                for path, start, end in period_bound_candidates
+            )
+            raise ValueError(
+                "dsp period has no matching base template: "
+                f"period={week_start}..{week_end}; available={available_windows}"
+            )
+        if generic_candidates:
+            return generic_candidates[0]
+        return None
 
-        expected = "\n".join(f"- {c}" for c in candidates)
+    def _resolve_dsp_export_template_path(self, *, week_start: str, week_end: str) -> Path:
+        week_start_date = date.fromisoformat(week_start)
+        week_end_date = date.fromisoformat(week_end)
+        candidate_groups = self._dsp_template_candidate_groups()
+        for candidates in candidate_groups:
+            resolved = self._pick_dsp_template_from_candidates(
+                candidates=candidates,
+                week_start_date=week_start_date,
+                week_end_date=week_end_date,
+                week_start=week_start,
+                week_end=week_end,
+            )
+            if resolved is not None:
+                return resolved
+
+        flat_candidates = [str(path) for group in candidate_groups for path in group]
+        expected = "\n".join(f"- {candidate}" for candidate in flat_candidates)
         raise FileNotFoundError(
             "找不到 DSP Tab4 匯出模板，請提供模板檔。\n"
             "可用方式：\n"
             "1) 設定 MDREP_DSP_TAB4_TEMPLATE_PATH\n"
             "2) 放在 <project_root>/templates/dsp_tab4_template.xlsx\n"
-            "3) 放在 /Users/matt/Downloads/2026 DSP投資量報表_0101-0503.xlsx\n"
             f"已檢查路徑：\n{expected}"
         )
 
@@ -412,7 +603,172 @@ class CanonicalService:
                 if not _is_formula(cell.value):
                     cell.value = monthly_amounts[month_idx]
 
-    def save(self, *, workflow: str, rows: list[dict], template_version: str, rule_version: str) -> dict:
+    def build_dsp_tab4_preview_payload(self, *, rows: list[dict], fallback_year: int) -> tuple[dict, dict]:
+        preview_year, detail_monthly_amounts = self._build_detail_matrix_values(
+            rows=rows,
+            fallback_year=fallback_year,
+        )
+
+        sections: list[dict] = []
+        total_row_monthly_amounts: dict[int, list[float]] = {}
+        for spec in TAB4_DETAIL_SECTION_SPECS:
+            total_row = int(spec["total_row"])
+            detail_row_indices = list(range(total_row + 1, total_row + 8))
+            total_monthly_amounts = [
+                sum(detail_monthly_amounts[row_idx][month_idx] for row_idx in detail_row_indices)
+                for month_idx in range(MONTH_COUNT)
+            ]
+            total_annual_amount = sum(total_monthly_amounts)
+            total_row_monthly_amounts[total_row] = total_monthly_amounts
+            rows_out: list[dict] = []
+            for idx, row_idx in enumerate(detail_row_indices):
+                monthly_amounts = detail_monthly_amounts[row_idx]
+                annual_amount = sum(monthly_amounts)
+                monthly_rates = [
+                    (amount / total_monthly_amounts[month_idx]) if total_monthly_amounts[month_idx] > 0 else 0.0
+                    for month_idx, amount in enumerate(monthly_amounts)
+                ]
+                rows_out.append(
+                    {
+                        "excelRow": row_idx,
+                        "labelA": str(spec["detail_label_a"]) if idx == 0 else "",
+                        "labelB": str((spec["detail_labels"][idx] or {}).get("b") or ""),
+                        "labelC": str((spec["detail_labels"][idx] or {}).get("c") or ""),
+                        "labelD": str((spec["detail_labels"][idx] or {}).get("d") or ""),
+                        "monthlyAmounts": monthly_amounts,
+                        "monthlyRates": monthly_rates,
+                        "annualAmount": annual_amount,
+                        "annualRate": (annual_amount / total_annual_amount) if total_annual_amount > 0 else 0.0,
+                    }
+                )
+
+            sections.append(
+                {
+                    "id": str(spec["id"]),
+                    "year": preview_year,
+                    "monthLabels": TAB4_MONTH_LABELS,
+                    "total": {
+                        "excelRow": total_row,
+                        "labelA": str(spec["total_label_a"]),
+                        "labelB": "",
+                        "labelC": "",
+                        "labelD": str(spec["total_label_d"]),
+                        "monthlyAmounts": total_monthly_amounts,
+                        "monthlyRates": [1.0 if value > 0 else 0.0 for value in total_monthly_amounts],
+                        "annualAmount": total_annual_amount,
+                        "annualRate": 1.0 if total_annual_amount > 0 else 0.0,
+                    },
+                    "rows": rows_out,
+                }
+            )
+
+        month_totals = [
+            sum(section["total"]["monthlyAmounts"][month_idx] for section in sections)
+            for month_idx in range(MONTH_COUNT)
+        ]
+        annual_total = sum(month_totals)
+
+        def _row_monthly_from_row_index(row_index: int) -> list[float]:
+            if row_index in total_row_monthly_amounts:
+                return list(total_row_monthly_amounts[row_index])
+            return list(detail_monthly_amounts.get(row_index, [0.0 for _ in range(MONTH_COUNT)]))
+
+        summary_row_defs = [
+            ("r3", _row_monthly_from_row_index(6), False),
+            ("r4", _row_monthly_from_row_index(25), False),
+            ("r5", _row_monthly_from_row_index(45), False),
+            ("r6", _row_monthly_from_row_index(64), False),
+            ("r7", _row_monthly_from_row_index(83), False),
+            ("r8", [0.0 for _ in range(MONTH_COUNT)], True),
+            ("r9", _row_monthly_from_row_index(7), False),
+            ("r10", _row_monthly_from_row_index(8), False),
+            ("r11", _row_monthly_from_row_index(9), False),
+            ("r12", _row_monthly_from_row_index(10), False),
+            ("r13", _row_monthly_from_row_index(11), False),
+            ("r14", _row_monthly_from_row_index(12), False),
+            ("r15", _row_monthly_from_row_index(13), False),
+        ]
+
+        summary_rows: list[dict] = []
+        for idx, (_row_id, monthly_amounts, note_only) in enumerate(summary_row_defs):
+            annual_amount = sum(monthly_amounts)
+            monthly_rates = [None for _ in range(MONTH_COUNT)] if note_only else [
+                (amount / month_totals[month_idx]) if month_totals[month_idx] > 0 else 0.0
+                for month_idx, amount in enumerate(monthly_amounts)
+            ]
+            summary_rows.append(
+                {
+                    "excelRow": idx + 3,
+                    "monthlyAmounts": monthly_amounts,
+                    "monthlyRates": monthly_rates,
+                    "annualAmount": annual_amount,
+                    "annualRate": None if note_only else ((annual_amount / annual_total) if annual_total > 0 else 0.0),
+                }
+            )
+
+        summary_payload = {
+            "source": "canonical_raw",
+            "year": preview_year,
+            "monthTotals": month_totals,
+            "monthTotalRates": [1.0 if value > 0 else 0.0 for value in month_totals],
+            "annualTotal": annual_total,
+            "annualRate": 1.0 if annual_total > 0 else 0.0,
+            "rows": summary_rows,
+        }
+        detail_payload = {
+            "source": "canonical_raw",
+            "monthLabels": TAB4_MONTH_LABELS,
+            "kpiRows": [
+                {
+                    "excelRow": 2,
+                    "label": "全體經銷 總投資量目標 & 達成率 (含北流)",
+                    "monthlyAmounts": month_totals,
+                    "monthlyRates": [1.0 if value > 0 else 0.0 for value in month_totals],
+                    "annualAmount": annual_total,
+                    "annualRate": 1.0 if annual_total > 0 else 0.0,
+                },
+                {
+                    "excelRow": 3,
+                    "label": "營銷事業處 總投資量目標 & 達成率 (含北流)",
+                    "monthlyAmounts": [0.0 for _ in range(MONTH_COUNT)],
+                    "monthlyRates": [0.0 for _ in range(MONTH_COUNT)],
+                    "annualAmount": 0.0,
+                    "annualRate": 0.0,
+                },
+                {
+                    "excelRow": 4,
+                    "label": "營銷事業處 北流投資量目標 & 達成率",
+                    "monthlyAmounts": [0.0 for _ in range(MONTH_COUNT)],
+                    "monthlyRates": [0.0 for _ in range(MONTH_COUNT)],
+                    "annualAmount": 0.0,
+                    "annualRate": 0.0,
+                },
+            ],
+            "sections": sections,
+        }
+        return summary_payload, detail_payload
+
+    def save(
+        self,
+        *,
+        workflow: str,
+        rows: list[dict],
+        template_version: str,
+        rule_version: str,
+        week_start: str | None = None,
+        week_end: str | None = None,
+    ) -> dict:
+        resolved_week_start: str | None = None
+        resolved_week_end: str | None = None
+        if workflow == "dsp" and (week_start or week_end):
+            resolved_week_start, resolved_week_end = self._resolve_export_period(
+                week_start=week_start,
+                week_end=week_end,
+            )
+            self._resolve_dsp_export_template_path(
+                week_start=resolved_week_start,
+                week_end=resolved_week_end,
+            )
         normalized_rows = self._field_contract.validate_and_normalize_save_rows(rows)
         with self.repo.connect() as conn:
             # fail-fast: 先驗證 template/rule binding 合法，再寫 canonical
@@ -425,7 +781,11 @@ class CanonicalService:
                 workflow=workflow,
                 status="ok",
                 trace=trace,
-                detail={"row_count": written},
+                detail={
+                    "row_count": written,
+                    "week_start": resolved_week_start or "",
+                    "week_end": resolved_week_end or "",
+                },
             )
             marker = self._trace_marker(workflow=workflow, run_type="save", run_id=run_id)
             audit_payload = {
@@ -435,6 +795,8 @@ class CanonicalService:
                 "rule_version": rule_version,
                 "canonical_token": trace.canonical_token,
                 "row_count": written,
+                "week_start": resolved_week_start or "",
+                "week_end": resolved_week_end or "",
                 **self._extra_debug_payload(),
             }
             if marker:
@@ -607,7 +969,10 @@ class CanonicalService:
                     raise PermissionError("tab4 delivery snapshot mismatch with canonical")
             try:
                 if workflow == "dsp":
-                    template_path = self._resolve_dsp_export_template_path()
+                    template_path = self._resolve_dsp_export_template_path(
+                        week_start=resolved_week_start,
+                        week_end=resolved_week_end,
+                    )
                     self._hydrate_dsp_template_workbook(
                         template_path=template_path,
                         artifact_path=artifact_path,

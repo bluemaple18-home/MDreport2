@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import json
 import hashlib
 import sqlite3
@@ -17,6 +18,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
 
 import app.ui_shell as ui_shell_module
+from app.main import run_cli
 from app.ui_shell import UiContext, UiRequestHandler, collect_runtime_status, collect_workflow_frame, dispatch_action
 from infra.sqlite.bootstrap import AcceptanceGateError
 
@@ -153,6 +155,12 @@ class UiShellTests(unittest.TestCase):
         (root / "templates" / "template_registry.seed.json").write_text((src / "templates" / "template_registry.seed.json").read_text(encoding="utf-8"), encoding="utf-8")
         (root / "templates" / "ruleset.seed.json").write_text((src / "templates" / "ruleset.seed.json").read_text(encoding="utf-8"), encoding="utf-8")
         self._write_dsp_tab4_template(root / "templates" / "dsp_tab4_template.xlsx")
+        sidecar_src = src / "templates" / "dsp_tab4_template.xlsx.period.json"
+        if sidecar_src.exists():
+            (root / "templates" / "dsp_tab4_template.xlsx.period.json").write_text(
+                sidecar_src.read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
         (root / "contracts" / "fields_contract.json").write_text((src / "contracts" / "fields_contract.json").read_text(encoding="utf-8"), encoding="utf-8")
         (root / "bootstrap.manifest.json").write_text((src / "bootstrap.manifest.json").read_text(encoding="utf-8"), encoding="utf-8")
 
@@ -232,6 +240,13 @@ class UiShellTests(unittest.TestCase):
             rule_version="v1",
             artifact_root=(root / "artifacts").resolve(),
         )
+
+    def _run_cli_json(self, argv: list[str]) -> tuple[int, dict]:
+        stdout = io.StringIO()
+        with patch("sys.stdout", new=stdout):
+            code = run_cli(argv)
+        payload = json.loads(stdout.getvalue() or "{}")
+        return code, payload
 
     def test_ui_shell_runtime_actions_and_status(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -597,7 +612,7 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual(str(export_out.get("delivery_snapshot_token") or ""), delivery_token)
             self.assertEqual(str(export_out.get("delivery_run_id") or ""), str(delivered.get("run_id") or ""))
 
-    def test_dsp_export_defaults_missing_route_for_compat(self) -> None:
+    def test_dsp_export_requires_explicit_tab4_route_in_api(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             self._make_project(root)
@@ -612,18 +627,151 @@ class UiShellTests(unittest.TestCase):
                     "sub_tab": "pivot",
                 },
             )
-            # 相容舊前端：缺 main_tab/sub_tab 時，後端補成 dsp_tab4/overview。
+            with self.assertRaisesRegex(PermissionError, "dsp export must be triggered from dsp_tab4"):
+                dispatch_action(
+                    ctx,
+                    {
+                        "action": "export",
+                    },
+                )
+
+    def test_cli_dsp_export_defaults_route_to_tab4_overview(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            rows_json_path = root / "rows.json"
+            rows_json_path.write_text(
+                json.dumps([self._full_row()], ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            code, boot = self._run_cli_json(["--root", str(root), "bootstrap"])
+            self.assertEqual(code, 0)
+            self.assertEqual(boot.get("status"), "ok")
+
+            code, save_out = self._run_cli_json(
+                [
+                    "--root",
+                    str(root),
+                    "save",
+                    "--workflow",
+                    "dsp",
+                    "--template-version",
+                    "v1",
+                    "--rule-version",
+                    "v1",
+                    "--rows-json",
+                    str(rows_json_path),
+                ]
+            )
+            self.assertEqual(code, 0)
+            self.assertEqual(save_out.get("status"), "ok")
+
+            ctx = self._ctx(root)
+            delivered = dispatch_action(
+                ctx,
+                {
+                    "action": "tab4_delivery",
+                    "main_tab": "dsp_tab3",
+                    "sub_tab": "pivot",
+                },
+            )
+            delivery_token = str(delivered.get("delivery_snapshot_token") or "")
+            self.assertTrue(delivery_token)
+
+            code, export_out = self._run_cli_json(
+                [
+                    "--root",
+                    str(root),
+                    "export",
+                    "--workflow",
+                    "dsp",
+                    "--template-version",
+                    "v1",
+                    "--rule-version",
+                    "v1",
+                ]
+            )
+            self.assertEqual(code, 0)
+            self.assertEqual(export_out.get("status"), "ok")
+            result = export_out.get("result") if isinstance(export_out, dict) else {}
+            self.assertIsInstance(result, dict)
+            artifact_path = Path(str((result or {}).get("artifact_path") or ""))
+            self.assertTrue(artifact_path.exists())
+            self.assertRegex(artifact_path.name, r"^2026 DSP投資量報表_\d{4}-\d{4}\.xlsx$")
+            self.assertEqual(str((result or {}).get("delivery_snapshot_token") or ""), delivery_token)
+
+    def test_dsp_period_bound_template_requires_matching_period_for_save_and_export(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            (root / "templates" / "dsp_tab4_template.xlsx.period.json").write_text(
+                json.dumps(
+                    {
+                        "week_start": "2026-01-01",
+                        "week_end": "2026-05-03",
+                        "note": "test narrow period window",
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            ctx = self._ctx(root)
+            dispatch_action(ctx, {"action": "bootstrap"})
+
+            save_out = dispatch_action(
+                ctx,
+                {
+                    "action": "save",
+                    "rows": [self._full_row()],
+                    "period_week_start": "2026-04-27",
+                    "period_week_end": "2026-05-03",
+                },
+            )
+            self.assertTrue(str(save_out.get("run_id") or ""))
+
+            dispatch_action(
+                ctx,
+                {
+                    "action": "tab4_delivery",
+                    "main_tab": "dsp_tab3",
+                    "sub_tab": "pivot",
+                },
+            )
+
             export_out = dispatch_action(
                 ctx,
                 {
                     "action": "export",
+                    "main_tab": "dsp_tab4",
+                    "sub_tab": "overview",
+                    "period_week_start": "2026-04-27",
+                    "period_week_end": "2026-05-03",
                 },
             )
             self.assertTrue(Path(str(export_out.get("artifact_path") or "")).exists())
-            self.assertRegex(
-                Path(str(export_out.get("artifact_path") or "")).name,
-                r"^2026 DSP投資量報表_\d{4}-\d{4}\.xlsx$",
-            )
+
+            with self.assertRaisesRegex(ValueError, "dsp period has no matching base template"):
+                dispatch_action(
+                    ctx,
+                    {
+                        "action": "save",
+                        "rows": [self._full_row()],
+                        "period_week_start": "2026-05-04",
+                        "period_week_end": "2026-05-10",
+                    },
+                )
+            with self.assertRaisesRegex(ValueError, "dsp period has no matching base template"):
+                dispatch_action(
+                    ctx,
+                    {
+                        "action": "export",
+                        "main_tab": "dsp_tab4",
+                        "sub_tab": "overview",
+                        "period_week_start": "2026-05-04",
+                        "period_week_end": "2026-05-10",
+                    },
+                )
 
     def test_ui_shell_root_returns_503_when_frontend_dist_missing(self) -> None:
         try:

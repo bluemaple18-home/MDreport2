@@ -75,7 +75,8 @@ python3 app/main.py --root /path/to/project modify \
   --workflow dsp --template-version v1 --rule-version v1 \
   --updates-json /path/to/updates.json
 python3 app/main.py --root /path/to/project export \
-  --workflow dsp --template-version v1 --rule-version v1
+  --workflow dsp --template-version v1 --rule-version v1 \
+  --main-tab dsp_tab4 --sub-tab overview
 python3 app/main.py --root /path/to/project seed-bootstrap \
   --raw-source raw-inbox
 python3 app/main.py --root /path/to/project seed-import-mdreport \
@@ -88,6 +89,8 @@ python3 app/main.py --root /path/to/project seed-rebuild \
 
 相容 wrapper：`app/bootstrap_init.py`
 - 未指定 command 時會自動補 `bootstrap`
+- `export --workflow dsp` 若未提供 `--main-tab/--sub-tab`，CLI 會預設補 `dsp_tab4/overview` 以符合 DSP export 守門。
+- `POST /api/action` 的 DSP `export` 不會補 route；需由前端/呼叫端明確帶 `main_tab=dsp_tab4`、`sub_tab=overview`。
 
 ## CLI 輸出契約（JSON）
 成功：
@@ -150,8 +153,21 @@ python3 app/main.py --root /path/to/project seed-rebuild \
 - `export`：從 canonical 產生 workbook，並寫 `run_log` + `publish_runs` + `evidence_index` + `audit_log`
 
 `export` 產出：
-- `<artifact_root>/<workflow>_export.xlsx`
-- Sheet：`canonical_data`、`metadata`
+- DSP：`<artifact_root>/<YYYY> DSP投資量報表_<MMDD>-<MMDD>.xlsx`（Tab4 template workbook）
+- SSP：`<artifact_root>/ssp_export.xlsx`（Sheet：`canonical_data`、`metadata`）
+
+DSP Tab4 template 週期 sidecar（period-bound 規則）：
+- 正式模板可在同目錄放 `dsp_tab4_template.xlsx.period.json`。
+- JSON 最小欄位：`week_start`、`week_end`（格式 `YYYY-MM-DD`）。
+- 範例：
+```json
+{
+  "week_start": "2026-01-01",
+  "week_end": "2026-12-31"
+}
+```
+- 判定優先序：`sidecar` > 檔名區間（例如 `_0101-0503`）> generic（無週期資訊）。
+- 若同一候選群已有 period-bound template，但請求週期不在其窗口內，`save/export` 會直接擋下，不會退回 generic。
 
 ## 開發與驗證
 建議環境：Python `uv + .venv`

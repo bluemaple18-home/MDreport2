@@ -3,7 +3,7 @@ import type { Tab4TemplateDetail, Tab4TemplateSummary, Workflow } from "../../ty
 import { ActionButton, DataStateBlock, Panel, TableContainer } from "../ui";
 import type { RowData } from "./shared";
 import { numValue } from "./shared";
-import { formatAmount, formatNumber } from "../../utils/format";
+import { formatAmount } from "../../utils/format";
 
 type Tab4WorkspaceProps = {
   rows: RowData[];
@@ -204,96 +204,8 @@ function pickCategory(row: RowData, keys: string[]): string {
   return "";
 }
 
-function resolveYearAndMonth(row: RowData): { year: number; monthIndex: number } | null {
-  const raw = String(row["日期時間"] ?? "").trim();
-  const match = raw.match(/^(\d{4})[-/](\d{1,2})/);
-  if (!match) {
-    return null;
-  }
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
-    return null;
-  }
-  return { year, monthIndex: month - 1 };
-}
-
 function pct(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
-}
-
-function buildMfSummaryMatrix(rows: RowData[]): MfSummaryMatrix {
-  const FALLBACK_ROW_ID = "r3";
-  const monthTotals = Array.from({ length: 12 }, () => 0);
-  const parsedYear = rows
-    .map(resolveYearAndMonth)
-    .filter((item): item is { year: number; monthIndex: number } => Boolean(item))
-    .map((item) => item.year);
-  const year = parsedYear.length > 0 ? Math.max(...parsedYear) : new Date().getFullYear();
-
-  const rowAmounts: Record<string, number[]> = Object.fromEntries(
-    SUMMARY_ROW_SPECS.map((spec) => [spec.id, Array.from({ length: 12 }, () => 0)]),
-  );
-
-  for (const row of rows) {
-    const resolved = resolveYearAndMonth(row);
-    if (!resolved) {
-      continue;
-    }
-    const amount = numValue(row["執行金額"]);
-    monthTotals[resolved.monthIndex] += amount;
-    let matched = false;
-    for (const spec of SUMMARY_ROW_SPECS) {
-      if (spec.noteOnly || !spec.matcher) {
-        continue;
-      }
-      if (spec.matcher(row)) {
-        rowAmounts[spec.id][resolved.monthIndex] += amount;
-        matched = true;
-      }
-    }
-    // 若模板分類尚未覆蓋，但有非 0 金額，先壓到總覽主列避免數字遺失。
-    if (!matched && amount !== 0) {
-      rowAmounts[FALLBACK_ROW_ID][resolved.monthIndex] += amount;
-    }
-  }
-
-  const annualTotal = monthTotals.reduce((acc, value) => acc + value, 0);
-
-  const matrixRows = SUMMARY_ROW_SPECS.map<MatrixRowStats>((spec) => {
-    const monthlyAmounts = rowAmounts[spec.id] || Array.from({ length: 12 }, () => 0);
-    const annualAmount = monthlyAmounts.reduce((acc, value) => acc + value, 0);
-    if (spec.noteOnly) {
-      return {
-        spec,
-        monthlyAmounts,
-        annualAmount,
-        monthlyRates: Array.from({ length: 12 }, () => null),
-        annualRate: null,
-      };
-    }
-    const monthlyRates = monthlyAmounts.map((value, idx) => {
-      const total = monthTotals[idx];
-      return total > 0 ? value / total : 0;
-    });
-    const annualRate = annualTotal > 0 ? annualAmount / annualTotal : 0;
-    return {
-      spec,
-      monthlyAmounts,
-      annualAmount,
-      monthlyRates,
-      annualRate,
-    };
-  });
-
-  return {
-    year,
-    monthTotals,
-    monthTotalRates: Array.from({ length: 12 }, () => 1),
-    annualTotal,
-    annualRate: annualTotal > 0 ? 1 : 0,
-    rows: matrixRows,
-  };
 }
 
 function buildMfSummaryMatrixFromTemplate(templateSummary: Tab4TemplateSummary): MfSummaryMatrix {
@@ -317,311 +229,6 @@ function buildMfSummaryMatrixFromTemplate(templateSummary: Tab4TemplateSummary):
   };
 }
 
-function buildDetailRows(rows: RowData[]): RowData[] {
-  const table = new Map<string, { distributor: string; adFormat: string; invest: number; revenue: number; orders: number }>();
-  for (const row of rows) {
-    const distributor = String(row["最終經銷商"] ?? row["經銷商"] ?? "(未指定)").trim() || "(empty)";
-    const adFormat = String(row["最終廣告形式"] ?? row["廣告形式"] ?? "(未指定)").trim() || "(empty)";
-    const key = `${distributor}\u0001${adFormat}`;
-    const current = table.get(key) || { distributor, adFormat, invest: 0, revenue: 0, orders: 0 };
-    current.invest += numValue(row["執行金額"]);
-    current.revenue += numValue(row["系統營收"]);
-    current.orders += 1;
-    table.set(key, current);
-  }
-  return Array.from(table.values())
-    .map((item) => ({
-      最終經銷商: item.distributor,
-      最終廣告形式: item.adFormat,
-      執行金額: item.invest,
-      系統營收: item.revenue,
-      筆數: item.orders,
-    }))
-    .sort((a, b) => Number(b["執行金額"]) - Number(a["執行金額"]));
-}
-
-type DetailSectionSpec = {
-  id: string;
-  yearRow: number;
-  totalRow: number;
-  yearLabel: string;
-  totalLabelA: string;
-  totalLabelD?: string;
-  detailLabelA: string;
-  detailLabels: Array<{ b: string; c: string; d: string }>;
-};
-
-const DETAIL_SECTION_SPECS: DetailSectionSpec[] = [
-  {
-    id: "marketing",
-    yearRow: 5,
-    totalRow: 6,
-    yearLabel: "營銷處 DSP投資額 總計",
-    totalLabelA: "營銷處 DSP投資額 總計",
-    detailLabelA: "營銷事業處\n分項績效",
-    detailLabels: [
-      { b: "三螢", c: "一般廣告", d: "" },
-      { b: "三螢", c: "創意", d: "蓋板/置底(展開&不展)/文中" },
-      { b: "三螢", c: "影音", d: "影音摩天(outstream)" },
-      { b: "三螢", c: "影音", d: "preroll (instream)" },
-      { b: "DOOH外部", c: "影音", d: "前線媒體/presco" },
-      { b: "DOOH北流", c: "影音", d: "北流" },
-      { b: "CTV", c: "影音", d: "" },
-    ],
-  },
-  {
-    id: "strategy",
-    yearRow: 24,
-    totalRow: 25,
-    yearLabel: "策略部 DSP投資額 總計",
-    totalLabelA: "策略部 DSP投資額 總計",
-    detailLabelA: "策略部\n分項績效",
-    detailLabels: [
-      { b: "三螢", c: "一般廣告", d: "" },
-      { b: "三螢", c: "創意", d: "蓋板/置底(展開&不展)/文中" },
-      { b: "三螢", c: "影音", d: "影音摩天(outstream)" },
-      { b: "三螢", c: "影音", d: "preroll (instream)" },
-      { b: "DOOH外部", c: "影音", d: "前線媒體/presco" },
-      { b: "DOOH北流", c: "影音", d: "北流" },
-      { b: "CTV", c: "影音", d: "" },
-    ],
-  },
-  {
-    id: "external_self",
-    yearRow: 44,
-    totalRow: 45,
-    yearLabel: "外部經銷(自操) DSP投資額 總計",
-    totalLabelA: "外部經銷(自操) DSP投資額 總計",
-    totalLabelD: "玩藝/春樹/ADGeek等系統自操",
-    detailLabelA: "外部經銷(自操)\n分項績效",
-    detailLabels: [
-      { b: "三螢", c: "一般廣告", d: "" },
-      { b: "三螢", c: "創意", d: "蓋板/置底(展開&不展)/文中" },
-      { b: "三螢", c: "影音", d: "影音摩天(outstream)" },
-      { b: "三螢", c: "影音", d: "preroll (instream)" },
-      { b: "DOOH外部", c: "影音", d: "前線媒體/presco" },
-      { b: "DOOH北流", c: "影音", d: "北流" },
-      { b: "CTV", c: "影音", d: "" },
-    ],
-  },
-  {
-    id: "external_io",
-    yearRow: 63,
-    totalRow: 64,
-    yearLabel: "外部IO委刊 DSP投資額 總計",
-    totalLabelA: "外部IO委刊 DSP投資額 總計",
-    totalLabelD: "MOMO、DOOH委刊",
-    detailLabelA: "外部IO委刊 \n分項績效",
-    detailLabels: [
-      { b: "三螢", c: "一般廣告", d: "" },
-      { b: "三螢", c: "創意", d: "蓋板/置底(展開&不展)/文中" },
-      { b: "三螢", c: "影音", d: "影音摩天(outstream)" },
-      { b: "三螢", c: "影音", d: "preroll (instream)" },
-      { b: "DOOH外部", c: "影音", d: "前線媒體/presco" },
-      { b: "DOOH北流", c: "影音", d: "北流" },
-      { b: "CTV", c: "影音", d: "" },
-    ],
-  },
-  {
-    id: "hb_bridge",
-    yearRow: 82,
-    totalRow: 83,
-    yearLabel: "HB串接 DSP投資額 總計",
-    totalLabelA: "HB串接 DSP投資額 總計",
-    totalLabelD: "Appier/宇匯Bridgewell /Criteo/ RTBhouse /Teads/ucfunnel少許",
-    detailLabelA: "HB 串接\n分項績效",
-    detailLabels: [
-      { b: "三螢", c: "一般廣告", d: "" },
-      { b: "三螢", c: "創意", d: "蓋板/置底(展開&不展)/文中" },
-      { b: "三螢", c: "影音", d: "影音摩天(outstream)" },
-      { b: "三螢", c: "影音", d: "preroll (instream)" },
-      { b: "DOOH外部", c: "影音", d: "前線媒體/presco" },
-      { b: "DOOH北流", c: "影音", d: "北流" },
-      { b: "CTV", c: "影音", d: "" },
-    ],
-  },
-];
-
-const DETAIL_MONTH_LABELS = Array.from({ length: 12 }, (_v, idx) => `${idx + 1}月`);
-const DETAIL_KPI_LABELS = [
-  "全體經銷\u3000總投資量目標 & 達成率 (含北流)",
-  "營銷事業處\u3000總投資量目標 & 達成率 (含北流)",
-  "營銷事業處\u3000北流投資量目標 & 達成率",
-];
-
-function resolveDetailBlockBaseRow(row: RowData): number {
-  const b = pickCategory(row, ["分類層級B", "最終經銷商", "經銷商"]);
-  const c = pickCategory(row, ["分類層級C", "最終廣告形式", "廣告形式"]);
-  const distributor = pickCategory(row, ["最終經銷商", "經銷商", "原始經銷商"]);
-  const haystack = `${b} ${c} ${distributor}`;
-
-  if (b === "內經銷商" && c === "策略部") {
-    return 26;
-  }
-  if (b === "外經銷商" && c === "經銷推廣") {
-    return 46;
-  }
-  if (b === "外經銷商" && c === "IO委刊") {
-    return 65;
-  }
-  if (b === "HB串接") {
-    return 84;
-  }
-  if (haystack.includes("策略")) {
-    return 26;
-  }
-  if (haystack.includes("IO委刊") || haystack.toUpperCase().includes("MOMO") || haystack.includes("DOOH委刊")) {
-    return 65;
-  }
-  if (haystack.includes("外部") || haystack.includes("經銷推廣")) {
-    return 46;
-  }
-  if (haystack.toUpperCase().includes("HB") || haystack.includes("串接")) {
-    return 84;
-  }
-  return 7;
-}
-
-function resolveDetailMetricOffset(row: RowData): number {
-  const b = pickCategory(row, ["分類層級B", "最終廣告形式", "廣告形式"]);
-  const c = pickCategory(row, ["分類層級C", "最終廣告形式", "廣告形式"]);
-  const d = pickCategory(row, ["分類層級D", "素材樣板", "素材", "訂單"]);
-  const adFormat = pickCategory(row, ["最終廣告形式", "廣告形式", "素材樣板"]);
-  const order = pickCategory(row, ["訂單", "素材"]);
-  const text = `${b} ${c} ${d} ${adFormat} ${order}`.toLowerCase();
-
-  if (text.includes("ctv")) {
-    return 6;
-  }
-  if (text.includes("北流")) {
-    return 5;
-  }
-  if (text.includes("dooh外部") || text.includes("presco") || text.includes("前線媒體")) {
-    return 4;
-  }
-  if (text.includes("pre roll") || text.includes("preroll") || text.includes("instream")) {
-    return 3;
-  }
-  if (text.includes("影音摩天") || text.includes("outstream")) {
-    return 2;
-  }
-  if (text.includes("創意") || text.includes("蓋板") || text.includes("置底") || text.includes("文中")) {
-    return 1;
-  }
-  return 0;
-}
-
-function resolveDetailInputRow(row: RowData): number {
-  return resolveDetailBlockBaseRow(row) + resolveDetailMetricOffset(row);
-}
-
-function buildDetailMatrixFromRows(rows: RowData[]): Tab4TemplateDetail {
-  const yearCandidates: number[] = [];
-  const rowAmounts: Record<number, number[]> = Object.fromEntries(
-    [7, 8, 9, 10, 11, 12, 13, 26, 27, 28, 29, 30, 31, 32, 46, 47, 48, 49, 50, 51, 52, 65, 66, 67, 68, 69, 70, 71, 84, 85, 86, 87, 88, 89, 90].map((rowIdx) => [
-      rowIdx,
-      Array.from({ length: 12 }, () => 0),
-    ]),
-  );
-
-  for (const row of rows) {
-    const resolved = resolveYearAndMonth(row);
-    if (!resolved) {
-      continue;
-    }
-    yearCandidates.push(resolved.year);
-    const amount = numValue(row["執行金額"]);
-    const targetRow = resolveDetailInputRow(row);
-    if (!rowAmounts[targetRow]) {
-      continue;
-    }
-    rowAmounts[targetRow][resolved.monthIndex] += amount;
-  }
-
-  const year = yearCandidates.length > 0 ? Math.max(...yearCandidates) : new Date().getFullYear();
-  const sectionRows = DETAIL_SECTION_SPECS.map((spec) => {
-    const detailRowIndices = Array.from({ length: 7 }, (_v, idx) => spec.totalRow + 1 + idx);
-    const totalMonthlyAmounts = DETAIL_MONTH_LABELS.map((_label, monthIdx) =>
-      detailRowIndices.reduce((acc, rowIdx) => acc + (rowAmounts[rowIdx]?.[monthIdx] || 0), 0),
-    );
-    const totalAnnualAmount = totalMonthlyAmounts.reduce((acc, value) => acc + value, 0);
-    const totalMonthlyRates = totalMonthlyAmounts.map((value) => (value > 0 ? 1 : 0));
-    const rowsOut = detailRowIndices.map((rowIdx, idx) => {
-      const monthlyAmounts = rowAmounts[rowIdx] || Array.from({ length: 12 }, () => 0);
-      const annualAmount = monthlyAmounts.reduce((acc, value) => acc + value, 0);
-      const monthlyRates = monthlyAmounts.map((value, monthIdx) => {
-        const total = totalMonthlyAmounts[monthIdx];
-        return total > 0 ? value / total : 0;
-      });
-      return {
-        excelRow: rowIdx,
-        labelA: idx === 0 ? spec.detailLabelA : "",
-        labelB: spec.detailLabels[idx]?.b || "",
-        labelC: spec.detailLabels[idx]?.c || "",
-        labelD: spec.detailLabels[idx]?.d || "",
-        monthlyAmounts,
-        monthlyRates,
-        annualAmount,
-        annualRate: totalAnnualAmount > 0 ? annualAmount / totalAnnualAmount : 0,
-      };
-    });
-
-    return {
-      id: spec.id,
-      year,
-      monthLabels: DETAIL_MONTH_LABELS,
-      total: {
-        excelRow: spec.totalRow,
-        labelA: spec.totalLabelA,
-        labelB: "",
-        labelC: "",
-        labelD: spec.totalLabelD || "",
-        monthlyAmounts: totalMonthlyAmounts,
-        monthlyRates: totalMonthlyRates,
-        annualAmount: totalAnnualAmount,
-        annualRate: totalAnnualAmount > 0 ? 1 : 0,
-      },
-      rows: rowsOut,
-    };
-  });
-
-  const totalMonthlyAmounts = DETAIL_MONTH_LABELS.map((_label, monthIdx) =>
-    sectionRows.reduce((acc, section) => acc + section.total.monthlyAmounts[monthIdx], 0),
-  );
-  const totalAnnualAmount = totalMonthlyAmounts.reduce((acc, value) => acc + value, 0);
-
-  return {
-    source: "canonical rows (frontend fallback)",
-    monthLabels: DETAIL_MONTH_LABELS,
-    kpiRows: [
-      {
-        excelRow: 2,
-        label: DETAIL_KPI_LABELS[0],
-        monthlyAmounts: totalMonthlyAmounts,
-        monthlyRates: totalMonthlyAmounts.map((value) => (value > 0 ? 1 : 0)),
-        annualAmount: totalAnnualAmount,
-        annualRate: totalAnnualAmount > 0 ? 1 : 0,
-      },
-      {
-        excelRow: 3,
-        label: DETAIL_KPI_LABELS[1],
-        monthlyAmounts: Array.from({ length: 12 }, () => 0),
-        monthlyRates: Array.from({ length: 12 }, () => 0),
-        annualAmount: 0,
-        annualRate: 0,
-      },
-      {
-        excelRow: 4,
-        label: DETAIL_KPI_LABELS[2],
-        monthlyAmounts: Array.from({ length: 12 }, () => 0),
-        monthlyRates: Array.from({ length: 12 }, () => 0),
-        annualAmount: 0,
-        annualRate: 0,
-      },
-    ],
-    sections: sectionRows,
-  };
-}
 
 function buildBeiliuTracking(rows: RowData[]): RowData[] {
   const filtered = rows.filter((row) => {
@@ -670,10 +277,10 @@ function SheetFrame({ year, title, subtitle, tone, meta, children }: SheetFrameP
   );
 }
 
-function MfSummaryMatrixView({ rows, templateSummary }: { rows: RowData[]; templateSummary: Tab4TemplateSummary | null }) {
+function MfSummaryMatrixView({ templateSummary }: { templateSummary: Tab4TemplateSummary }) {
   const matrix = useMemo(
-    () => (templateSummary ? buildMfSummaryMatrixFromTemplate(templateSummary) : buildMfSummaryMatrix(rows)),
-    [rows, templateSummary],
+    () => buildMfSummaryMatrixFromTemplate(templateSummary),
+    [templateSummary],
   );
 
   return (
@@ -836,8 +443,6 @@ export function Tab4Workspace({
     ? "偵測到 Rawdata 已重新儲存，請回樞紐重新確認後再交付。"
     : "尚未完成樞紐交付，請先回樞紐按下「送最後資料到 Tab4」。";
 
-  const detailRows = buildDetailRows(rows);
-  const effectiveTemplateDetail = templateDetail || buildDetailMatrixFromRows(rows);
   const beiliuRows = buildBeiliuTracking(rows);
   const workspaceTabs = [
     { value: "summary", label: "mF投資量_總表" },
@@ -865,13 +470,13 @@ export function Tab4Workspace({
     activePanel === "summary"
       ? [
           { label: "模板可見區", value: "A1:AD15" },
-          { label: "資料來源", value: templateSummary ? "template preview（非交付快照）" : "canonical rows" },
+          { label: "資料來源", value: "canonical_raw mapped preview" },
           { label: "欄位配置", value: "固定分項列 + 月份/年度成對欄位" },
         ]
       : activePanel === "detail"
         ? [
           { label: "區塊", value: "各經銷商明細（模板矩陣）" },
-          { label: "資料來源", value: templateDetail ? "template preview（非交付快照）" : "canonical rows" },
+          { label: "資料來源", value: "canonical_raw mapped preview" },
           { label: "表格", value: "固定分區 + 月份/FR% + 年度欄位" },
         ]
         : [
@@ -894,25 +499,17 @@ export function Tab4Workspace({
 
   const activeBody = activePanel === "summary" ? (
     <>
-      <DataStateBlock loading={busy} empty={!busy && rows.length === 0 && !templateSummary} />
-      {!busy && (rows.length > 0 || templateSummary) ? (
-        <MfSummaryMatrixView rows={rows} templateSummary={templateSummary} />
+      <DataStateBlock loading={busy} empty={!busy && !templateSummary} />
+      {!busy && templateSummary ? (
+        <MfSummaryMatrixView templateSummary={templateSummary} />
       ) : null}
     </>
   ) : activePanel === "detail" ? (
     <div className="tab4-sheet-sections">
       <section className="tab4-sheet-section">
         <div className="tab4-sheet-section-head">各經銷商明細（模板骨架）</div>
-        <DataStateBlock loading={busy} empty={!busy && detailRows.length === 0 && !effectiveTemplateDetail} />
-        {!busy && effectiveTemplateDetail ? <MfDetailMatrixView templateDetail={effectiveTemplateDetail} /> : null}
-        {!busy && !effectiveTemplateDetail && detailRows.length > 0 ? (
-          <TableContainer
-            className="tab4-matrix-table tab4-matrix-table-detail"
-            columns={["最終經銷商", "最終廣告形式", "執行金額", "系統營收", "筆數"]}
-            rows={detailRows.slice(0, 30)}
-            columnFormatters={{ 執行金額: formatAmount, 系統營收: formatAmount, 筆數: formatNumber }}
-          />
-        ) : null}
+        <DataStateBlock loading={busy} empty={!busy && !templateDetail} />
+        {!busy && templateDetail ? <MfDetailMatrixView templateDetail={templateDetail} /> : null}
       </section>
     </div>
   ) : (

@@ -162,6 +162,8 @@ def _build_parser() -> argparse.ArgumentParser:
     exp_p.add_argument("--artifact-root", default="artifacts")
     exp_p.add_argument("--week-start", default=None, help="Export period start date (YYYY-MM-DD)")
     exp_p.add_argument("--week-end", default=None, help="Export period end date (YYYY-MM-DD)")
+    exp_p.add_argument("--main-tab", default=None, help="Route main_tab (DSP 預設補 dsp_tab4)")
+    exp_p.add_argument("--sub-tab", default=None, help="Route sub_tab (DSP 預設補 overview)")
     return parser
 
 
@@ -256,12 +258,20 @@ def run_cli(argv: list[str] | None = None) -> int:
 
         if args.command == "export":
             svc = _service(root, args.manifest)
+            main_tab = args.main_tab
+            sub_tab = args.sub_tab
+            if args.workflow == "dsp":
+                # CLI baseline 對齊 UI/export 契約：DSP 預設走 Tab4 overview。
+                main_tab = main_tab or "dsp_tab4"
+                sub_tab = sub_tab or "overview"
             return _ok(
                 svc.export(
                     workflow=args.workflow,
                     artifact_root=(root / args.artifact_root).resolve(),
                     template_version=args.template_version,
                     rule_version=args.rule_version,
+                    main_tab=main_tab,
+                    sub_tab=sub_tab,
                     week_start=args.week_start,
                     week_end=args.week_end,
                 )
