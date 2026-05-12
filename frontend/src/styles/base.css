@@ -125,6 +125,12 @@ textarea {
   gap: 10px;
 }
 
+.grid-1 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
 .btn-row {
   margin-top: 12px;
   display: flex;

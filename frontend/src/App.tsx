@@ -1,4 +1,3 @@
-import { ShellHeader } from "./components/ui";
 import { MainWorkspaceRenderer } from "./shell/MainWorkspaceRenderer";
 import { RuntimeUtilityStrip } from "./shell/RuntimeUtilityStrip";
 import { WorkbenchCommandDeck } from "./shell/WorkbenchCommandDeck";
@@ -12,9 +11,8 @@ export default function App() {
       <div className="ambient ambient-a" />
       <div className="ambient ambient-b" />
       <main className="layout">
-        <ShellHeader healthStatus={controller.healthStatus} busy={controller.state.busy} />
-
         <WorkbenchCommandDeck
+          healthStatus={controller.healthStatus}
           workflow={controller.state.route.workflow}
           busy={controller.state.busy}
           mainTab={controller.state.route.mainTab}
@@ -23,7 +21,6 @@ export default function App() {
           mainTabOptions={controller.mainTabOptions}
           subTabOptions={controller.subTabOptions}
           periodPreset={controller.state.period.preset}
-          periodLabel={controller.state.period.label}
           periodWeekStart={controller.state.period.weekStart}
           periodWeekEnd={controller.state.period.weekEnd}
           dspPeriodLocked={controller.dspPeriodLocked}
@@ -31,8 +28,6 @@ export default function App() {
           onMainTabChange={controller.setMainTab}
           onSubTabChange={controller.setSubTab}
           onPeriodPresetChange={controller.setPeriodPreset}
-          onPeriodWeekStartChange={(value) => controller.setPeriodWindow(value, controller.state.period.weekEnd)}
-          onPeriodWeekEndChange={(value) => controller.setPeriodWindow(controller.state.period.weekStart, value)}
           onPeriodRangeChange={controller.setPeriodWindow}
         />
 

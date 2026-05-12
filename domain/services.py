@@ -148,6 +148,24 @@ def _resolve_year_month(row: dict) -> tuple[int, int] | None:
     return year, month - 1
 
 
+def _canonical_day_text(row: dict) -> str:
+    raw = str(row.get("日期時間") or "").strip()
+    return raw[:10] if len(raw) >= 10 else raw
+
+
+def _inclusive_day_texts(start_day: str, end_day: str) -> set[str]:
+    start = date.fromisoformat(start_day)
+    end = date.fromisoformat(end_day)
+    if start > end:
+        raise ValueError("start_day cannot be after end_day")
+    days: set[str] = set()
+    current = start
+    while current <= end:
+        days.add(current.isoformat())
+        current += timedelta(days=1)
+    return days
+
+
 def _to_number(value: object) -> float:
     if isinstance(value, (int, float)):
         out = float(value)
@@ -1082,13 +1100,29 @@ class CanonicalService:
 
         with self.repo.connect() as conn:
             self.repo.resolve_trace_binding(conn, "dsp", template_version, rule_version)
-            written = self.repo.save_canonical_rows(conn, "dsp", normalized_rows)
+            existing_rows = self.repo.read_canonical_rows_in_tx(conn, "dsp")
+            requested_days = _inclusive_day_texts(start_day, end_day)
+            preserved_rows = [row for row in existing_rows if _canonical_day_text(row) not in requested_days]
+            merged_rows = [*preserved_rows, *normalized_rows]
+            merged_rows.sort(
+                key=lambda row: (
+                    str(row.get("日期時間") or ""),
+                    str(row.get("經銷商") or ""),
+                    str(row.get("訂單") or ""),
+                    str(row.get("素材") or ""),
+                )
+            )
+            written = self.repo.save_canonical_rows(conn, "dsp", merged_rows)
             trace = self.repo.build_trace_meta(conn, "dsp", template_version, rule_version)
             model = bundle.get("model") if isinstance(bundle.get("model"), dict) else {}
             detail = {
                 "start_day": start_day,
                 "end_day": end_day,
-                "row_count": written,
+                "row_count": len(normalized_rows),
+                "total_row_count": written,
+                "fetched_row_count": len(normalized_rows),
+                "retained_row_count": len(preserved_rows),
+                "replaced_day_count": len(requested_days),
                 "records_total": int(bundle.get("records_total") or 0),
                 "job_id": str(bundle.get("job_id") or ""),
                 "job_ids": list(bundle.get("job_ids") or []),
@@ -1123,7 +1157,11 @@ class CanonicalService:
             "run_id": run_id,
             "start_day": start_day,
             "end_day": end_day,
-            "row_count": written,
+            "row_count": len(normalized_rows),
+            "total_row_count": written,
+            "fetched_row_count": len(normalized_rows),
+            "retained_row_count": len(preserved_rows),
+            "replaced_day_count": len(requested_days),
             "records_total": int(bundle.get("records_total") or 0),
             "job_id": str(bundle.get("job_id") or ""),
             "job_ids": list(bundle.get("job_ids") or []),

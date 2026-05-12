@@ -119,7 +119,7 @@ def _resolve_fetch_range(*, single_date: object, start_day: object, end_day: obj
             raise ValueError("date cannot be combined with start_day/end_day")
         return raw_date, raw_date
     if not raw_start or not raw_end:
-        raise ValueError("fetch_ssp_api requires date or both start_day/end_day")
+        raise ValueError("fetch api requires date or both start_day/end_day")
     return raw_start, raw_end
 
 
@@ -585,6 +585,7 @@ class UiRequestHandler(BaseHTTPRequestHandler):
         content_type, _ = mimetypes.guess_type(str(path))
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", content_type or "application/octet-stream")
+        self.send_header("Cache-Control", "no-store")
         if as_attachment:
             safe_name = path.name.replace("\"", "")
             ascii_name = safe_name.encode("ascii", "ignore").decode("ascii") or "export.xlsx"

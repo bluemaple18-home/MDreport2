@@ -3,8 +3,8 @@ import type { RecentMap } from "../components/workspaces/shared";
 import { buildExportDownloadUrl } from "../api/runtimeApi";
 import { getMainTabOptions, getSubTabOptions } from "../state/runtimeContract";
 import { useRuntimeStore } from "../state/useRuntimeStore";
-import type { DspRawdataFilters, MainTab, RuntimeFrameResult, SspMediaDemandConfig, SspMediaDemandSlot, SubTab, Workflow } from "../types";
-import { filterDspRawdataRows, resolvePreferredDspDateBucket } from "./dspRawdataFilters";
+import type { DspDateBucket, DspRawdataFilters, MainTab, PeriodPreset, RuntimeFrameResult, SspMediaDemandConfig, SspMediaDemandSlot, SubTab, Workflow } from "../types";
+import { collectDspFacetOptions, filterDspRawdataRows } from "./dspRawdataFilters";
 import { useRawdataEditingController } from "./useRawdataEditingController";
 import { getWorkflowCapability, getWorkspaceVisibilityCapability } from "./workflowCapabilities";
 
@@ -15,14 +15,31 @@ type TabOption = {
   label: string;
 };
 
+function isDspDateBucketPreset(preset: PeriodPreset): preset is DspDateBucket {
+  return preset === "last_week"
+    || preset === "two_weeks_ago"
+    || preset === "three_weeks_ago"
+    || preset === "four_weeks_ago";
+}
+
 export function useAppShellController() {
   const { state, dispatch, refreshRuntime, refreshStatus, refreshFrame, runAction, runActionWithResult } = useRuntimeStore();
   const [runtimeDetailsOpen, setRuntimeDetailsOpen] = useState<boolean>(false);
-  const [dspRawdataAutoSeeded, setDspRawdataAutoSeeded] = useState<boolean>(false);
+  const runtimeContextKey = [
+    state.ctx.root,
+    state.ctx.env,
+    state.ctx.manifest,
+    state.ctx.workflow,
+    state.ctx.template_version,
+    state.ctx.rule_version,
+    state.ctx.artifact_root,
+  ].join("\n");
 
   useEffect(() => {
     void refreshRuntime();
-  }, [refreshRuntime]);
+  // 只在 runtime context 改變時重抓 API；本地篩選/週期切換不應觸發 /api/status 或 /api/frame。
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runtimeContextKey]);
 
   const healthStatus =
     state.statusPayload?.status === "ok"
@@ -46,8 +63,9 @@ export function useAppShellController() {
   const subTabLabel = subTabOptions.find((item) => item.value === state.route.subTab)?.label || state.route.subTab;
 
   const filteredRows = useMemo(() => {
-    if (state.route.workflow === "dsp" && state.route.subTab === "rawdata") {
-      return filterDspRawdataRows(allRows, state.dspRawdataFilters, state.rowLimit);
+    if (state.route.workflow === "dsp" && (state.route.subTab === "rawdata" || state.route.subTab === "pivot")) {
+      const limit = state.route.subTab === "rawdata" ? state.rowLimit : Number.MAX_SAFE_INTEGER;
+      return filterDspRawdataRows(allRows, state.dspRawdataFilters, limit);
     }
     const filter = state.rowFilter.trim().toLowerCase();
     const scoped = filter
@@ -82,21 +100,45 @@ export function useAppShellController() {
   }, [state.resultPayload]);
 
   useEffect(() => {
-    if (dspRawdataAutoSeeded || state.route.workflow !== "dsp" || state.route.subTab !== "rawdata") {
+    if (state.route.workflow !== "dsp" || !isDspDateBucketPreset(state.period.preset)) {
       return;
     }
-    if (allRows.length === 0) {
+    if (state.dspRawdataFilters.dateBucket === state.period.preset) {
       return;
     }
-    const preferredBucket = resolvePreferredDspDateBucket(allRows);
-    if (preferredBucket !== state.dspRawdataFilters.dateBucket) {
-      dispatch({
-        type: "set_dsp_rawdata_filters",
-        value: { ...state.dspRawdataFilters, dateBucket: preferredBucket },
-      });
+    dispatch({
+      type: "set_dsp_rawdata_filters",
+      value: { ...state.dspRawdataFilters, dateBucket: state.period.preset },
+    });
+  }, [dispatch, state.dspRawdataFilters, state.period.preset, state.route.workflow]);
+
+  useEffect(() => {
+    if (state.route.workflow !== "dsp" || state.route.subTab !== "rawdata" || allRows.length === 0) {
+      return;
     }
-    setDspRawdataAutoSeeded(true);
-  }, [allRows, dispatch, dspRawdataAutoSeeded, state.dspRawdataFilters, state.route.subTab, state.route.workflow]);
+    const nextFilters = { ...state.dspRawdataFilters };
+    const facetFields = [
+      ["distributor", "distributor"],
+      ["adFormat", "adFormat"],
+      ["size", "size"],
+      ["template", "template"],
+    ] as const;
+    let changed = false;
+    for (const [filterKey, facetField] of facetFields) {
+      const current = nextFilters[filterKey];
+      if (!current) {
+        continue;
+      }
+      const validValues = new Set(collectDspFacetOptions(allRows, facetField).map((option) => option.value));
+      if (!validValues.has(current)) {
+        nextFilters[filterKey] = "";
+        changed = true;
+      }
+    }
+    if (changed) {
+      dispatch({ type: "set_dsp_rawdata_filters", value: nextFilters });
+    }
+  }, [allRows, dispatch, state.dspRawdataFilters, state.route.subTab, state.route.workflow]);
 
   const rawdataEditing = useRawdataEditingController({
     allRows,
@@ -128,11 +170,27 @@ export function useAppShellController() {
     setWorkflow: (workflow: Workflow) => dispatch({ type: "set_workflow", value: workflow }),
     setMainTab: (mainTab: MainTab) => dispatch({ type: "set_main_tab", value: mainTab }),
     setSubTab: (subTab: SubTab) => dispatch({ type: "set_subtab", value: subTab }),
-    setPeriodPreset: (preset: "current_week" | "last_week" | "last_7_days" | "last_14_days" | "custom") => dispatch({ type: "set_period_preset", value: preset }),
+    setPeriodPreset: (preset: PeriodPreset) => {
+      dispatch({ type: "set_period_preset", value: preset });
+      if (
+        state.route.workflow === "dsp"
+        && isDspDateBucketPreset(preset)
+      ) {
+        dispatch({
+          type: "set_dsp_rawdata_filters",
+          value: { ...state.dspRawdataFilters, dateBucket: preset },
+        });
+      }
+    },
     setPeriodWindow: (weekStart: string, weekEnd: string) => dispatch({ type: "set_period_window", weekStart, weekEnd }),
     setRowFilter: (value: string) => dispatch({ type: "set_row_filter", value }),
     setRowLimit: (value: number) => dispatch({ type: "set_row_limit", value }),
-    setDspRawdataFilters: (value: DspRawdataFilters) => dispatch({ type: "set_dsp_rawdata_filters", value }),
+    setDspRawdataFilters: (value: DspRawdataFilters) => {
+      dispatch({ type: "set_dsp_rawdata_filters", value });
+      if (state.route.workflow === "dsp" && value.dateBucket !== state.period.preset) {
+        dispatch({ type: "set_period_preset", value: value.dateBucket });
+      }
+    },
     setRowsJson: (value: string) => dispatch({ type: "set_rows_json", value }),
     setUpdatesJson: (value: string) => dispatch({ type: "set_updates_json", value }),
     runRuntimeAction: (action: RuntimeAction) => runAction(action),

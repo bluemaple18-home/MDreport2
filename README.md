@@ -72,30 +72,30 @@
 主入口：`app/main.py`
 
 ```bash
-python3 app/main.py --root /path/to/project bootstrap
-python3 app/main.py --root /path/to/project --env test bootstrap
-python3 app/main.py --root /path/to/project health
-python3 app/main.py --root /path/to/project --env test health
-python3 app/main.py --root /path/to/project save \
+uv run python app/main.py --root /path/to/project bootstrap
+uv run python app/main.py --root /path/to/project --env test bootstrap
+uv run python app/main.py --root /path/to/project health
+uv run python app/main.py --root /path/to/project --env test health
+uv run python app/main.py --root /path/to/project save \
   --workflow dsp --template-version v1 --rule-version v1 \
   --rows-json /path/to/rows.json
-python3 app/main.py --root /path/to/project modify \
+uv run python app/main.py --root /path/to/project modify \
   --workflow dsp --template-version v1 --rule-version v1 \
   --updates-json /path/to/updates.json
-python3 app/main.py --root /path/to/project export \
+uv run python app/main.py --root /path/to/project export \
   --workflow dsp --template-version v1 --rule-version v1 \
   --main-tab dsp_tab4 --sub-tab overview
-python3 app/main.py --root /path/to/project seed-bootstrap \
+uv run python app/main.py --root /path/to/project seed-bootstrap \
   --raw-source raw-inbox
-python3 app/main.py --root /path/to/project seed-import-mdreport \
+uv run python app/main.py --root /path/to/project seed-import-mdreport \
   --mdreport-root /path/to/MDreport
-python3 app/main.py --root /path/to/project seed-promote-live \
+uv run python app/main.py --root /path/to/project seed-promote-live \
   --workflow dsp --source-db-rel canonical/mdreport_dsp.sqlite
-python3 app/main.py --root /path/to/project seed-rebuild \
+uv run python app/main.py --root /path/to/project seed-rebuild \
   --workflow dsp --template-version v1 --rule-version v1
-python3 app/main.py --root /path/to/project fetch-dsp-api \
+uv run python app/main.py --root /path/to/project fetch-dsp-api \
   --date 2026-05-10
-python3 app/main.py --root /path/to/project fetch-ssp-api \
+uv run python app/main.py --root /path/to/project fetch-ssp-api \
   --date 2026-05-11
 ```
 
@@ -170,21 +170,23 @@ python3 app/main.py --root /path/to/project fetch-ssp-api \
     - `MDREPORT_API_EMAIL / MDREPORT_API_PASSWORD`
   - 常用例子：
 ```bash
-python3 app/main.py --root /path/to/project fetch-ssp-api --date 2026-05-11
-python3 app/main.py --root /path/to/project --env test fetch-ssp-api --date 2026-05-11
+uv run python app/main.py --root /path/to/project fetch-ssp-api --date 2026-05-11
+uv run python app/main.py --root /path/to/project --env test fetch-ssp-api --date 2026-05-11
 ```
 - DSP 正規 API 抓數：`fetch-dsp-api`
   - 正式鏈：`POST cua3/api/login/scope-check` → 解密 services payload → 選 `service_id=10` → `POST dsp3-api/reports` → `GET reports/view-job`
   - 預設會把資料寫入 live `canonical_raw WHERE workflow='dsp'`，並同步更新 Tab4 delivery 快照，讓後續 `export --workflow dsp` 能直接接續。
   - 若指定日期區間，client 會自動改成「逐日查詢 + 節流 + 最後一次性寫回」；這是因為 DSP3 multi-day job 會被 server-side 截斷，`page=2/3` 也只會重複同一批資料。
+  - 單日 refresh 不再清空整段 DSP 歷史；目前語意是「只替換請求日期範圍內的 rows，保留其他日期」。
+  - 回傳結果中的 `row_count` 代表本次 fetch 寫入筆數；若要看 merge 後整體 DSP 筆數，請讀 `total_row_count`。
   - 帳密解析順序：
     - `--email / --password`
     - `MDREP_DSP_EMAIL / MDREP_DSP_PASSWORD`
     - `MDREPORT_API_EMAIL / MDREPORT_API_PASSWORD`
   - 常用例子：
 ```bash
-python3 app/main.py --root /path/to/project fetch-dsp-api --date 2026-05-10
-python3 app/main.py --root /path/to/project --env test fetch-dsp-api --date 2026-05-10
+uv run python app/main.py --root /path/to/project fetch-dsp-api --date 2026-05-10
+uv run python app/main.py --root /path/to/project --env test fetch-dsp-api --date 2026-05-10
 ```
 - 注意：
   - 這張卡只做 seed 骨架，不做舊資料隱式搬運。

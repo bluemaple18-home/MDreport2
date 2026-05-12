@@ -4,6 +4,13 @@ import { DataStateBlock, Field, Panel } from "../ui";
 import type { RowData } from "./shared";
 import { numValue } from "./shared";
 import { formatNumber, formatPercent } from "../../utils/format";
+import {
+  filterSupplierSummaries,
+  isAsciiDigitInput,
+  isLatestDateAnomaly,
+  isSupplierLevelAnomaly,
+  normalizeAsciiDigitInput,
+} from "./sspParityRules";
 
 type SspParityWorkspaceProps = {
   rows: RowData[];
@@ -29,6 +36,7 @@ type SupplierSummary = {
   supplier: string;
   anomalyDayCount: number;
   anomalySiteCount: number;
+  latestDateAnomaly: boolean;
   latestDodDeltaRequests: number;
   latestRequests: number;
   dailyMetrics: Record<string, DailyMetric>;
@@ -88,8 +96,9 @@ function buildReason(
 
 export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceProps) {
   const [visibilityMode, setVisibilityMode] = useState<VisibilityMode>("all");
-  const [dodThresholdMillion, setDodThresholdMillion] = useState<number>(DOD_THRESHOLD_MILLION);
+  const [dodThresholdInput, setDodThresholdInput] = useState<string>(String(DOD_THRESHOLD_MILLION));
   const [expandedSupplier, setExpandedSupplier] = useState<string | null>(null);
+  const dodThresholdMillion = Number(dodThresholdInput || 0);
 
   const anomalyWorkbench = useMemo(() => {
     const supplierDaily = new Map<string, Map<string, DailyMetric>>();
@@ -186,11 +195,13 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
 
       const anomalySiteCount = siteDrilldown.filter((item) => item.status !== "normal").length;
       const latestDodDeltaRequests = dodDeltaByDate[latestDate] ?? 0;
+      const latestDateAnomaly = isLatestDateAnomaly(anomalyDates, latestDate);
 
       return {
         supplier,
         anomalyDayCount,
         anomalySiteCount,
+        latestDateAnomaly,
         latestDodDeltaRequests,
         latestRequests: latestSupplierRequests,
         dailyMetrics,
@@ -215,10 +226,7 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
   }, [dodThresholdMillion, rows]);
 
   const filteredSuppliers = useMemo(() => {
-    if (visibilityMode === "all") {
-      return anomalyWorkbench.supplierSummaries;
-    }
-    return anomalyWorkbench.supplierSummaries.filter((item) => item.anomalyDayCount > 0 || item.anomalySiteCount > 0);
+    return filterSupplierSummaries(visibilityMode, anomalyWorkbench.supplierSummaries);
   }, [anomalyWorkbench.supplierSummaries, visibilityMode]);
 
   const dailyTotals = useMemo(() => {
@@ -239,7 +247,7 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
   }, [anomalyWorkbench.dateKeysDesc, filteredSuppliers]);
 
   const anomalySuppliers = useMemo(
-    () => filteredSuppliers.filter((item) => item.anomalyDayCount > 0 || item.anomalySiteCount > 0),
+    () => filteredSuppliers.filter(isSupplierLevelAnomaly),
     [filteredSuppliers],
   );
 
@@ -255,12 +263,6 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
 
       {!busy ? (
         <div className="ssp-anomaly-workbench" data-testid="ssp-anomaly-workbench">
-          <div className="status-bar">
-            <span>日期範圍: {anomalyWorkbench.dateKeysAsc[0] ?? "n/a"} ~ {anomalyWorkbench.latestDate}</span>
-            <span>供應商數: {formatNumber(anomalyWorkbench.supplierSummaries.length)}</span>
-            <span>異常供應商: {formatNumber(anomalySuppliers.length)}</span>
-          </div>
-
           <Panel title="控制列" subtitle="只保留全部顯示 / 異常顯示與 DoD 閾值。">
             <div className="ssp-anomaly-controls">
               <Field label="顯示模式">
@@ -276,10 +278,35 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
               <Field label="DoD 異常閾值（萬）">
                 <input
                   data-testid="ssp-anomaly-dod-threshold"
-                  type="number"
-                  min="0"
-                  value={dodThresholdMillion}
-                  onChange={(event) => setDodThresholdMillion(Math.max(0, Number(event.target.value || 0)))}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={dodThresholdInput}
+                  onBeforeInput={(event) => {
+                    const inputEvent = event.nativeEvent as InputEvent;
+                    if (inputEvent.data && !isAsciiDigitInput(inputEvent.data)) {
+                      event.preventDefault();
+                    }
+                  }}
+                  onPaste={(event) => {
+                    if (!isAsciiDigitInput(event.clipboardData.getData("text"))) {
+                      event.preventDefault();
+                    }
+                  }}
+                  onChange={(event) => {
+                    const digits = normalizeAsciiDigitInput(event.target.value);
+                    setDodThresholdInput(digits);
+                  }}
+                  onFocus={() => {
+                    if (dodThresholdInput === "0") {
+                      setDodThresholdInput("");
+                    }
+                  }}
+                  onBlur={() => {
+                    if (dodThresholdInput === "") {
+                      setDodThresholdInput("0");
+                    }
+                  }}
                 />
               </Field>
             </div>
@@ -288,7 +315,8 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
           <Panel title="每日總表" subtitle="主視圖：供應商按最新請求數排序，日期由新到舊。">
             <div className="ssp-anomaly-daily-meta">
               <span>顯示 15 列視窗</span>
-              <span>供應商總數: {formatNumber(filteredSuppliers.length)}</span>
+              <span>供應商數: {formatNumber(anomalyWorkbench.supplierSummaries.length)}</span>
+              <span>異常供應商: {formatNumber(anomalySuppliers.length)}</span>
               <span>可上下 / 左右捲動查看更多資料</span>
             </div>
             <div className="table-wrap ssp-anomaly-daily-table" data-testid="ssp-anomaly-daily-summary">
@@ -314,10 +342,10 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
                 </thead>
                 <tbody>
                   {filteredSuppliers.map((supplier) => {
-                    const isSupplierAnomaly = supplier.anomalyDayCount > 0 || supplier.anomalySiteCount > 0;
+                    const isLatestAnomaly = isSupplierLevelAnomaly(supplier);
                     return (
-                      <tr key={supplier.supplier} className={isSupplierAnomaly ? "ssp-anomaly-summary-row-risk" : ""}>
-                        <td className={`ssp-anomaly-supplier-cell${isSupplierAnomaly ? " ssp-anomaly-supplier-cell-risk" : ""}`}>
+                      <tr key={supplier.supplier} className={isLatestAnomaly ? "ssp-anomaly-summary-row-risk" : ""}>
+                        <td className={`ssp-anomaly-supplier-cell${isLatestAnomaly ? " ssp-anomaly-supplier-cell-risk" : ""}`}>
                           {supplier.supplier}
                         </td>
                         {anomalyWorkbench.dateKeysDesc.map((date) => {
@@ -326,15 +354,17 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
                           const isDateAnomaly = Boolean(supplier.anomalyDates[date]);
                           return (
                             <Fragment key={`daily-${supplier.supplier}-${date}`}>
-                              <td className={isDateAnomaly ? "ssp-anomaly-date-risk" : ""}>{formatNumber(daily.requests)}</td>
+                              <td className={isDateAnomaly ? "ssp-anomaly-date-risk ssp-anomaly-date-request-risk" : ""}>
+                                {formatNumber(daily.requests)}
+                              </td>
                               <td className={isDateAnomaly ? "ssp-anomaly-date-risk" : ""}>{formatNumber(daily.impressions)}</td>
                               <td className={isDateAnomaly ? "ssp-anomaly-date-risk" : ""}>{formatPercent(fr)}</td>
                             </Fragment>
                           );
                         })}
                       </tr>
-                      );
-                    })}
+                    );
+                  })}
                 </tbody>
                 <tfoot>
                   <tr className="table-total-row">
@@ -366,6 +396,7 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
                 </div>
                 {anomalySuppliers.map((supplier) => {
                   const isOpen = expandedSupplier === supplier.supplier;
+                  const anomalySites = supplier.siteDrilldown.filter((site) => site.status !== "normal");
                   return (
                     <details
                       key={supplier.supplier}
@@ -388,45 +419,49 @@ export function SspParityWorkspace({ rows, workflow, busy }: SspParityWorkspaceP
                         <span className="ssp-anomaly-expand-value">{formatNumber(supplier.anomalySiteCount)}</span>
                       </summary>
                       <div className="table-wrap table-wrap-compact ssp-anomaly-site-table" data-testid="ssp-anomaly-site-drilldown">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>網站名稱</th>
-                              <th>最新請求量</th>
-                              <th>DoD 變動(萬)</th>
-                              <th>貢獻比</th>
-                              <th>狀態</th>
-                              <th>異常原因</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {supplier.siteDrilldown.map((site) => (
-                              <tr key={`${supplier.supplier}-${site.siteKey}`}>
-                                <td>{site.siteKey}</td>
-                                <td>{formatNumber(site.latestRequests)}</td>
-                                <td>{formatNumber(toMillionUnits(site.dodDeltaRequests))}</td>
-                                <td>{formatPercent(site.contribution)}</td>
-                                <td>
-                                  {site.status === "normal" ? (
-                                    <span className="ssp-risk-badge">正常</span>
-                                  ) : (
-                                    <span className={`ssp-risk-badge ssp-risk-${site.status}`}>
-                                      {site.status === "high" ? "高風險" : "中風險"}
-                                    </span>
-                                  )}
-                                </td>
-                                <td>{site.reason}</td>
+                        {anomalySites.length > 0 ? (
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>網站名稱</th>
+                                <th>最新請求量</th>
+                                <th>DoD 變動(萬)</th>
+                                <th>貢獻比</th>
+                                <th>狀態</th>
+                                <th>異常原因</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {anomalySites.map((site) => (
+                                <tr key={`${supplier.supplier}-${site.siteKey}`}>
+                                  <td>{site.siteKey}</td>
+                                  <td>{formatNumber(site.latestRequests)}</td>
+                                  <td>{formatNumber(toMillionUnits(site.dodDeltaRequests))}</td>
+                                  <td>{formatPercent(site.contribution)}</td>
+                                  <td>
+                                    {site.status === "normal" ? (
+                                      <span className="ssp-risk-badge">正常</span>
+                                    ) : (
+                                      <span className={`ssp-risk-badge ssp-risk-${site.status}`}>
+                                        {site.status === "high" ? "高風險" : "中風險"}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td>{site.reason}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        ) : (
+                          <div className="workspace-note">目前沒有網站異常。</div>
+                        )}
                       </div>
                     </details>
                   );
                 })}
               </div>
             ) : (
-              <div className="workspace-note">目前沒有異常供應商，請調整顯示模式或確認資料。</div>
+              <div className="workspace-note">目前沒有異常供應商</div>
             )}
           </Panel>
         </div>

@@ -38,6 +38,11 @@
   gap: 6px;
 }
 
+.workflow-lanes-inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
 .workflow-lane {
   border: 1px solid #d7e1e8;
   border-radius: 10px;
@@ -46,6 +51,11 @@
   flex-direction: column;
   gap: 2px;
   background: #ffffff;
+}
+
+.workflow-lanes-inline .workflow-lane {
+  min-width: 190px;
+  flex: 1 1 190px;
 }
 
 .workflow-lane strong {
@@ -71,6 +81,10 @@
 .workflow-lane-waiting {
   border-color: #dce5eb;
   background: #fafcfd;
+}
+
+.rawdata-save-metrics {
+  margin-top: 10px;
 }
 
 .workspace-twin-grid {
@@ -115,9 +129,21 @@
   gap: 6px;
 }
 
+.metric-list-inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
 .metric-list span {
   font-size: 12px;
   color: #3f5565;
+}
+
+.metric-list-inline span {
+  border: 1px solid #d4dee5;
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: #fbfdff;
 }
 
 .recent-grid {
@@ -317,11 +343,20 @@
 }
 
 .rawdata-table-wrap {
-  overflow-x: auto;
+  overflow: auto;
+}
+
+.rawdata-table-wrap-dsp {
+  max-height: 620px;
+}
+
+.rawdata-table-wrap-ssp {
+  max-height: 875px;
 }
 
 .rawdata-table-wrap-no-scroll {
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .rawdata-table {
@@ -395,7 +430,7 @@
 
 .ssp-media-control-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   align-items: end;
 }
@@ -1156,13 +1191,18 @@
 }
 
 .ssp-anomaly-supplier-cell-risk {
+  background: #fff1f1;
   color: #b91c1c;
+  font-weight: 700;
 }
 
 .ssp-anomaly-date-risk {
   background: #fff1f1;
-  color: #991b1b;
-  font-weight: 600;
+}
+
+.ssp-anomaly-date-request-risk {
+  color: #b91c1c;
+  font-weight: 700;
 }
 
 .ssp-anomaly-expand-list {

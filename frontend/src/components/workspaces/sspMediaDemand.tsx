@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchSspMediaDemand } from "../../api/runtimeApi";
 import type { RuntimeContext, Workflow, SspMediaDemandConfig, SspMediaDemandSlot, SspMediaDemandView } from "../../types";
 import { ActionButton, DataStateBlock, Field, Panel } from "../ui";
@@ -201,7 +201,6 @@ export function SspMediaDemandWorkspace({
   const [draftSlots, setDraftSlots] = useState<LocalSlot[]>(() => toLocalSlots(config?.slots || []));
   const [onlyUnmet, setOnlyUnmet] = useState<boolean>(false);
   const [scopeMode, setScopeMode] = useState<"all" | "07-22">("all");
-  const [selectedSource, setSelectedSource] = useState<string>("__all__");
   const [showMediaTarget, setShowMediaTarget] = useState<boolean>(() => {
     if (typeof window === "undefined") {
       return false;
@@ -227,6 +226,8 @@ export function SspMediaDemandWorkspace({
   const [refreshNonce, setRefreshNonce] = useState<number>(0);
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => loadStoredMediaDemandColumnWidths());
   const [activeResize, setActiveResize] = useState<{ key: string; startX: number; startWidth: number } | null>(null);
+  const [editorRevealNonce, setEditorRevealNonce] = useState<number>(0);
+  const slotEditorRef = useRef<HTMLDivElement | null>(null);
   const resolvedConfigSlots = useMemo(
     () => (config?.slots && config.slots.length > 0 ? config.slots : viewConfig?.slots || []),
     [config?.slots, viewConfig?.slots],
@@ -265,6 +266,16 @@ export function SspMediaDemandWorkspace({
   }, [columnWidths]);
 
   useEffect(() => {
+    if (!editorOpen || editorRevealNonce === 0) {
+      return undefined;
+    }
+    const frame = window.requestAnimationFrame(() => {
+      slotEditorRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [editorOpen, editorRevealNonce]);
+
+  useEffect(() => {
     if (!activeResize) {
       return undefined;
     }
@@ -291,7 +302,7 @@ export function SspMediaDemandWorkspace({
       setViewError("");
       const result = await fetchSspMediaDemand(runtimeContext, {
         category: activeCategory,
-        source: selectedSource,
+        source: "__all__",
         period_week_start: periodWeekStart,
         period_week_end: periodWeekEnd,
         scope_mode: scopeMode,
@@ -324,20 +335,8 @@ export function SspMediaDemandWorkspace({
     refreshNonce,
     runtimeContext,
     scopeMode,
-    selectedSource,
     threshold,
   ]);
-
-  const sourceOptions = useMemo(() => {
-    const options = viewData?.source_options || [];
-    return ["__all__", ...options];
-  }, [viewData?.source_options]);
-
-  useEffect(() => {
-    if (!sourceOptions.includes(selectedSource)) {
-      setSelectedSource("__all__");
-    }
-  }, [selectedSource, sourceOptions]);
 
   const categorySlots = useMemo(
     () => draftSlots
@@ -357,12 +356,24 @@ export function SspMediaDemandWorkspace({
     () => MEDIA_DEMAND_FIXED_COLUMNS.filter((column) => showMediaTarget || column.key !== "fixed:media_target"),
     [showMediaTarget],
   );
+  const activeDemandScope = useMemo(
+    () => DEMAND_SCOPE_GROUPS.find((group) => group.scope === scopeMode) || DEMAND_SCOPE_GROUPS[0],
+    [scopeMode],
+  );
+  const visibleDemandScopes = useMemo(
+    () => (scopeMode === "all" ? DEMAND_SCOPE_GROUPS : [activeDemandScope]),
+    [activeDemandScope, scopeMode],
+  );
+  const visibleDemandMetricCount = useMemo(
+    () => visibleDemandScopes.reduce((total, group) => total + group.metrics.length, 0),
+    [visibleDemandScopes],
+  );
   const tableLeafColumns = useMemo<MediaDemandColumn[]>(() => {
     const dateKeys = viewData?.date_keys || [];
     return [
       ...visibleFixedColumns,
       ...dateKeys.flatMap((dateKey) => [
-        ...DEMAND_SCOPE_GROUPS.flatMap((group) => group.metrics.map((metric) => ({
+        ...visibleDemandScopes.flatMap((group) => group.metrics.map((metric) => ({
           key: `${dateKey}:${group.scope}:${metric.key}`,
           label: metric.label,
           width: metricColumnWidth(metric.key),
@@ -374,7 +385,7 @@ export function SspMediaDemandWorkspace({
         },
       ]),
     ];
-  }, [viewData?.date_keys, visibleFixedColumns]);
+  }, [viewData?.date_keys, visibleDemandScopes, visibleFixedColumns]);
 
   const tableTotals = useMemo(() => {
     const dateKeys = viewData?.date_keys || [];
@@ -421,26 +432,35 @@ export function SspMediaDemandWorkspace({
     setDraftSlots((current) => current.map((slot) => (slot.draftKey === draftKey ? { ...slot, ...patch } : slot)));
   };
 
+  const revealSlotEditor = () => {
+    setEditorOpen(true);
+    setEditorRevealNonce((current) => current + 1);
+  };
+
   const addSlot = () => {
-    const nextOrder = editorSlots
-      .reduce((max, slot) => Math.max(max, slot.slot_order), -1) + 1;
     const timestamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    if (draftSlots.length === 0 && configCategorySlots.length > 0) {
-      setDraftSlots(toLocalSlots(resolvedConfigSlots));
-    }
-    setDraftSlots((current) => current.concat({
-      category: activeCategory,
-      slot_order: nextOrder,
-      placement_id: "",
-      placement_name: "",
-      media_quality: "",
-      need_call: false,
-      target_fr: "",
-      remark: "",
-      media_target: 0,
-      is_active: true,
-      draftKey: `${activeCategory}:${nextOrder}:${timestamp}`,
-    }));
+    revealSlotEditor();
+    setDraftSlots((current) => {
+      const baseSlots = current.length === 0 && configCategorySlots.length > 0
+        ? toLocalSlots(resolvedConfigSlots)
+        : current;
+      const nextOrder = baseSlots
+        .filter((slot) => slot.category === activeCategory)
+        .reduce((max, slot) => Math.max(max, slot.slot_order), -1) + 1;
+      return baseSlots.concat({
+        category: activeCategory,
+        slot_order: nextOrder,
+        placement_id: "",
+        placement_name: "",
+        media_quality: "",
+        need_call: false,
+        target_fr: "",
+        remark: "",
+        media_target: 0,
+        is_active: true,
+        draftKey: `${activeCategory}:${nextOrder}:${timestamp}`,
+      });
+    });
   };
 
   const removeSlot = (draftKey: string) => {
@@ -498,19 +518,6 @@ export function SspMediaDemandWorkspace({
               ) : null}
             </div>
             <div className="ssp-media-control-grid">
-              <Field label="來源">
-                <select
-                  data-testid="ssp-media-source"
-                  value={selectedSource}
-                  onChange={(event) => setSelectedSource(event.target.value)}
-                >
-                  {sourceOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option === "__all__" ? "全部來源" : option}
-                    </option>
-                  ))}
-                </select>
-              </Field>
               <Field label="時段範圍">
                 <div className="btn-row" data-testid="ssp-media-scope-mode">
                   <ActionButton
@@ -552,19 +559,25 @@ export function SspMediaDemandWorkspace({
                 <span>新增的是槽位，不是 raw row；改完保存後立即重算。</span>
               </div>
               <div className="ssp-media-editor-actions">
-              <ActionButton
-                label={editorOpen ? "收合編輯區" : "展開編輯區"}
-                variant="ghost"
-                onClick={() => setEditorOpen((current) => !current)}
-                testId="ssp-media-toggle-slot-editor"
-              />
-              <ActionButton label="新增槽位" variant="ghost" onClick={addSlot} testId="ssp-media-add-slot" />
-              <ActionButton label={saving ? "保存中..." : "保存槽位"} onClick={() => void handleSave()} disabled={saving} testId="ssp-media-save-slots" />
+                <ActionButton
+                  label={editorOpen ? "收合編輯區" : "展開編輯區"}
+                  variant="ghost"
+                  onClick={() => {
+                    if (editorOpen) {
+                      setEditorOpen(false);
+                    } else {
+                      revealSlotEditor();
+                    }
+                  }}
+                  testId="ssp-media-toggle-slot-editor"
+                />
+                <ActionButton label="新增槽位" variant="ghost" onClick={addSlot} testId="ssp-media-add-slot" />
+                <ActionButton label={saving ? "保存中..." : "保存槽位"} onClick={() => void handleSave()} disabled={saving} testId="ssp-media-save-slots" />
               </div>
             </div>
             {saveMessage ? <p className="workspace-note">{saveMessage}</p> : null}
             {editorOpen ? (
-              <div className="table-wrap table-wrap-compact" data-testid="ssp-media-slot-editor">
+              <div className="table-wrap table-wrap-compact" data-testid="ssp-media-slot-editor" ref={slotEditorRef}>
                 <table className="ssp-media-slot-table">
                   <thead>
                     <tr>
@@ -679,18 +692,19 @@ export function SspMediaDemandWorkspace({
                       </th>
                     ))}
                     {(viewData?.date_keys || []).map((dateKey) => (
-                      <th key={`${dateKey}-date`} colSpan={7}>{dateKey}</th>
+                      <th key={`${dateKey}-date`} colSpan={visibleDemandMetricCount + 1}>{dateKey}</th>
                     ))}
                   </tr>
                   <tr>
                     {(viewData?.date_keys || []).flatMap((dateKey) => ([
-                      <th key={`${dateKey}-all`} colSpan={3}>全時段</th>,
-                      <th key={`${dateKey}-0722`} colSpan={3}>0700-2200</th>,
+                      ...visibleDemandScopes.map((group) => (
+                        <th key={`${dateKey}-${group.scope}`} colSpan={group.metrics.length}>{group.label}</th>
+                      )),
                       <th key={`${dateKey}-qualified`} rowSpan={2}>{DEMAND_COMPLIANCE_COLUMN.label}</th>,
                     ]))}
                   </tr>
                   <tr>
-                    {(viewData?.date_keys || []).flatMap((dateKey) => DEMAND_SCOPE_GROUPS.flatMap((group) => group.metrics.map((metric) => (
+                    {(viewData?.date_keys || []).flatMap((dateKey) => visibleDemandScopes.flatMap((group) => group.metrics.map((metric) => (
                       <th key={`${dateKey}-${group.scope}-${metric.key}`}>
                         <div className="ssp-media-th-content">
                           <button
@@ -719,7 +733,7 @@ export function SspMediaDemandWorkspace({
                       <td>{row.slot.placement_name || ""}</td>
                       {showMediaTarget ? <td>{formatNumber(row.slot.media_target)}</td> : null}
                       {(viewData?.date_keys || []).flatMap((dateKey) => ([
-                        ...DEMAND_SCOPE_GROUPS.flatMap((group) => group.metrics.map((metric) => {
+                        ...visibleDemandScopes.flatMap((group) => group.metrics.map((metric) => {
                           const value = row.metrics_by_date[dateKey]?.[group.scope]?.[metric.key] || 0;
                           return (
                             <td key={`${row.slot.category}:${row.slot.slot_order}:${dateKey}:${group.scope}:${metric.key}`}>
@@ -728,7 +742,7 @@ export function SspMediaDemandWorkspace({
                           );
                         })),
                         (() => {
-                          const value = row.metrics_by_date[dateKey]?.all?.[DEMAND_COMPLIANCE_COLUMN.key] || 0;
+                          const value = row.metrics_by_date[dateKey]?.[activeDemandScope.scope]?.[DEMAND_COMPLIANCE_COLUMN.key] || 0;
                           const isRed = value > 0 && value < threshold;
                           return (
                             <td key={`${row.slot.category}:${row.slot.slot_order}:${dateKey}:complianceRate`} className={isRed ? "ssp-media-cell-unmet" : ""}>
@@ -741,7 +755,7 @@ export function SspMediaDemandWorkspace({
                   ))}
                   {((viewData?.rows || []).length === 0) ? (
                     <tr>
-                      <td colSpan={visibleFixedColumns.length + ((viewData?.date_keys || []).length * 7)}>目前條件下沒有可顯示的版位。</td>
+                      <td colSpan={visibleFixedColumns.length + ((viewData?.date_keys || []).length * (visibleDemandMetricCount + 1))}>目前條件下沒有可顯示的版位。</td>
                     </tr>
                   ) : null}
                 </tbody>
@@ -751,7 +765,7 @@ export function SspMediaDemandWorkspace({
                     <td />
                     {showMediaTarget ? <td>{formatNumber(tableTotals.mediaTargetTotal)}</td> : null}
                     {(viewData?.date_keys || []).flatMap((dateKey) => ([
-                      ...DEMAND_SCOPE_GROUPS.flatMap((group) => group.metrics.map((metric) => {
+                      ...visibleDemandScopes.flatMap((group) => group.metrics.map((metric) => {
                         const value = tableTotals.totalsByDate[dateKey]?.[group.scope]?.[metric.key] || 0;
                         return (
                           <td key={`total-${dateKey}-${group.scope}-${metric.key}`}>
@@ -760,7 +774,7 @@ export function SspMediaDemandWorkspace({
                         );
                       })),
                       <td key={`total-${dateKey}-complianceRate`}>
-                        {DEMAND_COMPLIANCE_COLUMN.formatter(tableTotals.totalsByDate[dateKey]?.all?.complianceRate || 0)}
+                        {DEMAND_COMPLIANCE_COLUMN.formatter(tableTotals.totalsByDate[dateKey]?.[activeDemandScope.scope]?.complianceRate || 0)}
                       </td>,
                     ]))}
                   </tr>
@@ -773,7 +787,7 @@ export function SspMediaDemandWorkspace({
             <div className="ssp-media-editor-block ssp-media-summary-block">
               <div className="ssp-media-editor-copy">
                 <strong>查詢摘要與量體總覽</strong>
-                <span>包含日期區間、來源狀態與聚合摘要。</span>
+                <span>包含日期區間、時段狀態與聚合摘要。</span>
               </div>
               <div className="ssp-media-editor-actions">
                 <ActionButton
@@ -788,11 +802,7 @@ export function SspMediaDemandWorkspace({
               <>
                 <div className="status-bar">
                   <span>日期區間: {periodWeekStart} ~ {periodWeekEnd}</span>
-                  <span>目前來源: {viewData?.source === "__all__" ? "全部來源" : (viewData?.source || "n/a")}</span>
                   <span>目前時段: {viewData?.scope_mode === "07-22" ? "07-22" : "全時段"}</span>
-                  <span>預設來源: {config?.defaults_source || "n/a"}</span>
-                  <span>儲存來源: {config?.storage_source || "n/a"}</span>
-                  <span>來源數: {formatNumber(Math.max(0, sourceOptions.length - 1))}</span>
                 </div>
                 <div className="metrics-grid" data-testid="ssp-media-kpi">
                   <div className="metric-card">

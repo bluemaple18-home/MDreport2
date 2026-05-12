@@ -1,5 +1,6 @@
 import type { DirtyState, Workflow } from "../../types";
 import { Panel, TableContainer } from "../ui";
+import { filterSummaryRows } from "./distributorSummaryFilters";
 import { WorkspaceInsightPanel } from "./insight";
 import type { RecentMap, RowData } from "./shared";
 import { numValue, textOf } from "./shared";
@@ -26,6 +27,7 @@ export function OverviewWorkspace({
   rows,
   recent,
 }: OverviewWorkspaceProps) {
+  const summaryRows = filterSummaryRows(rows);
   const flowCaption = workflow === "dsp"
     ? "DSP：Tab3/Tab4 的資料編修、樞紐核對與輸出節奏。"
     : "SSP：成效救火/媒體要量的對稱工作台流程。";
@@ -45,7 +47,7 @@ export function OverviewWorkspace({
         { lane: "Result 回放", cue: reviewReady ? "可確認輸出狀態" : "建議先收斂修改", state: reviewReady ? "ready" : "waiting" },
       ];
 
-  const topDistributors = rows
+  const topDistributors = summaryRows
     .reduce<Map<string, number>>((acc, row) => {
       const key = textOf(row["最終經銷商"] ?? row["經銷商"], "(empty)");
       acc.set(key, (acc.get(key) || 0) + numValue(row["執行金額"]));
@@ -57,7 +59,7 @@ export function OverviewWorkspace({
     .sort((a, b) => Number(b["執行金額"]) - Number(a["執行金額"]))
     .slice(0, 5);
 
-  const topFormats = rows
+  const topFormats = summaryRows
     .reduce<Map<string, number>>((acc, row) => {
       const key = textOf(row["最終廣告形式"] ?? row["廣告形式"], "(empty)");
       acc.set(key, (acc.get(key) || 0) + numValue(row["執行金額"]));

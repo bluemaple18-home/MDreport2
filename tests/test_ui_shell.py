@@ -7,6 +7,7 @@ import sqlite3
 import tempfile
 import threading
 import unittest
+from datetime import date, timedelta
 from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -38,6 +39,16 @@ class UiShellTests(unittest.TestCase):
 
     def _fmt_num(self, value: int | float) -> str:
         return f"{float(value):,.2f}"
+
+    def _week_start(self, current: date | None = None) -> date:
+        current = current or date.today()
+        return current - timedelta(days=current.weekday())
+
+    def _dsp_bucket_date(self, *, weeks_ago: int = 2, day_offset: int = 4) -> str:
+        return (self._week_start() - timedelta(days=weeks_ago * 7) + timedelta(days=day_offset)).isoformat()
+
+    def _dsp_bucket_datetime(self, *, weeks_ago: int = 2, day_offset: int = 4) -> str:
+        return f"{self._dsp_bucket_date(weeks_ago=weeks_ago, day_offset=day_offset)} 00:00:00"
 
     def _full_row(self, **overrides: object) -> dict:
         row = {
@@ -1074,6 +1085,7 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual(out["status"], "ok")
             self.assertEqual(int(out["service_id"]), 10)
             self.assertEqual(int(out["row_count"]), 1)
+            self.assertEqual(int(out["total_row_count"]), 1)
             self.assertEqual(str(out["job_id"]), "35cffe17660dad7fbdfb7080ffa2f1a6")
             self.assertEqual(str(out["source_name"]), "dsp3_api")
 
@@ -1115,6 +1127,120 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual(str(row[11]), "[台灣]域動行銷股份有限公司")
             self.assertEqual(str(row[12]), "raw")
             self.assertEqual(tuple(str(v) for v in run_row), ("fetch_dsp_api", "dsp", "ok"))
+
+    def test_dispatch_action_fetch_dsp_api_preserves_other_days_when_refreshing_single_day(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="dsp")
+            dispatch_action(ctx, {"action": "bootstrap"})
+
+            dispatch_action(
+                ctx,
+                {
+                    "action": "save",
+                    "workflow": "dsp",
+                    "rows": [
+                        self._full_row(日期時間="2026-05-09", 訂單="OLD-0509", 執行金額=900.0),
+                        self._full_row(日期時間="2026-05-10", 訂單="OLD-0510", 執行金額=1000.0),
+                    ],
+                },
+            )
+
+            with patch("domain.services.resolve_dsp_api_settings") as mock_settings, patch("domain.services.DspApiClient") as mock_client:
+                mock_settings.return_value = DspApiSettings(email="matt@clickforce.com.tw", password="24450379")
+                mock_client.return_value.fetch_report_bundle.return_value = self._mock_dsp_fetch_bundle()
+
+                out = dispatch_action(
+                    ctx,
+                    {
+                        "action": "fetch_dsp_api",
+                        "workflow": "dsp",
+                        "date": "2026-05-10",
+                    },
+                )
+
+            self.assertEqual(out["status"], "ok")
+            self.assertEqual(int(out["fetched_row_count"]), 1)
+            self.assertEqual(int(out["retained_row_count"]), 1)
+            self.assertEqual(int(out["replaced_day_count"]), 1)
+            self.assertEqual(int(out["row_count"]), 1)
+            self.assertEqual(int(out["total_row_count"]), 2)
+
+            conn = sqlite3.connect(str(root / "data" / "mdrep.sqlite"))
+            try:
+                rows = conn.execute(
+                    """
+                    SELECT 日期時間, 訂單, 執行金額
+                    FROM canonical_raw
+                    WHERE workflow='dsp'
+                    ORDER BY 日期時間 ASC, row_order ASC
+                    """
+                ).fetchall()
+            finally:
+                conn.close()
+
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(tuple(str(v) for v in rows[0]), ("2026-05-09", "OLD-0509", "900.0"))
+            self.assertEqual(str(rows[1][0]), "2026-05-10")
+            self.assertEqual(str(rows[1][1]), "(42031)活動")
+            self.assertEqual(float(rows[1][2]), 10934.99)
+
+    def test_dispatch_action_fetch_dsp_api_clears_requested_day_when_api_returns_no_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="dsp")
+            dispatch_action(ctx, {"action": "bootstrap"})
+
+            dispatch_action(
+                ctx,
+                {
+                    "action": "save",
+                    "workflow": "dsp",
+                    "rows": [
+                        self._full_row(日期時間="2026-05-09", 訂單="OLD-0509", 執行金額=900.0),
+                        self._full_row(日期時間="2026-05-10", 訂單="OLD-0510", 執行金額=1000.0),
+                    ],
+                },
+            )
+
+            empty_bundle = {**self._mock_dsp_fetch_bundle(), "records_total": 0, "rows": []}
+            with patch("domain.services.resolve_dsp_api_settings") as mock_settings, patch("domain.services.DspApiClient") as mock_client:
+                mock_settings.return_value = DspApiSettings(email="matt@clickforce.com.tw", password="24450379")
+                mock_client.return_value.fetch_report_bundle.return_value = empty_bundle
+
+                out = dispatch_action(
+                    ctx,
+                    {
+                        "action": "fetch_dsp_api",
+                        "workflow": "dsp",
+                        "date": "2026-05-10",
+                    },
+                )
+
+            self.assertEqual(out["status"], "ok")
+            self.assertEqual(int(out["fetched_row_count"]), 0)
+            self.assertEqual(int(out["retained_row_count"]), 1)
+            self.assertEqual(int(out["replaced_day_count"]), 1)
+            self.assertEqual(int(out["row_count"]), 0)
+            self.assertEqual(int(out["total_row_count"]), 1)
+
+            conn = sqlite3.connect(str(root / "data" / "mdrep.sqlite"))
+            try:
+                rows = conn.execute(
+                    """
+                    SELECT 日期時間, 訂單, 執行金額
+                    FROM canonical_raw
+                    WHERE workflow='dsp'
+                    ORDER BY 日期時間 ASC, row_order ASC
+                    """
+                ).fetchall()
+            finally:
+                conn.close()
+
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(tuple(str(v) for v in rows[0]), ("2026-05-09", "OLD-0509", "900.0"))
 
     def test_fetch_dsp_api_cli_uses_runtime_command_contract(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -2103,14 +2229,17 @@ class UiShellTests(unittest.TestCase):
             root = Path(td)
             self._make_project(root)
             ctx = self._ctx(root, workflow="dsp")
+            browser_acceptance_datetime = self._dsp_bucket_datetime(weeks_ago=2)
+            browser_acceptance_date = browser_acceptance_datetime[:10]
             dispatch_action(ctx, {"action": "bootstrap"})
             dispatch_action(
                 ctx,
                 {
                     "action": "save",
                     "rows": [
-                        self._full_row(),
+                        self._full_row(日期時間=browser_acceptance_datetime),
                         self._full_row(
+                            日期時間=browser_acceptance_datetime,
                             訂單="O2",
                             素材="C2",
                             廣告形式="Video",
@@ -2311,7 +2440,7 @@ class UiShellTests(unittest.TestCase):
                             }"""
                         )
                         self.assertEqual(date_bucket.input_value(), "two_weeks_ago")
-                        self.assertTrue(main_rawdata_table.get_by_text("2026-05-01").first.is_visible())
+                        self.assertTrue(main_rawdata_table.get_by_text(browser_acceptance_date).first.is_visible())
                         page.reload(wait_until="domcontentloaded")
                         page.locator("[data-testid='main-tab-dsp-tab3']").click()
                         page.locator("[data-testid='sub-tab-rawdata']").click()
@@ -2917,7 +3046,10 @@ class UiShellTests(unittest.TestCase):
             self._make_project(root)
             ctx = self._ctx(root, workflow="dsp")
             dispatch_action(ctx, {"action": "bootstrap"})
-            dispatch_action(ctx, {"action": "save", "rows": [self._full_row()]})
+            dispatch_action(
+                ctx,
+                {"action": "save", "rows": [self._full_row(日期時間=self._dsp_bucket_datetime(weeks_ago=2))]},
+            )
 
             try:
                 server = ThreadingHTTPServer(("127.0.0.1", 0), UiRequestHandler)

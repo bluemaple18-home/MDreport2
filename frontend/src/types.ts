@@ -2,7 +2,15 @@ export type Workflow = "dsp" | "ssp";
 export type MainTab = "dsp_tab3" | "dsp_tab4" | "ssp_anomaly" | "ssp_media_demand";
 export type SubTab = "overview" | "rawdata" | "pivot" | "result";
 export type SubView = "status" | "frame" | "result";
-export type PeriodPreset = "current_week" | "last_week" | "last_7_days" | "last_14_days" | "custom";
+export type PeriodPreset =
+  | "last_week"
+  | "two_weeks_ago"
+  | "three_weeks_ago"
+  | "four_weeks_ago"
+  | "current_week"
+  | "last_7_days"
+  | "last_14_days"
+  | "custom";
 export type DspDateBucket = "last_week" | "two_weeks_ago" | "three_weeks_ago" | "four_weeks_ago";
 
 export type DspRawdataFilters = {

@@ -108,6 +108,45 @@
   box-shadow: 0 6px 14px #1f34430d;
 }
 
+.command-deck-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.command-deck-title {
+  min-width: 260px;
+}
+
+.shell-status-summary {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 0;
+  text-align: right;
+}
+
+.shell-status-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.shell-status-copy strong {
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.shell-status-copy span {
+  max-width: 520px;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
 .workbench-command-deck .panel-body,
 .workbench-command-deck .command-grid,
 .workbench-command-deck .command-cell,
@@ -120,6 +159,10 @@
   grid-template-columns: 1.1fr 1fr 1fr;
   gap: 12px;
   align-items: start;
+}
+
+.command-grid-2up {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .command-cell {
@@ -160,6 +203,17 @@
 }
 
 @media (max-width: 960px) {
+  .command-deck-header,
+  .shell-status-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    text-align: left;
+  }
+
+  .command-deck-title {
+    min-width: 0;
+  }
+
   .command-grid {
     grid-template-columns: 1fr;
   }

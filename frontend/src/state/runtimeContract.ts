@@ -31,6 +31,14 @@ export const QUERY_KEYS = {
   rowLimit: "row_limit",
 } as const;
 
+export const ALLOWED_ROW_LIMITS = [10, 20, 50, 100, 200] as const;
+export const DEFAULT_ROW_LIMIT = 10;
+
+export function normalizeRowLimit(value: unknown): number {
+  const parsed = typeof value === "number" ? value : Number.parseInt(String(value ?? ""), 10);
+  return ALLOWED_ROW_LIMITS.includes(parsed as (typeof ALLOWED_ROW_LIMITS)[number]) ? parsed : DEFAULT_ROW_LIMIT;
+}
+
 export const ACCEPTANCE_SELECTORS = {
   workflowSwitch: "workflow-switch",
   workflowUseDsp: "workflow-use-dsp",
@@ -127,11 +135,15 @@ function thisWeekRange(): { weekStart: string; weekEnd: string } {
 }
 
 function lastWeekRange(): { weekStart: string; weekEnd: string } {
+  return weekRangeByOffset(1);
+}
+
+function weekRangeByOffset(weeksAgo: number): { weekStart: string; weekEnd: string } {
   const current = thisWeekRange();
   const start = new Date(current.weekStart);
-  start.setDate(start.getDate() - 7);
+  start.setDate(start.getDate() - weeksAgo * 7);
   const end = new Date(current.weekEnd);
-  end.setDate(end.getDate() - 7);
+  end.setDate(end.getDate() - weeksAgo * 7);
   return {
     weekStart: toDateIso(start),
     weekEnd: toDateIso(end),
@@ -191,14 +203,24 @@ function parseSubTab(raw: string | null): SubTab | null {
 }
 
 function parsePeriodPreset(raw: string | null): PeriodPreset | null {
-  return raw === "current_week" || raw === "last_week" || raw === "last_7_days" || raw === "last_14_days" || raw === "custom" ? raw : null;
+  return raw === "last_week"
+    || raw === "two_weeks_ago"
+    || raw === "three_weeks_ago"
+    || raw === "four_weeks_ago"
+    || raw === "current_week"
+    || raw === "last_7_days"
+    || raw === "last_14_days"
+    || raw === "custom" ? raw : null;
 }
 
 function normalizePeriodPresetByWorkflow(workflow: Workflow, preset: PeriodPreset | null, fallback: PeriodPreset): PeriodPreset {
   if (workflow === "ssp") {
     return preset === "custom" || preset === "last_7_days" || preset === "last_14_days" ? preset : fallback;
   }
-  return preset === "current_week" || preset === "last_week" || preset === "custom" ? preset : fallback;
+  return preset === "last_week"
+    || preset === "two_weeks_ago"
+    || preset === "three_weeks_ago"
+    || preset === "four_weeks_ago" ? preset : fallback;
 }
 
 function buildPeriodLabel(weekStart: string, weekEnd: string): string {
@@ -236,7 +258,15 @@ function applyPreset(preset: PeriodPreset, fallback: PeriodState): PeriodState {
       label: buildPeriodLabel(range.weekStart, range.weekEnd),
     };
   }
-  const range = preset === "current_week" ? thisWeekRange() : lastWeekRange();
+  const dspWeekOffsets: Partial<Record<PeriodPreset, number>> = {
+    last_week: 1,
+    two_weeks_ago: 2,
+    three_weeks_ago: 3,
+    four_weeks_ago: 4,
+  };
+  const range = preset === "current_week"
+    ? thisWeekRange()
+    : weekRangeByOffset(dspWeekOffsets[preset] || 1);
   return {
     preset,
     weekStart: range.weekStart,
@@ -384,10 +414,7 @@ export function restorePersistedState(): PersistedState {
   };
 
   const queryRowLimitRaw = params.get(QUERY_KEYS.rowLimit);
-  const queryRowLimit = queryRowLimitRaw ? Number.parseInt(queryRowLimitRaw, 10) : NaN;
-  const rowLimit = Number.isFinite(queryRowLimit) && queryRowLimit > 0
-    ? queryRowLimit
-    : (sessionParsed.rowLimit && sessionParsed.rowLimit > 0 ? sessionParsed.rowLimit : 50);
+  const rowLimit = queryRowLimitRaw ? normalizeRowLimit(queryRowLimitRaw) : normalizeRowLimit(sessionParsed.rowLimit);
 
   return {
     ctx,

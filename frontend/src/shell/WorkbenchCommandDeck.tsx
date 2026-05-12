@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ActionButton, Field, ModeSwitcher, Panel } from "../components/ui";
 import { ACCEPTANCE_SELECTORS } from "../state/runtimeContract";
 import type { MainTab, PeriodPreset, SubTab, Workflow } from "../types";
+import { buildDspDateOptions } from "./dspRawdataFilters";
 
 type TabOption = {
   value: string;
@@ -9,6 +10,7 @@ type TabOption = {
 };
 
 type WorkbenchCommandDeckProps = {
+  healthStatus: string;
   workflow: Workflow;
   busy: boolean;
   mainTab: MainTab;
@@ -17,7 +19,6 @@ type WorkbenchCommandDeckProps = {
   mainTabOptions: TabOption[];
   subTabOptions: TabOption[];
   periodPreset: PeriodPreset;
-  periodLabel: string;
   periodWeekStart: string;
   periodWeekEnd: string;
   dspPeriodLocked: boolean;
@@ -25,8 +26,6 @@ type WorkbenchCommandDeckProps = {
   onMainTabChange: (tab: MainTab) => void;
   onSubTabChange: (tab: SubTab) => void;
   onPeriodPresetChange: (preset: PeriodPreset) => void;
-  onPeriodWeekStartChange: (value: string) => void;
-  onPeriodWeekEndChange: (value: string) => void;
   onPeriodRangeChange: (weekStart: string, weekEnd: string) => void;
 };
 
@@ -229,6 +228,7 @@ function SspDateRangePicker({ start, end, disabled, onChange }: SspDateRangePick
 }
 
 export function WorkbenchCommandDeck({
+  healthStatus,
   workflow,
   busy,
   mainTab,
@@ -237,7 +237,6 @@ export function WorkbenchCommandDeck({
   mainTabOptions,
   subTabOptions,
   periodPreset,
-  periodLabel,
   periodWeekStart,
   periodWeekEnd,
   dspPeriodLocked,
@@ -245,34 +244,40 @@ export function WorkbenchCommandDeck({
   onMainTabChange,
   onSubTabChange,
   onPeriodPresetChange,
-  onPeriodWeekStartChange,
-  onPeriodWeekEndChange,
   onPeriodRangeChange,
 }: WorkbenchCommandDeckProps) {
   const isSspWorkflow = workflow === "ssp";
-  const showPeriodLabel = !isSspWorkflow;
+  const hasSubTabs = subTabOptions.length > 0;
   const periodPresetOptions = isSspWorkflow
     ? [
       { value: "last_7_days", label: "最近 7 天" },
     ]
-    : [
-      { value: "current_week", label: "本週" },
-      { value: "last_week", label: "上週" },
-      { value: "custom", label: "自訂區間" },
-    ];
+    : buildDspDateOptions();
   const periodSubtitle = isSspWorkflow
     ? "SSP 預設最近 7 天，可自由拉取日期區間"
-    : "DSP 週期鎖定（以工作流固定視角）";
+    : "DSP 週期篩選（以完整週為單位）";
   const sspPeriodModeText = periodPreset === "custom" ? "目前：自訂區間" : "目前：最近 7 天";
 
   return (
     <section className="panel panel-full workbench-command-deck">
-      <header className="panel-header">
-        <h2>Workbench Command Deck</h2>
-        <p>workflow / tab / period / action 的控制入口，與工作區分層。</p>
+      <header className="panel-header command-deck-header">
+        <div className="command-deck-title">
+          <h2>Workbench Command Deck</h2>
+          <p>workflow / tab / period / action 的控制入口，與工作區分層。</p>
+        </div>
+        <div className="shell-status-summary" aria-label="MDREP Frontend Shell runtime status">
+          <div className="shell-status-copy">
+            <strong>MDREP Frontend Shell</strong>
+            <span>SQLite canonical 是唯一真相來源；前端只調度 runtime API，不反寫 artifact。</span>
+          </div>
+          <div className="topline">
+            <span className={`badge badge-${healthStatus === "ok" ? "ok" : "warn"}`}>health: {healthStatus}</span>
+            <span className={`badge badge-${busy ? "busy" : "idle"}`}>{busy ? "running" : "idle"}</span>
+          </div>
+        </div>
       </header>
       <div className="panel-body">
-        <div className="command-grid">
+        <div className={`command-grid${hasSubTabs ? "" : " command-grid-2up"}`}>
           <div className="command-cell" data-testid={ACCEPTANCE_SELECTORS.workflowSwitch}>
             <ModeSwitcher
               workflow={workflow}
@@ -315,7 +320,7 @@ export function WorkbenchCommandDeck({
             </Panel>
           </div>
 
-          {subTabOptions.length > 0 ? (
+          {hasSubTabs ? (
             <div className="command-cell">
               <Panel
                 title="Sub Tabs"
@@ -353,7 +358,7 @@ export function WorkbenchCommandDeck({
               subtitle={periodSubtitle}
               testId={ACCEPTANCE_SELECTORS.periodSelector}
             >
-              <div className="grid-2">
+              <div className={isSspWorkflow ? "grid-2" : "grid-1"}>
                 {isSspWorkflow ? (
                   <Field label="Period Preset">
                     <div className="period-preset-stack">
@@ -368,7 +373,7 @@ export function WorkbenchCommandDeck({
                     </div>
                   </Field>
                 ) : (
-                  <Field label="Period Preset">
+                  <Field label="日期時間">
                     <select
                       data-testid={ACCEPTANCE_SELECTORS.periodPreset}
                       value={periodPreset}
@@ -381,11 +386,6 @@ export function WorkbenchCommandDeck({
                     </select>
                   </Field>
                 )}
-                {showPeriodLabel ? (
-                  <Field label="Period Label">
-                    <input value={periodLabel} readOnly />
-                  </Field>
-                ) : null}
                 {isSspWorkflow ? (
                   <Field label="Date Range">
                     <SspDateRangePicker
@@ -395,28 +395,7 @@ export function WorkbenchCommandDeck({
                       onChange={onPeriodRangeChange}
                     />
                   </Field>
-                ) : (
-                  <>
-                    <Field label="Week Start">
-                      <input
-                        data-testid={ACCEPTANCE_SELECTORS.periodWeekStart}
-                        type="date"
-                        value={periodWeekStart}
-                        disabled={dspPeriodLocked}
-                        onChange={(e) => onPeriodWeekStartChange(e.target.value)}
-                      />
-                    </Field>
-                    <Field label="Week End">
-                      <input
-                        data-testid={ACCEPTANCE_SELECTORS.periodWeekEnd}
-                        type="date"
-                        value={periodWeekEnd}
-                        disabled={dspPeriodLocked}
-                        onChange={(e) => onPeriodWeekEndChange(e.target.value)}
-                      />
-                    </Field>
-                  </>
-                )}
+                ) : null}
               </div>
             </Panel>
           </div>

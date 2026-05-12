@@ -1,4 +1,5 @@
 import { TableContainer } from "../ui";
+import { filterSummaryRows } from "./distributorSummaryFilters";
 import { RecentMap, RowData, compactPath, numValue, textOf } from "./shared";
 import { formatAmount, formatNumber } from "../../utils/format";
 
@@ -26,7 +27,8 @@ export type WorkspaceInsightData = {
 };
 
 function summarizeRows(rows: RowData[]): OverviewMetrics {
-  if (rows.length === 0) {
+  const summaryRows = filterSummaryRows(rows);
+  if (summaryRows.length === 0) {
     return {
       totalInvest: 0,
       totalRevenue: 0,
@@ -40,7 +42,7 @@ function summarizeRows(rows: RowData[]): OverviewMetrics {
   const formatStats = new Map<string, number>();
   let totalInvest = 0;
   let totalRevenue = 0;
-  for (const row of rows) {
+  for (const row of summaryRows) {
     const distributor = textOf(row["最終經銷商"] ?? row["經銷商"], "(empty)");
     const adFormat = textOf(row["最終廣告形式"] ?? row["廣告形式"], "(empty)");
     const invest = numValue(row["執行金額"]);
@@ -55,7 +57,7 @@ function summarizeRows(rows: RowData[]): OverviewMetrics {
   return {
     totalInvest,
     totalRevenue,
-    averageInvest: totalInvest / rows.length,
+    averageInvest: totalInvest / summaryRows.length,
     roi: totalInvest === 0 ? 0 : totalRevenue / totalInvest,
     topDistributor,
     topFormat,

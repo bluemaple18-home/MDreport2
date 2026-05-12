@@ -280,6 +280,7 @@ function DspRawdataFilterBar({
           value={String(rowLimit)}
           onChange={(e) => onRowLimitChange(Number(e.target.value))}
         >
+          <option value="10">10</option>
           <option value="20">20</option>
           <option value="50">50</option>
           <option value="100">100</option>
@@ -392,6 +393,14 @@ export function RawdataWorkspace({
     ? resolveDspRawdataVisibleColumns(columns, dspViewMode)
     : [...columns];
   const enforceNoHorizontalScroll = workflow === "dsp" && dspViewMode === "user";
+  const rawdataTableWrapClassName = [
+    "table-wrap",
+    "rawdata-table-wrap",
+    workflow === "dsp" ? "rawdata-table-wrap-dsp" : "rawdata-table-wrap-ssp",
+    enforceNoHorizontalScroll ? "rawdata-table-wrap-no-scroll" : "",
+  ].filter(Boolean).join(" ");
+  const hasFrameRows = allRows.length > 0;
+  const hasFilteredRows = rows.length > 0;
 
   useEffect(() => {
     setColumnWidths(loadStoredColumnWidths(columnWidthStorageKey));
@@ -547,35 +556,10 @@ export function RawdataWorkspace({
       {capability.readOnly ? (
         <div className="state-block empty">{capability.readOnlyReason || "目前工作流為 read-only。"}</div>
       ) : null}
-      <div className="workflow-cockpit">
-        <div className="cockpit-card">
-          <h3>編修工作量</h3>
-          <div className="metric-list">
-            <span>edited_rows: {formatNumber(editedRows)}</span>
-            <span>invalid_rows: {formatNumber(invalidRows)}</span>
-            <span>reverted_rows: {formatNumber(revertedRows)}</span>
-            <span>manual_fields: {formatNumber(editableColumns.length)}</span>
-          </div>
-        </div>
-        <div className="cockpit-card">
-          <h3>提交判定</h3>
-          <div className="workflow-lanes">
-            <div className={`workflow-lane ${hasValidationErrors ? "workflow-lane-active" : "workflow-lane-ready"}`}>
-              <strong>型別檢查</strong>
-              <span>{hasValidationErrors ? "尚有錯誤待修正" : "已通過"}</span>
-            </div>
-            <div className={`workflow-lane ${dirtyState.hasDirty ? "workflow-lane-active" : "workflow-lane-waiting"}`}>
-              <strong>Modify</strong>
-              <span>{dirtyState.hasDirty ? "可提交增量調整" : "目前無增量修改"}</span>
-            </div>
-            <div className={`workflow-lane ${!hasValidationErrors && rows.length > 0 ? "workflow-lane-ready" : "workflow-lane-waiting"}`}>
-              <strong>Save / Export</strong>
-              <span>{!hasValidationErrors && rows.length > 0 ? "可進一步存檔/匯出" : "等待資料或修正完成"}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <DataStateBlock loading={busy} empty={!busy && rows.length === 0} />
+      <DataStateBlock loading={busy} empty={!busy && !hasFrameRows} />
+      {!busy && hasFrameRows && !hasFilteredRows ? (
+        <div className="state-block empty">目前篩選條件沒有資料，請切換日期時間或清除篩選條件。</div>
+      ) : null}
       {hasValidationErrors ? (
         <div className="state-block error">有型別/格式錯誤，請先修正後再送出 save/modify。</div>
       ) : null}
@@ -611,7 +595,7 @@ export function RawdataWorkspace({
         </Panel>
       ) : null}
       <div
-        className={`table-wrap rawdata-table-wrap ${enforceNoHorizontalScroll ? "rawdata-table-wrap-no-scroll" : ""}`}
+        className={rawdataTableWrapClassName}
         data-testid="rawdata-table-wrap"
         ref={tableWrapRef}
       >
@@ -651,10 +635,17 @@ export function RawdataWorkspace({
             </tr>
           </thead>
           <tbody>
-            {!busy && rows.length === 0 ? (
+            {!busy && !hasFrameRows ? (
               <tr>
                 <td colSpan={visibleColumns.length} className="table-empty-cell">
                   目前沒有資料列，請先執行 Bootstrap / Refresh Frame 後再編修。
+                </td>
+              </tr>
+            ) : null}
+            {!busy && hasFrameRows && !hasFilteredRows ? (
+              <tr>
+                <td colSpan={visibleColumns.length} className="table-empty-cell">
+                  目前篩選條件沒有資料，請切換日期時間或清除篩選條件。
                 </td>
               </tr>
             ) : null}
@@ -710,6 +701,32 @@ export function RawdataWorkspace({
         saveTestId="action-save"
         modifyTestId="action-modify"
       />
+      <div className="cockpit-card rawdata-save-metrics">
+        <h3>提交判定</h3>
+        <div className="workflow-lanes workflow-lanes-inline">
+          <div className={`workflow-lane ${hasValidationErrors ? "workflow-lane-active" : "workflow-lane-ready"}`}>
+            <strong>型別檢查</strong>
+            <span>{hasValidationErrors ? "尚有錯誤待修正" : "已通過"}</span>
+          </div>
+          <div className={`workflow-lane ${dirtyState.hasDirty ? "workflow-lane-active" : "workflow-lane-waiting"}`}>
+            <strong>Modify</strong>
+            <span>{dirtyState.hasDirty ? "可提交增量調整" : "目前無增量修改"}</span>
+          </div>
+          <div className={`workflow-lane ${!hasValidationErrors && rows.length > 0 ? "workflow-lane-ready" : "workflow-lane-waiting"}`}>
+            <strong>Save / Export</strong>
+            <span>{!hasValidationErrors && rows.length > 0 ? "可進一步存檔/匯出" : "等待資料或修正完成"}</span>
+          </div>
+        </div>
+      </div>
+      <div className="cockpit-card rawdata-save-metrics">
+        <h3>編修工作量</h3>
+        <div className="metric-list metric-list-inline">
+          <span>edited_rows: {formatNumber(editedRows)}</span>
+          <span>invalid_rows: {formatNumber(invalidRows)}</span>
+          <span>reverted_rows: {formatNumber(revertedRows)}</span>
+          <span>manual_fields: {formatNumber(editableColumns.length)}</span>
+        </div>
+      </div>
       <div className="btn-row">
         <ActionButton label="Publish (Reserved)" onClick={() => undefined} disabled variant="ghost" testId="action-publish" />
       </div>

@@ -8,6 +8,10 @@ import ts from "typescript";
 function loadRestorePersistedState(): {
   FRONTEND_SESSION_KEY: string;
   restorePersistedState: () => { ctx: { env: string; manifest: string; artifact_root: string } };
+  updatePeriodPreset: (
+    current: { preset: string; weekStart: string; weekEnd: string; label: string },
+    preset: string,
+  ) => { preset: string; weekStart: string; weekEnd: string; label: string };
   sandbox: { window: unknown; sessionStorage: unknown };
 } {
   const sourcePath = join(process.cwd(), "src/state/runtimeContract.ts");
@@ -25,11 +29,24 @@ function loadRestorePersistedState(): {
     },
   }).outputText;
   const runtime = { exports: {} as Record<string, unknown> };
+  const FixedDate = class extends Date {
+    constructor(...args: unknown[]) {
+      if (args.length === 0) {
+        super("2026-05-12T12:00:00");
+        return;
+      }
+      super(...(args as []));
+    }
+
+    static now(): number {
+      return new Date("2026-05-12T12:00:00").getTime();
+    }
+  };
   const sandbox = {
     exports: runtime.exports,
     module: runtime,
     URLSearchParams,
-    Date,
+    Date: FixedDate,
     JSON,
     window: undefined as unknown,
     sessionStorage: undefined as unknown,
@@ -38,13 +55,19 @@ function loadRestorePersistedState(): {
   script.runInNewContext(sandbox);
 
   const restore = runtime.exports.restorePersistedState;
+  const updatePeriodPreset = runtime.exports.updatePeriodPreset;
   const key = runtime.exports.FRONTEND_SESSION_KEY;
   assert.equal(typeof restore, "function", "restorePersistedState 載入失敗");
+  assert.equal(typeof updatePeriodPreset, "function", "updatePeriodPreset 載入失敗");
   assert.equal(typeof key, "string", "FRONTEND_SESSION_KEY 載入失敗");
 
   return {
     FRONTEND_SESSION_KEY: key as string,
     restorePersistedState: restore as () => { ctx: { env: string; manifest: string; artifact_root: string } },
+    updatePeriodPreset: updatePeriodPreset as (
+      current: { preset: string; weekStart: string; weekEnd: string; label: string },
+      preset: string,
+    ) => { preset: string; weekStart: string; weekEnd: string; label: string },
     sandbox,
   };
 }
@@ -120,4 +143,16 @@ test("explicit query manifest/artifact_root still has top priority", () => {
   assert.equal(restored.ctx.env, "test");
   assert.equal(restored.ctx.manifest, "custom.manifest.json");
   assert.equal(restored.ctx.artifact_root, "custom_artifacts");
+});
+
+test("dsp preset two_weeks_ago resolves to the previous full Monday-Sunday window", () => {
+  const restored = runtime.updatePeriodPreset(
+    { preset: "last_week", weekStart: "2026-05-04", weekEnd: "2026-05-10", label: "2026-05-04 ~ 2026-05-10" },
+    "two_weeks_ago",
+  );
+
+  assert.equal(restored.preset, "two_weeks_ago");
+  assert.equal(restored.weekStart, "2026-04-27");
+  assert.equal(restored.weekEnd, "2026-05-03");
+  assert.equal(restored.label, "2026-04-27 ~ 2026-05-03");
 });

@@ -30,7 +30,7 @@ const WORKFLOW_CAPABILITY_MAP: Record<Workflow, WorkflowCapability> = {
       readOnly: false,
       readOnlyReason: "",
     },
-    periodLocked: true,
+    periodLocked: false,
     sspParityEnabled: false,
     tab4MainTab: "dsp_tab4",
     tab4VisibleSubTabs: ["overview", "pivot"],

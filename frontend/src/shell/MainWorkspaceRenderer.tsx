@@ -154,7 +154,7 @@ export function MainWorkspaceRenderer(props: MainWorkspaceRendererProps) {
     />
   ) : route.subTab === "pivot" ? (
     <PivotWorkspace
-      rows={data.allRows}
+      rows={route.workflow === "dsp" ? data.filteredRows : data.allRows}
       columns={data.allColumns}
       busy={data.busy}
       workflow={route.workflow}

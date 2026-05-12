@@ -120,7 +120,15 @@ export type ActionPayload = {
   rows?: Array<Record<string, unknown>>;
   updates?: Array<Record<string, unknown>>;
   ssp_media_slots?: SspMediaDemandSlot[];
-  period_preset?: "current_week" | "last_week" | "last_7_days" | "last_14_days" | "custom";
+  period_preset?:
+    | "last_week"
+    | "two_weeks_ago"
+    | "three_weeks_ago"
+    | "four_weeks_ago"
+    | "current_week"
+    | "last_7_days"
+    | "last_14_days"
+    | "custom";
   period_week_start?: string;
   period_week_end?: string;
 };

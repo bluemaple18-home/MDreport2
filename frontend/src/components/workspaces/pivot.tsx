@@ -1,5 +1,6 @@
 import type { Workflow } from "../../types";
 import { ActionButton, DataStateBlock, Panel, TableContainer } from "../ui";
+import { filterSummaryRows, summarizeExcludedSummaryRows } from "./distributorSummaryFilters";
 import { WorkspaceInsightPanel } from "./insight";
 import type { RecentMap, RowData } from "./shared";
 import { formatAmount, formatNumber } from "../../utils/format";
@@ -17,17 +18,20 @@ type PivotMatrix = {
   columns: string[];
   rows: RowData[];
   totalRow: RowData;
+  excludedRows: RowData[];
   topDistributor: string;
   topAdFormat: string;
   topAmount: number;
 };
 
 function buildPivotMatrix(rows: RowData[]): PivotMatrix {
+  const summaryRows = filterSummaryRows(rows);
+  const excludedRows = summarizeExcludedSummaryRows(rows);
   const distributorFormatAmount = new Map<string, Map<string, number>>();
   const adFormatTotals = new Map<string, number>();
   const distributorTotals = new Map<string, number>();
 
-  for (const row of rows) {
+  for (const row of summaryRows) {
     const distributor = String(row["最終經銷商"] ?? row["經銷商"] ?? "(未指定)");
     const adFormat = String(row["最終廣告形式"] ?? row["廣告形式"] ?? "(未指定)");
     const amount = Number(row["執行金額"] ?? 0);
@@ -76,6 +80,7 @@ function buildPivotMatrix(rows: RowData[]): PivotMatrix {
     columns: ["經銷商", ...adFormats, "總計"],
     rows: pivotRows.slice(0, 50),
     totalRow,
+    excludedRows,
     topDistributor,
     topAdFormat,
     topAmount,
@@ -94,6 +99,7 @@ export function PivotWorkspace({ rows, columns, busy, workflow, recent, onSendTo
           <span>source: sqlite canonical frame</span>
           <span>rows: {formatNumber(rows.length)}</span>
           <span>pivot_rows: {formatNumber(pivotRows.length)}</span>
+          <span>excluded_distributors: {formatNumber(pivotMatrix.excludedRows.length)}</span>
           <span>pivot_columns: {formatNumber(Math.max(0, pivotColumns.length - 1))}</span>
         </div>
         <div className="workflow-cockpit">
@@ -148,8 +154,19 @@ export function PivotWorkspace({ rows, columns, busy, workflow, recent, onSendTo
         />
       </div>
       <details className="workspace-debug">
-        <summary>Raw Frame Snapshot（核對用）</summary>
-        <TableContainer columns={columns.slice(0, 8)} rows={rows.slice(0, 20)} />
+        <summary>已排除經銷商（未列入樞紐計算）</summary>
+        {pivotMatrix.excludedRows.length > 0 ? (
+          <TableContainer
+            columns={["經銷商", "排除原因", "筆數", "執行金額"]}
+            rows={pivotMatrix.excludedRows}
+            columnFormatters={{
+              筆數: formatNumber,
+              執行金額: formatAmount,
+            }}
+          />
+        ) : (
+          <p className="workspace-note">目前沒有被排除的經銷商。</p>
+        )}
       </details>
     </Panel>
   );

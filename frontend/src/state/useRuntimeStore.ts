@@ -24,6 +24,7 @@ import {
   defaultDirtyState,
   defaultResultState,
   normalizeSubTabByMainTab,
+  normalizeRowLimit,
   persistState,
   restorePersistedState,
   updatePeriodPreset,
@@ -162,6 +163,40 @@ function deriveResultState(
   };
 }
 
+function extractFrameRows(framePayload: RuntimeEnvelope<RuntimeFrameResult>): Array<Record<string, unknown>> {
+  return Array.isArray(framePayload.result?.rows)
+    ? (framePayload.result.rows as Array<Record<string, unknown>>)
+    : [];
+}
+
+function syncDspRawdataDateBucketState(
+  state: RuntimeState,
+  framePayload: RuntimeEnvelope<RuntimeFrameResult>,
+): RuntimeState {
+  if (state.ctx.workflow !== "dsp") {
+    return state;
+  }
+  const rows = extractFrameRows(framePayload);
+  if (rows.length === 0) {
+    return state;
+  }
+  const preferredBucket = resolvePreferredDspDateBucket(rows);
+  const nextFilters = state.dspRawdataFilters.dateBucket === preferredBucket
+    ? state.dspRawdataFilters
+    : { ...state.dspRawdataFilters, dateBucket: preferredBucket };
+  const nextPeriod = state.period.preset === preferredBucket
+    ? state.period
+    : updatePeriodPreset(state.period, preferredBucket);
+  if (nextFilters === state.dspRawdataFilters && nextPeriod === state.period) {
+    return state;
+  }
+  return {
+    ...state,
+    period: nextPeriod,
+    dspRawdataFilters: nextFilters,
+  };
+}
+
 function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
   switch (action.type) {
     case "set_ctx":
@@ -201,7 +236,7 @@ function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
     case "set_row_filter":
       return { ...state, rowFilter: action.value };
     case "set_row_limit":
-      return { ...state, rowLimit: action.value };
+      return { ...state, rowLimit: normalizeRowLimit(action.value) };
     case "set_dsp_rawdata_filters":
       return { ...state, dspRawdataFilters: action.value };
     case "set_rows_json":
@@ -221,7 +256,7 @@ function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
     case "set_status":
       return { ...state, statusPayload: action.payload };
     case "set_frame":
-      return { ...state, framePayload: action.payload };
+      return syncDspRawdataDateBucketState({ ...state, framePayload: action.payload }, action.payload);
     case "set_result":
       return { ...state, resultPayload: action.payload };
     case "set_tab4_delivery_ready":
@@ -290,32 +325,6 @@ export function useRuntimeStore() {
     [dispatch],
   );
 
-  const syncDspRawdataDateBucket = useCallback(
-    (framePayload: RuntimeEnvelope<RuntimeFrameResult>) => {
-      if (state.ctx.workflow !== "dsp" || state.route.subTab !== "rawdata") {
-        return;
-      }
-      const rows = Array.isArray(framePayload.result?.rows)
-        ? (framePayload.result?.rows as Array<Record<string, unknown>>)
-        : [];
-      if (rows.length === 0) {
-        return;
-      }
-      const preferredBucket = resolvePreferredDspDateBucket(rows);
-      if (preferredBucket === state.dspRawdataFilters.dateBucket) {
-        return;
-      }
-      dispatch({
-        type: "set_dsp_rawdata_filters",
-        value: {
-          ...state.dspRawdataFilters,
-          dateBucket: preferredBucket,
-        },
-      });
-    },
-    [dispatch, state.ctx.workflow, state.dspRawdataFilters, state.route.subTab],
-  );
-
   const refreshRuntime = useCallback(async () => {
     dispatch({ type: "busy", value: true });
     try {
@@ -326,11 +335,10 @@ export function useRuntimeStore() {
       dispatch({ type: "set_status", payload: statusPayload });
       syncTab4DeliveryState(statusPayload);
       dispatch({ type: "set_frame", payload: framePayload });
-      syncDspRawdataDateBucket(framePayload);
     } finally {
       dispatch({ type: "busy", value: false });
     }
-  }, [state.ctx, syncDspRawdataDateBucket, syncTab4DeliveryState]);
+  }, [state.ctx, syncTab4DeliveryState]);
 
   const refreshStatus = useCallback(async () => {
     dispatch({ type: "busy", value: true });
@@ -348,11 +356,10 @@ export function useRuntimeStore() {
     try {
       const payload = await fetchFrame(state.ctx);
       dispatch({ type: "set_frame", payload });
-      syncDspRawdataDateBucket(payload);
     } finally {
       dispatch({ type: "busy", value: false });
     }
-  }, [state.ctx, syncDspRawdataDateBucket]);
+  }, [state.ctx]);
 
   const runActionWithResult = useCallback(
     async (
@@ -403,7 +410,6 @@ export function useRuntimeStore() {
         dispatch({ type: "set_status", payload: statusPayload });
         syncTab4DeliveryState(statusPayload);
         dispatch({ type: "set_frame", payload: framePayload });
-        syncDspRawdataDateBucket(framePayload);
         return result;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
