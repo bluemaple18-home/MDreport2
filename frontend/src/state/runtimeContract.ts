@@ -22,6 +22,7 @@ export const QUERY_KEYS = {
   templateVersion: "template_version",
   ruleVersion: "rule_version",
   artifactRoot: "artifact_root",
+  sandbox: "sandbox",
   mainTab: "main_tab",
   subTab: "sub_tab",
   periodPreset: "period_preset",
@@ -69,6 +70,43 @@ export const ACCEPTANCE_SELECTORS = {
   sectionResult: "section-result",
 } as const;
 
+type Tab4DeliveryLike = {
+  ready?: boolean;
+  reason?: string;
+  delivery_snapshot_token?: string;
+  last_delivery_run_id?: string;
+  delivery_week_start?: string;
+  delivery_week_end?: string;
+};
+
+export function resolveTab4DeliveryReadiness(
+  delivery: Tab4DeliveryLike | null | undefined,
+  period: Pick<PeriodState, "weekStart" | "weekEnd">,
+): { ready: boolean; reason: string; snapshotToken: string; deliveryRunId: string } {
+  if (!delivery) {
+    return { ready: false, reason: "", snapshotToken: "", deliveryRunId: "" };
+  }
+  let ready = Boolean(delivery.ready);
+  let reason = String(delivery.reason || "");
+  const deliveryWeekStart = String(delivery.delivery_week_start || "").trim();
+  const deliveryWeekEnd = String(delivery.delivery_week_end || "").trim();
+  if (
+    ready
+    && deliveryWeekStart
+    && deliveryWeekEnd
+    && (deliveryWeekStart !== period.weekStart || deliveryWeekEnd !== period.weekEnd)
+  ) {
+    ready = false;
+    reason = "period_mismatch";
+  }
+  return {
+    ready,
+    reason,
+    snapshotToken: String(delivery.delivery_snapshot_token || ""),
+    deliveryRunId: String(delivery.last_delivery_run_id || ""),
+  };
+}
+
 export const defaultRuntimeContext: RuntimeContext = {
   root: ".",
   env: "prod",
@@ -77,7 +115,13 @@ export const defaultRuntimeContext: RuntimeContext = {
   template_version: "v1",
   rule_version: "v1",
   artifact_root: "artifacts",
+  sandbox: "",
 };
+
+function normalizeSandboxId(raw: string | null | undefined): string {
+  const value = String(raw || "").trim();
+  return value;
+}
 
 function defaultManifestByEnv(env: string): string {
   return env === "test" ? "bootstrap.test.manifest.json" : "bootstrap.manifest.json";
@@ -411,6 +455,7 @@ export function restorePersistedState(): PersistedState {
       queryArtifactRoot
       || (forceEnvDefaults ? defaultArtifactRootByEnv(runtimeEnv) : sessionParsed.ctx?.artifact_root)
       || defaultArtifactRootByEnv(runtimeEnv),
+    sandbox: normalizeSandboxId(params.get(QUERY_KEYS.sandbox) || sessionParsed.ctx?.sandbox || ""),
   };
 
   const queryRowLimitRaw = params.get(QUERY_KEYS.rowLimit);
@@ -441,6 +486,11 @@ export function persistState(state: PersistedState): void {
   params.set(QUERY_KEYS.templateVersion, state.ctx.template_version);
   params.set(QUERY_KEYS.ruleVersion, state.ctx.rule_version);
   params.set(QUERY_KEYS.artifactRoot, state.ctx.artifact_root);
+  if (state.ctx.sandbox) {
+    params.set(QUERY_KEYS.sandbox, state.ctx.sandbox);
+  } else {
+    params.delete(QUERY_KEYS.sandbox);
+  }
   params.set(QUERY_KEYS.mainTab, state.route.mainTab);
   if (getSubTabOptions(state.route.mainTab).length === 0) {
     params.delete(QUERY_KEYS.subTab);

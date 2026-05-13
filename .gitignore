@@ -8,9 +8,12 @@ __pycache__/
 .codex/
 artifacts/
 artifacts_test/
+artifacts_sandbox/
 data/
 data_test/
+data_sandbox/
 data_seed/
+output/
 frontend/dist/
 frontend/node_modules/
 node_modules/

@@ -29,9 +29,19 @@ export type RuntimeContext = {
   template_version: string;
   rule_version: string;
   artifact_root: string;
+  sandbox: string;
 };
 
-export type ActionType = "bootstrap" | "health" | "save" | "modify" | "export" | "tab4_delivery" | "ssp_media_save";
+export type ActionType =
+  | "bootstrap"
+  | "health"
+  | "save"
+  | "modify"
+  | "export"
+  | "tab4_delivery"
+  | "ssp_media_save"
+  | "sandbox_prepare"
+  | "sandbox_reset";
 export type FrontendActionType = ActionType | "publish";
 
 export type RouteState = {
@@ -73,6 +83,12 @@ export type RuntimeEnvelope<T> = {
 
 export type RuntimeStatusResult = {
   canonical_source: string;
+  sandbox?: {
+    id: string;
+    enabled: boolean;
+    db_path: string;
+    baseline_db_path: string;
+  };
   health: Record<string, unknown>;
   tab4_delivery?: {
     ready: boolean;
@@ -85,6 +101,8 @@ export type RuntimeStatusResult = {
     delivery_source_db_hash?: string;
     delivery_template_version?: string;
     delivery_rule_version?: string;
+    delivery_week_start?: string;
+    delivery_week_end?: string;
   };
   recent: {
     run_log: Array<Record<string, unknown>>;
@@ -98,6 +116,12 @@ export type RuntimeFrameResult = {
   columns: string[];
   rows: Array<Record<string, unknown>>;
   row_count: number;
+  sandbox?: {
+    id: string;
+    enabled: boolean;
+    db_path: string;
+    baseline_db_path: string;
+  };
   pivot_preview: Array<{ label: string; value: unknown }>;
   field_names?: string[];
   manual_fields?: string[];
@@ -113,6 +137,8 @@ export type RuntimeFrameResult = {
     delivery_row_count: number;
     delivery_ready: boolean;
     delivery_reason: string;
+    delivery_week_start?: string;
+    delivery_week_end?: string;
   };
   ssp_media_demand?: SspMediaDemandConfig;
   frame_error?: string;

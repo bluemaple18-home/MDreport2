@@ -136,6 +136,14 @@ def _pick_category(row: dict, keys: list[str]) -> str:
     return ""
 
 
+def _is_internal_distributor_level(value: str) -> bool:
+    return value in {"內部經銷商", "內經銷商"}
+
+
+def _is_external_distributor_level(value: str) -> bool:
+    return value in {"外部經銷商", "外經銷商"}
+
+
 def _resolve_year_month(row: dict) -> tuple[int, int] | None:
     raw = str(row.get("日期時間") or "").strip()
     matched = DATE_PREFIX_RE.match(raw)
@@ -405,6 +413,68 @@ class CanonicalService:
         end = date.fromisoformat(week_end)
         return f"{end.year} DSP投資量報表_{start:%m%d}-{end:%m%d}.xlsx"
 
+    def _resolve_dsp_weekly_baseline_path(self, *, week_start: str) -> Path | None:
+        week_start_date = date.fromisoformat(week_start)
+        baseline_week_end = (week_start_date - timedelta(days=1)).isoformat()
+        seed_root_name = "data_seed_test" if self._feature_flags.get("enable_test_hooks", False) else "data_seed"
+        candidates = list(dict.fromkeys([
+            self.repo.project_root / seed_root_name / "dsp_weekly_baselines",
+            self.repo.project_root / "data_seed" / "dsp_weekly_baselines",
+        ]))
+        baseline_feature_active = any(
+            (self.repo.project_root / root_name / "dsp_weekly_baselines" / "manifest.json").exists()
+            for root_name in ("data_seed", "data_seed_test")
+        )
+        for root in candidates:
+            manifest_path = root / "manifest.json"
+            if not manifest_path.exists():
+                continue
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"invalid dsp weekly baseline manifest: {manifest_path}") from exc
+            entries = manifest.get("files")
+            if entries is None:
+                entries = manifest.get("baselines")
+            if not isinstance(entries, list):
+                raise ValueError(f"invalid dsp weekly baseline manifest entries: {manifest_path}")
+            for item in entries:
+                if not isinstance(item, dict):
+                    continue
+                if str(item.get("week_end") or "") != baseline_week_end:
+                    continue
+                rel_path = str(item.get("path") or item.get("file") or "").strip()
+                if not rel_path:
+                    raise ValueError(f"dsp weekly baseline manifest item missing path: {manifest_path}")
+                resolved = (root / rel_path).resolve()
+                try:
+                    resolved.relative_to(root.resolve())
+                except ValueError as exc:
+                    raise PermissionError("dsp weekly baseline path out of baseline root") from exc
+                if not resolved.exists():
+                    raise FileNotFoundError(f"dsp weekly baseline workbook missing: {resolved}")
+                return resolved
+        if baseline_feature_active:
+            checked = ", ".join(str((root / "manifest.json")) for root in candidates)
+            raise FileNotFoundError(
+                f"找不到 DSP 週報基底 workbook: baseline_week_end={baseline_week_end}; 已檢查 {checked}"
+            )
+        return None
+
+    def _filter_rows_by_period(self, rows: list[dict], *, week_start: str, week_end: str) -> list[dict]:
+        start = date.fromisoformat(week_start)
+        end = date.fromisoformat(week_end)
+        out: list[dict] = []
+        for row in rows:
+            raw_date = str(row.get("日期時間") or row.get("date") or "").strip()[:10]
+            try:
+                row_date = date.fromisoformat(raw_date)
+            except ValueError:
+                continue
+            if start <= row_date <= end:
+                out.append(row)
+        return out
+
     def _hydrate_dsp_template_workbook(
         self,
         *,
@@ -414,7 +484,9 @@ class CanonicalService:
         week_start: str,
         week_end: str,
     ) -> None:
-        wb = load_workbook(template_path)
+        baseline_path = self._resolve_dsp_weekly_baseline_path(week_start=week_start)
+        workbook_source = baseline_path or template_path
+        wb = load_workbook(workbook_source)
         try:
             if wb.sheetnames != DSP_TEMPLATE_SHEET_NAMES:
                 raise ValueError(
@@ -426,27 +498,36 @@ class CanonicalService:
             ws_detail = wb["各經銷商明細"]
             ws_tracking = wb["北流進單追蹤"]
 
+            period_rows = self._filter_rows_by_period(rows, week_start=week_start, week_end=week_end)
             week_end_date = date.fromisoformat(week_end)
             for row_idx in DETAIL_YEAR_ROWS:
                 ws_detail[f"A{row_idx}"] = week_end_date.year
             ws_tracking["A1"] = f"{week_end_date.year}年{week_end_date.month}月份_北流進單狀態"
 
             summary_year, detail_monthly_amounts = self._build_detail_matrix_values(
-                rows=rows,
+                rows=period_rows,
                 fallback_year=week_end_date.year,
             )
-            self._write_template_input_cells(
-                ws_summary=ws_summary,
-                ws_detail=ws_detail,
-                year=summary_year,
-                detail_monthly_amounts=detail_monthly_amounts,
-            )
+            if baseline_path is not None:
+                self._add_template_input_cells(
+                    ws_summary=ws_summary,
+                    ws_detail=ws_detail,
+                    year=summary_year,
+                    detail_monthly_amounts=detail_monthly_amounts,
+                )
+            else:
+                self._write_template_input_cells(
+                    ws_summary=ws_summary,
+                    ws_detail=ws_detail,
+                    year=summary_year,
+                    detail_monthly_amounts=detail_monthly_amounts,
+                )
 
             wb.save(artifact_path)
         finally:
             wb.close()
         self._assert_dsp_export_matches_template(
-            template_path=template_path,
+            template_path=workbook_source,
             artifact_path=artifact_path,
         )
 
@@ -598,11 +679,11 @@ class CanonicalService:
         distributor = _pick_category(row, ["最終經銷商", "經銷商", "原始經銷商"])
         haystack = f"{b} {c} {distributor}"
 
-        if b == "內經銷商" and c == "策略部":
+        if _is_internal_distributor_level(b) and c == "策略部":
             return 26
-        if b == "外經銷商" and c == "經銷推廣":
+        if _is_external_distributor_level(b) and c == "經銷推廣":
             return 46
-        if b == "外經銷商" and c == "IO委刊":
+        if _is_external_distributor_level(b) and c == "IO委刊":
             return 65
         if b == "HB串接":
             return 84
@@ -656,12 +737,95 @@ class CanonicalService:
                 if not _is_formula(cell.value):
                     cell.value = monthly_amounts[month_idx]
 
+    def _add_template_input_cells(
+        self,
+        *,
+        ws_summary,
+        ws_detail,
+        year: int,
+        detail_monthly_amounts: dict[int, list[float]],
+    ) -> None:
+        ws_summary["A1"] = year
+        month_amount_cols = [MONTH_AMOUNT_COL_START + (idx * 2) for idx in range(MONTH_COUNT)]
+
+        for row_idx in DETAIL_INPUT_ROWS:
+            monthly_amounts = detail_monthly_amounts.get(row_idx, [0.0 for _ in range(MONTH_COUNT)])
+            for month_idx, col in enumerate(month_amount_cols):
+                delta = float(monthly_amounts[month_idx] or 0.0)
+                if delta == 0:
+                    continue
+                cell = ws_detail.cell(row=row_idx, column=col)
+                if _is_formula(cell.value):
+                    continue
+                cell.value = _to_number(cell.value) + delta
+
+    def _read_template_input_cells(self, *, ws_detail) -> dict[int, list[float]]:
+        month_amount_cols = [MONTH_AMOUNT_COL_START + (idx * 2) for idx in range(MONTH_COUNT)]
+        out: dict[int, list[float]] = {}
+        for row_idx in DETAIL_INPUT_ROWS:
+            monthly_amounts: list[float] = []
+            for col in month_amount_cols:
+                cell = ws_detail.cell(row=row_idx, column=col)
+                monthly_amounts.append(0.0 if _is_formula(cell.value) else _to_number(cell.value))
+            out[row_idx] = monthly_amounts
+        return out
+
     def build_dsp_tab4_preview_payload(self, *, rows: list[dict], fallback_year: int) -> tuple[dict, dict]:
         preview_year, detail_monthly_amounts = self._build_detail_matrix_values(
             rows=rows,
             fallback_year=fallback_year,
         )
+        return self._build_dsp_tab4_preview_payload_from_amounts(
+            preview_year=preview_year,
+            detail_monthly_amounts=detail_monthly_amounts,
+            source="canonical_raw",
+        )
 
+    def build_dsp_tab4_preview_payload_for_period(
+        self,
+        *,
+        rows: list[dict],
+        week_start: str,
+        week_end: str,
+        fallback_year: int,
+    ) -> tuple[dict, dict]:
+        period_rows = self._filter_rows_by_period(rows, week_start=week_start, week_end=week_end)
+        preview_year, period_monthly_amounts = self._build_detail_matrix_values(
+            rows=period_rows,
+            fallback_year=fallback_year,
+        )
+        baseline_path = self._resolve_dsp_weekly_baseline_path(week_start=week_start)
+        if baseline_path is not None:
+            wb = load_workbook(baseline_path, data_only=False)
+            try:
+                baseline_monthly_amounts = self._read_template_input_cells(ws_detail=wb["各經銷商明細"])
+            finally:
+                wb.close()
+            for row_idx in DETAIL_INPUT_ROWS:
+                base = baseline_monthly_amounts.get(row_idx, [0.0 for _ in range(MONTH_COUNT)])
+                delta = period_monthly_amounts.get(row_idx, [0.0 for _ in range(MONTH_COUNT)])
+                baseline_monthly_amounts[row_idx] = [
+                    float(base[month_idx] or 0.0) + float(delta[month_idx] or 0.0)
+                    for month_idx in range(MONTH_COUNT)
+                ]
+            detail_monthly_amounts = baseline_monthly_amounts
+            source = "weekly_baseline_plus_period_delta"
+        else:
+            detail_monthly_amounts = period_monthly_amounts
+            source = "period_delta"
+        return self._build_dsp_tab4_preview_payload_from_amounts(
+            preview_year=preview_year,
+            detail_monthly_amounts=detail_monthly_amounts,
+            source=source,
+        )
+
+    def _build_dsp_tab4_preview_payload_from_amounts(
+        self,
+        *,
+        preview_year: int,
+        detail_monthly_amounts: dict[int, list[float]],
+        source: str,
+    ) -> tuple[dict, dict]:
         sections: list[dict] = []
         total_row_monthly_amounts: dict[int, list[float]] = {}
         for spec in TAB4_DETAIL_SECTION_SPECS:
@@ -760,7 +924,7 @@ class CanonicalService:
             )
 
         summary_payload = {
-            "source": "canonical_raw",
+            "source": source,
             "year": preview_year,
             "monthTotals": month_totals,
             "monthTotalRates": [1.0 if value > 0 else 0.0 for value in month_totals],
@@ -769,7 +933,7 @@ class CanonicalService:
             "rows": summary_rows,
         }
         detail_payload = {
-            "source": "canonical_raw",
+            "source": source,
             "monthLabels": TAB4_MONTH_LABELS,
             "kpiRows": [
                 {
@@ -1022,6 +1186,7 @@ class CanonicalService:
                 "records_total": int(bundle.get("records_total") or 0),
                 "report_id": int(bundle.get("report_id") or 0),
                 "report_ids": list(bundle.get("report_ids") or []),
+                "daily": list(bundle.get("daily") or []),
                 "chunk_mode": str(bundle.get("chunk_mode") or "single"),
                 "chunk_days": int(bundle.get("chunk_days") or 1),
                 "service_id": int(auth.get("service_id") or 0),
@@ -1056,6 +1221,7 @@ class CanonicalService:
             "records_total": int(bundle.get("records_total") or 0),
             "report_id": int(bundle.get("report_id") or 0),
             "report_ids": list(bundle.get("report_ids") or []),
+            "daily": list(bundle.get("daily") or []),
             "chunk_mode": str(bundle.get("chunk_mode") or "single"),
             "chunk_days": int(bundle.get("chunk_days") or 1),
             "service_id": int(auth.get("service_id") or 0),
@@ -1181,11 +1347,17 @@ class CanonicalService:
         sub_tab: str,
         template_version: str,
         rule_version: str,
+        week_start: str | None = None,
+        week_end: str | None = None,
     ) -> dict:
         if workflow != "dsp":
             raise ValueError("tab4_delivery only supports dsp workflow")
         if main_tab != "dsp_tab3" or sub_tab != "pivot":
             raise ValueError("tab4_delivery must be triggered from dsp_tab3/pivot")
+        resolved_week_start, resolved_week_end = self._resolve_export_period(
+            week_start=week_start,
+            week_end=week_end,
+        )
         with self.repo.connect() as conn:
             self.repo.resolve_trace_binding(conn, workflow, template_version, rule_version)
             rows = self.repo.read_canonical_rows_in_tx(conn, workflow)
@@ -1203,6 +1375,8 @@ class CanonicalService:
                     "row_count": len(rows),
                     "delivery_snapshot_token": trace.canonical_token,
                     "delivery_source_db_hash": trace.source_db_hash,
+                    "week_start": resolved_week_start,
+                    "week_end": resolved_week_end,
                 },
             )
             self.repo.append_audit_event(
@@ -1219,6 +1393,8 @@ class CanonicalService:
                     "row_count": len(rows),
                     "main_tab": main_tab,
                     "sub_tab": sub_tab,
+                    "week_start": resolved_week_start,
+                    "week_end": resolved_week_end,
                 },
             )
             state = self.repo.get_tab4_delivery_state(conn, workflow)
@@ -1229,6 +1405,8 @@ class CanonicalService:
             "updated_at": str(state.get("updated_at") or ""),
             "delivery_snapshot_token": str(state.get("delivery_snapshot_token") or ""),
             "delivery_row_count": int(state.get("delivery_row_count") or 0),
+            "week_start": str(state.get("delivery_week_start") or ""),
+            "week_end": str(state.get("delivery_week_end") or ""),
         }
         if self._feature_flags.get("enable_test_hooks", False):
             out["test_hooks_enabled"] = True
@@ -1242,6 +1420,8 @@ class CanonicalService:
         sub_tab: str,
         template_version: str,
         rule_version: str,
+        week_start: str | None = None,
+        week_end: str | None = None,
     ) -> dict[str, str]:
         if workflow != "dsp":
             raise ValueError("dsp export gate only supports dsp workflow")
@@ -1253,11 +1433,19 @@ class CanonicalService:
             self.repo.resolve_trace_binding(conn, workflow, template_version, rule_version)
             delivery_state = self.repo.assert_tab4_delivery_ready(conn, workflow)
             trace = self.repo.build_trace_meta(conn, workflow, template_version, rule_version)
+        resolved_week_start, resolved_week_end = self._resolve_export_period(
+            week_start=week_start,
+            week_end=week_end,
+        )
         delivery_snapshot_token = str(delivery_state.get("delivery_snapshot_token") or "")
         if not delivery_snapshot_token:
             raise PermissionError("tab4 delivery snapshot token missing")
         if delivery_snapshot_token != trace.canonical_token:
             raise PermissionError("tab4 delivery snapshot mismatch with canonical")
+        delivery_week_start = str(delivery_state.get("delivery_week_start") or "")
+        delivery_week_end = str(delivery_state.get("delivery_week_end") or "")
+        if delivery_week_start != resolved_week_start or delivery_week_end != resolved_week_end:
+            raise PermissionError("tab4 delivery period mismatch with export period")
         return {
             "delivery_snapshot_token": delivery_snapshot_token,
             "delivery_run_id": str(delivery_state.get("last_delivery_run_id") or ""),
@@ -1297,6 +1485,12 @@ class CanonicalService:
                 export_columns = list(snapshot["field_names"])
             else:
                 export_rows = self.repo.read_canonical_rows_in_tx(conn, workflow)
+                if workflow == "dsp":
+                    export_rows = self._filter_rows_by_period(
+                        export_rows,
+                        week_start=resolved_week_start,
+                        week_end=resolved_week_end,
+                    )
                 export_columns = list(self.repo.canonical_columns)
             trace = self.repo.build_trace_meta(conn, workflow, template_version, rule_version)
             export_delivery_snapshot_token = str(delivery_snapshot_token or "")
@@ -1315,10 +1509,9 @@ class CanonicalService:
                         week_end=resolved_week_end,
                     )
                 else:
-                    wb = Workbook()
+                    wb = Workbook(write_only=True)
                     try:
-                        ws_data = wb.active
-                        ws_data.title = "canonical_data"
+                        ws_data = wb.create_sheet("canonical_data")
                         ws_data.append(export_columns)
                         for row in export_rows:
                             ws_data.append([_sanitize_workbook_cell_value(row.get(col, "")) for col in export_columns])

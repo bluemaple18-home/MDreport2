@@ -26,6 +26,7 @@ import {
   normalizeSubTabByMainTab,
   normalizeRowLimit,
   persistState,
+  resolveTab4DeliveryReadiness,
   restorePersistedState,
   updatePeriodPreset,
   updatePeriodWindow,
@@ -77,6 +78,22 @@ type RuntimeAction =
   | { type: "set_frame"; payload: RuntimeEnvelope<RuntimeFrameResult> }
   | { type: "set_result"; payload: RuntimeEnvelope<Record<string, unknown>> }
   | { type: "set_tab4_delivery_ready"; value: boolean; reason?: string; snapshotToken?: string; deliveryRunId?: string };
+
+function applyTab4DeliveryReadiness(state: RuntimeState, period: PeriodState): RuntimeState {
+  const delivery = state.statusPayload?.result?.tab4_delivery;
+  if (!delivery) {
+    return state;
+  }
+  const readiness = resolveTab4DeliveryReadiness(delivery, period);
+  return {
+    ...state,
+    tab4DeliveryReady: readiness.ready,
+    tab4DeliveryReason: readiness.reason,
+    tab4DeliveryUpdatedAt: new Date().toISOString(),
+    tab4DeliverySnapshotToken: readiness.snapshotToken,
+    tab4DeliveryRunId: readiness.deliveryRunId,
+  };
+}
 
 function parseJsonArray(text: string, fieldName: "rows" | "updates"): Array<Record<string, unknown>> {
   const parsed = JSON.parse(text || "[]");
@@ -184,17 +201,19 @@ function syncDspRawdataDateBucketState(
   const nextFilters = state.dspRawdataFilters.dateBucket === preferredBucket
     ? state.dspRawdataFilters
     : { ...state.dspRawdataFilters, dateBucket: preferredBucket };
-  const nextPeriod = state.period.preset === preferredBucket
+  const shouldKeepPeriod = state.route.workflow === "dsp" && state.route.mainTab === "dsp_tab4";
+  const nextPeriod = shouldKeepPeriod || state.period.preset === preferredBucket
     ? state.period
     : updatePeriodPreset(state.period, preferredBucket);
   if (nextFilters === state.dspRawdataFilters && nextPeriod === state.period) {
     return state;
   }
-  return {
+  const nextState = {
     ...state,
     period: nextPeriod,
     dspRawdataFilters: nextFilters,
   };
+  return nextPeriod === state.period ? nextState : applyTab4DeliveryReadiness(nextState, nextPeriod);
 }
 
 function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
@@ -230,9 +249,15 @@ function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
         route: { ...state.route, subTab: normalizeSubTabByMainTab(state.route.mainTab, action.value) },
       };
     case "set_period_preset":
-      return { ...state, period: updatePeriodPreset(state.period, action.value) };
+      {
+        const nextPeriod = updatePeriodPreset(state.period, action.value);
+        return applyTab4DeliveryReadiness({ ...state, period: nextPeriod }, nextPeriod);
+      }
     case "set_period_window":
-      return { ...state, period: updatePeriodWindow(state.period, action.weekStart, action.weekEnd) };
+      {
+        const nextPeriod = updatePeriodWindow(state.period, action.weekStart, action.weekEnd);
+        return applyTab4DeliveryReadiness({ ...state, period: nextPeriod }, nextPeriod);
+      }
     case "set_row_filter":
       return { ...state, rowFilter: action.value };
     case "set_row_limit":
@@ -254,7 +279,7 @@ function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
     case "busy":
       return { ...state, busy: action.value };
     case "set_status":
-      return { ...state, statusPayload: action.payload };
+      return applyTab4DeliveryReadiness({ ...state, statusPayload: action.payload }, state.period);
     case "set_frame":
       return syncDspRawdataDateBucketState({ ...state, framePayload: action.payload }, action.payload);
     case "set_result":
@@ -314,15 +339,16 @@ export function useRuntimeStore() {
       if (!delivery) {
         return;
       }
+      const readiness = resolveTab4DeliveryReadiness(delivery, state.period);
       dispatch({
         type: "set_tab4_delivery_ready",
-        value: Boolean(delivery.ready),
-        reason: String(delivery.reason || ""),
-        snapshotToken: String(delivery.delivery_snapshot_token || ""),
-        deliveryRunId: String(delivery.last_delivery_run_id || ""),
+        value: readiness.ready,
+        reason: readiness.reason,
+        snapshotToken: readiness.snapshotToken,
+        deliveryRunId: readiness.deliveryRunId,
       });
     },
-    [dispatch],
+    [dispatch, state.period],
   );
 
   const refreshRuntime = useCallback(async () => {
@@ -330,7 +356,10 @@ export function useRuntimeStore() {
     try {
       const [statusPayload, framePayload] = await Promise.all([
         fetchStatus(state.ctx),
-        fetchFrame(state.ctx),
+        fetchFrame(state.ctx, {
+          period_week_start: state.period.weekStart,
+          period_week_end: state.period.weekEnd,
+        }),
       ]);
       dispatch({ type: "set_status", payload: statusPayload });
       syncTab4DeliveryState(statusPayload);
@@ -338,7 +367,7 @@ export function useRuntimeStore() {
     } finally {
       dispatch({ type: "busy", value: false });
     }
-  }, [state.ctx, syncTab4DeliveryState]);
+  }, [state.ctx, state.period.weekEnd, state.period.weekStart, syncTab4DeliveryState]);
 
   const refreshStatus = useCallback(async () => {
     dispatch({ type: "busy", value: true });
@@ -354,12 +383,15 @@ export function useRuntimeStore() {
   const refreshFrame = useCallback(async () => {
     dispatch({ type: "busy", value: true });
     try {
-      const payload = await fetchFrame(state.ctx);
+      const payload = await fetchFrame(state.ctx, {
+        period_week_start: state.period.weekStart,
+        period_week_end: state.period.weekEnd,
+      });
       dispatch({ type: "set_frame", payload });
     } finally {
       dispatch({ type: "busy", value: false });
     }
-  }, [state.ctx]);
+  }, [state.ctx, state.period.weekEnd, state.period.weekStart]);
 
   const runActionWithResult = useCallback(
     async (
@@ -398,6 +430,11 @@ export function useRuntimeStore() {
         }
 
         const result = await postAction(state.ctx, payload);
+        if (action === "sandbox_reset" && result.status === "ok") {
+          dispatch({ type: "set_rows_json", value: "[]" });
+          dispatch({ type: "set_updates_json", value: "[]" });
+          dispatch({ type: "set_dirty_state", value: defaultDirtyState });
+        }
         dispatch({ type: "set_result", payload: result });
         dispatch({
           type: "set_result_state",
@@ -405,7 +442,10 @@ export function useRuntimeStore() {
         });
         const [statusPayload, framePayload] = await Promise.all([
           fetchStatus(state.ctx),
-          fetchFrame(state.ctx),
+          fetchFrame(state.ctx, {
+            period_week_start: state.period.weekStart,
+            period_week_end: state.period.weekEnd,
+          }),
         ]);
         dispatch({ type: "set_status", payload: statusPayload });
         syncTab4DeliveryState(statusPayload);

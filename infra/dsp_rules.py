@@ -23,7 +23,6 @@ DEFAULT_RULES: dict[str, Any] = {
     "io_commission_keywords": ["momo", "momo直播", "momolive"],
     "dooh_keywords": ["dooh"],
     "dooh_beiliu_keywords": ["北流"],
-    "dooh_commission_keywords": ["委刊", "委刊待補", "委刊編號"],
     "hb_vendor_keywords": ["appier", "bridgewell", "宇匯", "criteo", "rtbhouse", "teads", "ucfunnel", "酷比"],
     "preroll_keywords": ["preroll", "pre-roll", "pre roll"],
     "ad_format_dooh_keywords": ["北流"],
@@ -220,12 +219,12 @@ def classify_dsp_row(row: Mapping[str, Any], rules: dict[str, Any] | None = None
 
     internal_exact = {_normalize_text_token(v) for v in active_rules.get("internal_distributor_exact", [])}
     internal_keywords = [str(v) for v in active_rules.get("internal_distributor_keywords", [])]
-    is_playart_internal = bool(_pick_first_hit(canonical_distributor_token, ["玩藝國際"]))
+    is_strategy = canonical_distributor_token == _normalize_text_token("策略發展部")
+    is_md = canonical_distributor_token == _normalize_text_token("域動行銷-MD")
     is_internal = (
         bool(canonical_distributor_token)
         and (
-            is_playart_internal
-            or canonical_distributor_token in internal_exact
+            canonical_distributor_token in internal_exact
             or any(_normalize_text_token(kw) in canonical_distributor_token for kw in internal_keywords)
         )
     )
@@ -236,8 +235,6 @@ def classify_dsp_row(row: Mapping[str, Any], rules: dict[str, Any] | None = None
     dooh_hit = _pick_first_hit(token, [str(v) for v in active_rules.get("dooh_keywords", [])])
     beiliu_hit = _pick_first_hit(token, [str(v) for v in active_rules.get("dooh_beiliu_keywords", [])])
     io_hit = _pick_first_hit(token, [str(v) for v in active_rules.get("io_commission_keywords", [])])
-    live_hit = _pick_first_hit(token, ["直播"])
-    commission_hit = _pick_first_hit(token, [str(v) for v in active_rules.get("dooh_commission_keywords", [])])
     hb_hit = _pick_first_hit(token, [str(v) for v in active_rules.get("hb_vendor_keywords", [])])
 
     dist_level_b = ""
@@ -248,28 +245,34 @@ def classify_dsp_row(row: Mapping[str, Any], rules: dict[str, Any] | None = None
     source_distributor = "raw"
 
     if canonical_distributor.strip():
-        dist_level_b = "內部經銷商" if is_internal else "外經銷商"
+        if is_strategy:
+            dist_level_b = "內部經銷商"
+            dist_level_c = "策略部"
+        elif is_internal:
+            dist_level_b = "內部經銷商"
+            dist_level_c = "營銷事業處"
+        else:
+            dist_level_b = "外部經銷商"
+            dist_level_c = "經銷推廣"
 
     if dooh_hit and beiliu_hit:
-        dist_level_c = "DOOH"
         dist_level_d = "DOOH北流"
         final_distributor = canonical_distributor
         hit_distributor = "dooh_beiliu"
         source_distributor = "rule"
-    elif (not is_playart_internal) and (io_hit or (dooh_hit and commission_hit) or (is_non_internal and live_hit)):
-        dist_level_c = "IO委刊"
-        if is_non_internal and live_hit and not io_hit and not (dooh_hit and commission_hit):
-            dist_level_d = "直播"
-        else:
-            dist_level_d = "DOOH委刊" if (dooh_hit and commission_hit and not io_hit) else "momo"
-        final_distributor = "IO委刊"
-        hit_distributor = "io_commission"
-        source_distributor = "rule"
-    elif hb_hit:
-        dist_level_c = "HB串接"
+    elif is_md and hb_hit:
+        dist_level_b = "HB串接"
+        dist_level_c = "MD"
         dist_level_d = hb_hit
         final_distributor = "HB串接"
         hit_distributor = "hb_vendor"
+        source_distributor = "rule"
+    elif is_md and io_hit:
+        dist_level_b = "外部經銷商"
+        dist_level_c = "IO委刊"
+        dist_level_d = "momo"
+        final_distributor = "IO委刊"
+        hit_distributor = "io_commission"
         source_distributor = "rule"
     elif dooh_hit:
         dist_level_c = "DOOH"
@@ -278,7 +281,7 @@ def classify_dsp_row(row: Mapping[str, Any], rules: dict[str, Any] | None = None
         hit_distributor = "dooh_external"
         source_distributor = "rule"
     elif is_non_internal:
-        dist_level_c = "外部經銷推廣"
+        dist_level_c = "經銷推廣"
         dist_level_d = canonical_distributor
         final_distributor = "外部經銷商"
         hit_distributor = "external_distributor"

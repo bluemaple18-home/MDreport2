@@ -186,8 +186,6 @@ class DspApiClient:
             job_ids.append(job_id)
             view_job = self.view_job(token, job_id=job_id, page=1)
             rows = _parse_view_job_rows(view_job)
-            if not rows:
-                raise RuntimeError(f"view-job 無資料: job_id={job_id}")
             combined_rows.extend(rows)
             day_count += 1
             current += timedelta(days=1)

@@ -119,6 +119,7 @@ export default function App() {
           templateVersion={controller.state.ctx.template_version}
           ruleVersion={controller.state.ctx.rule_version}
           artifactRoot={controller.state.ctx.artifact_root}
+          sandboxId={controller.state.ctx.sandbox}
           rowsLoaded={controller.allRows.length}
           visibleRows={controller.filteredRows.length}
           rowLimit={controller.state.rowLimit}

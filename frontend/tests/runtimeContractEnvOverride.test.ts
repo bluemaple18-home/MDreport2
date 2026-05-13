@@ -12,6 +12,17 @@ function loadRestorePersistedState(): {
     current: { preset: string; weekStart: string; weekEnd: string; label: string },
     preset: string,
   ) => { preset: string; weekStart: string; weekEnd: string; label: string };
+  resolveTab4DeliveryReadiness: (
+    delivery: {
+      ready?: boolean;
+      reason?: string;
+      delivery_snapshot_token?: string;
+      last_delivery_run_id?: string;
+      delivery_week_start?: string;
+      delivery_week_end?: string;
+    },
+    period: { weekStart: string; weekEnd: string },
+  ) => { ready: boolean; reason: string; snapshotToken: string; deliveryRunId: string };
   sandbox: { window: unknown; sessionStorage: unknown };
 } {
   const sourcePath = join(process.cwd(), "src/state/runtimeContract.ts");
@@ -56,9 +67,11 @@ function loadRestorePersistedState(): {
 
   const restore = runtime.exports.restorePersistedState;
   const updatePeriodPreset = runtime.exports.updatePeriodPreset;
+  const resolveTab4DeliveryReadiness = runtime.exports.resolveTab4DeliveryReadiness;
   const key = runtime.exports.FRONTEND_SESSION_KEY;
   assert.equal(typeof restore, "function", "restorePersistedState 載入失敗");
   assert.equal(typeof updatePeriodPreset, "function", "updatePeriodPreset 載入失敗");
+  assert.equal(typeof resolveTab4DeliveryReadiness, "function", "resolveTab4DeliveryReadiness 載入失敗");
   assert.equal(typeof key, "string", "FRONTEND_SESSION_KEY 載入失敗");
 
   return {
@@ -68,6 +81,17 @@ function loadRestorePersistedState(): {
       current: { preset: string; weekStart: string; weekEnd: string; label: string },
       preset: string,
     ) => { preset: string; weekStart: string; weekEnd: string; label: string },
+    resolveTab4DeliveryReadiness: resolveTab4DeliveryReadiness as (
+      delivery: {
+        ready?: boolean;
+        reason?: string;
+        delivery_snapshot_token?: string;
+        last_delivery_run_id?: string;
+        delivery_week_start?: string;
+        delivery_week_end?: string;
+      },
+      period: { weekStart: string; weekEnd: string },
+    ) => { ready: boolean; reason: string; snapshotToken: string; deliveryRunId: string },
     sandbox,
   };
 }
@@ -155,4 +179,23 @@ test("dsp preset two_weeks_ago resolves to the previous full Monday-Sunday windo
   assert.equal(restored.weekStart, "2026-04-27");
   assert.equal(restored.weekEnd, "2026-05-03");
   assert.equal(restored.label, "2026-04-27 ~ 2026-05-03");
+});
+
+test("tab4 delivery readiness locks export when delivery period differs from current period", () => {
+  const readiness = runtime.resolveTab4DeliveryReadiness(
+    {
+      ready: true,
+      reason: "",
+      delivery_snapshot_token: "token-a",
+      last_delivery_run_id: "run-a",
+      delivery_week_start: "2026-04-27",
+      delivery_week_end: "2026-05-03",
+    },
+    { weekStart: "2026-05-04", weekEnd: "2026-05-10" },
+  );
+
+  assert.equal(readiness.ready, false);
+  assert.equal(readiness.reason, "period_mismatch");
+  assert.equal(readiness.snapshotToken, "token-a");
+  assert.equal(readiness.deliveryRunId, "run-a");
 });

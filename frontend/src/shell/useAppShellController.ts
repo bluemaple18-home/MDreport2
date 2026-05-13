@@ -8,7 +8,7 @@ import { collectDspFacetOptions, filterDspRawdataRows } from "./dspRawdataFilter
 import { useRawdataEditingController } from "./useRawdataEditingController";
 import { getWorkflowCapability, getWorkspaceVisibilityCapability } from "./workflowCapabilities";
 
-type RuntimeAction = "bootstrap" | "health";
+type RuntimeAction = "bootstrap" | "health" | "sandbox_prepare" | "sandbox_reset";
 
 type TabOption = {
   value: string;
@@ -33,13 +33,21 @@ export function useAppShellController() {
     state.ctx.template_version,
     state.ctx.rule_version,
     state.ctx.artifact_root,
+    state.ctx.sandbox,
   ].join("\n");
 
   useEffect(() => {
     void refreshRuntime();
-  // 只在 runtime context 改變時重抓 API；本地篩選/週期切換不應觸發 /api/status 或 /api/frame。
+  // 只在 runtime context 改變時重抓整體 API；Tab4 的 period-aware preview 由下方 effect 單獨刷新 frame。
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runtimeContextKey]);
+
+  useEffect(() => {
+    if (state.route.workflow !== "dsp" || state.route.mainTab !== "dsp_tab4") {
+      return;
+    }
+    void refreshFrame();
+  }, [refreshFrame, state.period.weekEnd, state.period.weekStart, state.route.mainTab, state.route.workflow]);
 
   const healthStatus =
     state.statusPayload?.status === "ok"
@@ -98,19 +106,6 @@ export function useAppShellController() {
     }
     return String((payload as Record<string, unknown>).delivery_snapshot_token || "");
   }, [state.resultPayload]);
-
-  useEffect(() => {
-    if (state.route.workflow !== "dsp" || !isDspDateBucketPreset(state.period.preset)) {
-      return;
-    }
-    if (state.dspRawdataFilters.dateBucket === state.period.preset) {
-      return;
-    }
-    dispatch({
-      type: "set_dsp_rawdata_filters",
-      value: { ...state.dspRawdataFilters, dateBucket: state.period.preset },
-    });
-  }, [dispatch, state.dspRawdataFilters, state.period.preset, state.route.workflow]);
 
   useEffect(() => {
     if (state.route.workflow !== "dsp" || state.route.subTab !== "rawdata" || allRows.length === 0) {
@@ -193,7 +188,13 @@ export function useAppShellController() {
     },
     setRowsJson: (value: string) => dispatch({ type: "set_rows_json", value }),
     setUpdatesJson: (value: string) => dispatch({ type: "set_updates_json", value }),
-    runRuntimeAction: (action: RuntimeAction) => runAction(action),
+    runRuntimeAction: async (action: RuntimeAction) => {
+      const ok = await runAction(action);
+      if (ok && action === "sandbox_reset") {
+        rawdataEditing.handleClearAllEdits();
+      }
+      return ok;
+    },
     refreshStatus,
     refreshFrame,
     handleSave: rawdataEditing.handleSave,

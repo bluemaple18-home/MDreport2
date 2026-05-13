@@ -34,6 +34,9 @@ function withQuery(ctx: RuntimeContext): string {
     rule_version: ctx.rule_version,
     artifact_root: ctx.artifact_root,
   });
+  if (ctx.sandbox) {
+    params.set("sandbox", ctx.sandbox);
+  }
   return params.toString();
 }
 
@@ -52,6 +55,9 @@ export function buildExportDownloadUrl(
     artifact_root: ctx.artifact_root,
     artifact_path: artifactPath,
   });
+  if (ctx.sandbox) {
+    params.set("sandbox", ctx.sandbox);
+  }
   if (route?.main_tab) {
     params.set("main_tab", route.main_tab);
   }
@@ -80,8 +86,18 @@ export async function fetchStatus(ctx: RuntimeContext): Promise<RuntimeEnvelope<
   return parseEnvelope<RuntimeStatusResult>(resp);
 }
 
-export async function fetchFrame(ctx: RuntimeContext): Promise<RuntimeEnvelope<RuntimeFrameResult>> {
-  const resp = await fetch(`${buildApiUrl("/api/frame")}?${withQuery(ctx)}`, { cache: "no-store" });
+export async function fetchFrame(
+  ctx: RuntimeContext,
+  period?: { period_week_start: string; period_week_end: string },
+): Promise<RuntimeEnvelope<RuntimeFrameResult>> {
+  const query = new URLSearchParams(withQuery(ctx));
+  if (period?.period_week_start) {
+    query.set("period_week_start", period.period_week_start);
+  }
+  if (period?.period_week_end) {
+    query.set("period_week_end", period.period_week_end);
+  }
+  const resp = await fetch(`${buildApiUrl("/api/frame")}?${query.toString()}`, { cache: "no-store" });
   return parseEnvelope<RuntimeFrameResult>(resp);
 }
 

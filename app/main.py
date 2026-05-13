@@ -354,6 +354,10 @@ def run_cli(argv: list[str] | None = None) -> int:
             sub_tab = args.sub_tab
             delivery_meta: dict[str, str] = {}
             if args.workflow == "dsp":
+                resolved_week_start, resolved_week_end = svc._resolve_export_period(
+                    week_start=args.week_start,
+                    week_end=args.week_end,
+                )
                 # CLI baseline 對齊 UI/export 契約：DSP 預設走 Tab4 overview。
                 main_tab = main_tab or "dsp_tab4"
                 sub_tab = sub_tab or "overview"
@@ -365,6 +369,8 @@ def run_cli(argv: list[str] | None = None) -> int:
                     sub_tab="pivot",
                     template_version=args.template_version,
                     rule_version=args.rule_version,
+                    week_start=resolved_week_start,
+                    week_end=resolved_week_end,
                 )
                 delivery_meta = svc.validate_dsp_export_request(
                     workflow="dsp",
@@ -372,7 +378,12 @@ def run_cli(argv: list[str] | None = None) -> int:
                     sub_tab=sub_tab,
                     template_version=args.template_version,
                     rule_version=args.rule_version,
+                    week_start=resolved_week_start,
+                    week_end=resolved_week_end,
                 )
+            else:
+                resolved_week_start = args.week_start
+                resolved_week_end = args.week_end
             cfg = build_bootstrap_config(root, manifest_rel, args.env)
             resolved_artifact_root = cfg.artifact_root
             if isinstance(args.artifact_root, str) and args.artifact_root.strip():
@@ -383,8 +394,8 @@ def run_cli(argv: list[str] | None = None) -> int:
                     artifact_root=resolved_artifact_root,
                     template_version=args.template_version,
                     rule_version=args.rule_version,
-                    week_start=args.week_start,
-                    week_end=args.week_end,
+                    week_start=resolved_week_start,
+                    week_end=resolved_week_end,
                     delivery_snapshot_token=delivery_meta.get("delivery_snapshot_token"),
                     delivery_run_id=delivery_meta.get("delivery_run_id"),
                 )

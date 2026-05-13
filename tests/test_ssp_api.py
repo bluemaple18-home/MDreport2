@@ -137,22 +137,38 @@ class SspApiTests(unittest.TestCase):
 
     def test_resolve_ssp_api_settings_requires_supported_credential_sources(self) -> None:
         with patch.dict("os.environ", {}, clear=True):
-            with self.assertRaises(SspAuthError) as exc_ctx:
-                resolve_ssp_api_settings()
+            with patch("infra.ssp_api._load_legacy_api_config_credentials", return_value={}):
+                with self.assertRaises(SspAuthError) as exc_ctx:
+                    resolve_ssp_api_settings()
         self.assertIn("缺少 SSP 正規登入帳密", str(exc_ctx.exception))
 
     def test_resolve_ssp_api_settings_accepts_env_aliases_without_legacy_config_file(self) -> None:
-        with patch.dict(
-            "os.environ",
-            {
-                "MDREPORT_API_EMAIL": "legacy-alias@clickforce.com.tw",
-                "MDREPORT_API_PASSWORD": "legacy-alias-pass",
-            },
-            clear=True,
+        with (
+            patch.dict(
+                "os.environ",
+                {
+                    "MDREPORT_API_EMAIL": "legacy-alias@clickforce.com.tw",
+                    "MDREPORT_API_PASSWORD": "legacy-alias-pass",
+                },
+                clear=True,
+            ),
+            patch("infra.ssp_api._load_legacy_api_config_credentials", return_value={}),
         ):
             settings = resolve_ssp_api_settings()
         self.assertEqual(settings.email, "legacy-alias@clickforce.com.tw")
         self.assertEqual(settings.password, "legacy-alias-pass")
+
+    def test_resolve_ssp_api_settings_accepts_legacy_config_credentials(self) -> None:
+        with (
+            patch.dict("os.environ", {}, clear=True),
+            patch(
+                "infra.ssp_api._load_legacy_api_config_credentials",
+                return_value={"email": "config@clickforce.com.tw", "password": "config-pass"},
+            ),
+        ):
+            settings = resolve_ssp_api_settings()
+        self.assertEqual(settings.email, "config@clickforce.com.tw")
+        self.assertEqual(settings.password, "config-pass")
 
     def test_normalize_ssp_report_rows_maps_contract_to_ssp_raw_columns(self) -> None:
         rows = normalize_ssp_report_rows(
@@ -255,6 +271,13 @@ class SspApiTests(unittest.TestCase):
         self.assertEqual(int(bundle["records_total"]), 3)
         self.assertEqual(int(bundle["report_id"]), 102)
         self.assertEqual(list(bundle["report_ids"]), [101, 102])
+        self.assertEqual(
+            list(bundle["daily"]),
+            [
+                {"date": "2026-05-10", "report_id": 101, "row_count": 2, "records_total": 2},
+                {"date": "2026-05-11", "report_id": 102, "row_count": 1, "records_total": 1},
+            ],
+        )
         self.assertEqual(str(bundle["chunk_mode"]), "daily")
         self.assertEqual(int(bundle["chunk_days"]), 2)
         self.assertEqual(len(bundle["rows"]), 3)

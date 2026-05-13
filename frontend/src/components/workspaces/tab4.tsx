@@ -54,48 +54,48 @@ const SUMMARY_ROW_SPECS: MatrixRowSpec[] = [
   {
     id: "r3",
     groupTitle: "全體經銷商\\n分項績效",
-    levelB: "內經銷商",
+    levelB: "內部經銷商",
     levelC: "營銷事業處",
     levelD: "",
     matcher: (row) => {
       const b = pickCategory(row, ["分類層級B", "最終經銷商", "經銷商"]);
-      return b === "內經銷商" || b === "外經銷商" || b === "HB串接";
+      return isInternalDistributorLevel(b) || isExternalDistributorLevel(b) || b === "HB串接";
     },
   },
   {
     id: "r4",
     groupTitle: "",
-    levelB: "內經銷商",
+    levelB: "內部經銷商",
     levelC: "策略部",
     levelD: "",
     matcher: (row) => {
       const b = pickCategory(row, ["分類層級B", "最終經銷商", "經銷商"]);
       const c = pickCategory(row, ["分類層級C", "最終廣告形式", "廣告形式"]);
-      return b === "內經銷商" && c === "策略部";
+      return isInternalDistributorLevel(b) && c === "策略部";
     },
   },
   {
     id: "r5",
     groupTitle: "",
-    levelB: "外經銷商",
+    levelB: "外部經銷商",
     levelC: "經銷推廣",
     levelD: "玩藝/春樹/ADGeek等",
     matcher: (row) => {
       const b = pickCategory(row, ["分類層級B", "最終經銷商", "經銷商"]);
       const c = pickCategory(row, ["分類層級C", "最終廣告形式", "廣告形式"]);
-      return b === "外經銷商" && c === "經銷推廣";
+      return isExternalDistributorLevel(b) && c === "經銷推廣";
     },
   },
   {
     id: "r6",
     groupTitle: "",
-    levelB: "外經銷商",
+    levelB: "外部經銷商",
     levelC: "IO委刊",
     levelD: "momo、DOOH委刊",
     matcher: (row) => {
       const b = pickCategory(row, ["分類層級B", "最終經銷商", "經銷商"]);
       const c = pickCategory(row, ["分類層級C", "最終廣告形式", "廣告形式"]);
-      return b === "外經銷商" && c === "IO委刊";
+      return isExternalDistributorLevel(b) && c === "IO委刊";
     },
   },
   {
@@ -202,6 +202,14 @@ function pickCategory(row: RowData, keys: string[]): string {
     }
   }
   return "";
+}
+
+function isInternalDistributorLevel(value: string): boolean {
+  return value === "內部經銷商" || value === "內經銷商";
+}
+
+function isExternalDistributorLevel(value: string): boolean {
+  return value === "外部經銷商" || value === "外經銷商";
 }
 
 function pct(value: number): string {
@@ -441,6 +449,8 @@ export function Tab4Workspace({
   const deliveryLocked = workflow === "dsp" && !deliveryReady;
   const lockReasonText = deliveryReason === "rawdata_saved"
     ? "偵測到 Rawdata 已重新儲存，請回樞紐重新確認後再交付。"
+    : deliveryReason === "period_mismatch"
+      ? "目前週期與上次交付週期不同，請先回樞紐按下「送最後資料到 Tab4」。"
     : "尚未完成樞紐交付，請先回樞紐按下「送最後資料到 Tab4」。";
 
   const beiliuRows = buildBeiliuTracking(rows);

@@ -558,6 +558,8 @@ class UiShellTests(unittest.TestCase):
                     "action": "tab4_delivery",
                     "main_tab": "dsp_tab3",
                     "sub_tab": "pivot",
+                    "period_week_start": "2026-04-27",
+                    "period_week_end": "2026-05-03",
                 },
             )
             export_out = dispatch_action(
@@ -566,6 +568,8 @@ class UiShellTests(unittest.TestCase):
                     "action": "export",
                     "main_tab": "dsp_tab4",
                     "sub_tab": "overview",
+                    "period_week_start": "2026-04-27",
+                    "period_week_end": "2026-05-03",
                 },
             )
             self.assertTrue(Path(str(export_out["artifact_path"])).exists())
@@ -1306,6 +1310,201 @@ class UiShellTests(unittest.TestCase):
                     rule_version="v1",
                 )
 
+    def test_sandbox_context_isolates_db_and_reset_restores_baseline(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            prod_ctx = self._ctx(root)
+            dispatch_action(prod_ctx, {"action": "bootstrap"})
+            dispatch_action(prod_ctx, {"action": "save", "rows": [self._full_row(最終經銷商="BASELINE")]})
+            prepare_out = dispatch_action(prod_ctx, {"action": "sandbox_prepare"})
+            self.assertEqual(prepare_out["status"], "ok")
+
+            sandbox_ctx = ui_shell_module._resolve_ui_context(
+                root=root,
+                runtime_env_raw="",
+                manifest_raw="",
+                artifact_root_raw="",
+                sandbox_raw="case-151",
+                workflow="dsp",
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            self.assertEqual(sandbox_ctx.sandbox_id, "case-151")
+            self.assertEqual(sandbox_ctx.db_path, (root / "data_sandbox" / "case-151" / "mdrep.sqlite").resolve())
+            self.assertEqual(sandbox_ctx.artifact_root, (root / "artifacts_sandbox" / "case-151").resolve())
+            self.assertTrue((sandbox_ctx.db_path or Path("")).exists())
+
+            dispatch_action(sandbox_ctx, {"action": "save", "rows": [self._full_row(最終經銷商="SANDBOX")]})
+            sandbox_ctx.artifact_root.mkdir(parents=True, exist_ok=True)
+            (sandbox_ctx.artifact_root / "old.txt").write_text("stale", encoding="utf-8")
+
+            prod_frame = collect_workflow_frame(prod_ctx)
+            sandbox_frame = collect_workflow_frame(sandbox_ctx)
+            self.assertEqual(prod_frame["rows"][0]["最終經銷商"], "BASELINE")
+            self.assertEqual(sandbox_frame["rows"][0]["最終經銷商"], "SANDBOX")
+
+            reset_out = dispatch_action(sandbox_ctx, {"action": "sandbox_reset"})
+            self.assertEqual(reset_out["status"], "ok")
+            self.assertEqual(reset_out["sandbox"], "case-151")
+            self.assertGreaterEqual(int(reset_out["removed_artifact_entries"]), 1)
+            self.assertFalse((sandbox_ctx.artifact_root / "old.txt").exists())
+
+            reset_frame = collect_workflow_frame(sandbox_ctx)
+            self.assertEqual(reset_frame["rows"][0]["最終經銷商"], "BASELINE")
+
+    def test_sandbox_reset_uses_immutable_baseline_snapshot(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            prod_ctx = self._ctx(root)
+            dispatch_action(prod_ctx, {"action": "bootstrap"})
+            dispatch_action(prod_ctx, {"action": "save", "rows": [self._full_row(最終經銷商="BASELINE")]})
+            dispatch_action(prod_ctx, {"action": "sandbox_prepare"})
+
+            sandbox_ctx = ui_shell_module._resolve_ui_context(
+                root=root,
+                runtime_env_raw="",
+                manifest_raw="",
+                artifact_root_raw="",
+                sandbox_raw="fresh",
+                workflow="dsp",
+                template_version="v1",
+                rule_version="v1",
+            )
+            dispatch_action(sandbox_ctx, {"action": "save", "rows": [self._full_row(最終經銷商="DIRTY_SANDBOX")]})
+            dispatch_action(prod_ctx, {"action": "save", "rows": [self._full_row(最終經銷商="POLLUTED_BASELINE")]})
+            dispatch_action(sandbox_ctx, {"action": "sandbox_reset"})
+            reset_frame = collect_workflow_frame(sandbox_ctx)
+            prod_frame = collect_workflow_frame(prod_ctx)
+            self.assertEqual(reset_frame["rows"][0]["最終經銷商"], "BASELINE")
+            self.assertEqual(prod_frame["rows"][0]["最終經銷商"], "POLLUTED_BASELINE")
+
+    def test_sandbox_prepare_refuses_to_overwrite_existing_snapshot_without_force(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            prod_ctx = self._ctx(root)
+            dispatch_action(prod_ctx, {"action": "bootstrap"})
+            dispatch_action(prod_ctx, {"action": "save", "rows": [self._full_row(最終經銷商="BASELINE")]})
+            dispatch_action(prod_ctx, {"action": "sandbox_prepare"})
+            dispatch_action(prod_ctx, {"action": "save", "rows": [self._full_row(最終經銷商="POLLUTED")]})
+
+            with self.assertRaises(FileExistsError):
+                dispatch_action(prod_ctx, {"action": "sandbox_prepare"})
+
+            with self.assertRaises(FileExistsError):
+                dispatch_action(prod_ctx, {"action": "sandbox_prepare", "force": "false"})
+
+            with self.assertRaises(FileExistsError):
+                dispatch_action(prod_ctx, {"action": "sandbox_prepare", "force": "0"})
+
+            forced = dispatch_action(prod_ctx, {"action": "sandbox_prepare", "force": True})
+            self.assertEqual(forced["status"], "ok")
+            self.assertTrue(bool(forced["force"]))
+
+            sandbox_ctx = ui_shell_module._resolve_ui_context(
+                root=root,
+                runtime_env_raw="",
+                manifest_raw="",
+                artifact_root_raw="",
+                sandbox_raw="force-check",
+                workflow="dsp",
+                template_version="v1",
+                rule_version="v1",
+            )
+            frame = collect_workflow_frame(sandbox_ctx)
+            self.assertEqual(frame["rows"][0]["最終經銷商"], "POLLUTED")
+
+    def test_sandbox_context_requires_prepared_non_empty_baseline_snapshot(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            prod_ctx = self._ctx(root)
+
+            with self.assertRaises(FileNotFoundError):
+                ui_shell_module._resolve_ui_context(
+                    root=root,
+                    runtime_env_raw="",
+                    manifest_raw="",
+                    artifact_root_raw="",
+                    sandbox_raw="fresh",
+                    workflow="dsp",
+                    template_version="v1",
+                    rule_version="v1",
+                )
+
+            dispatch_action(prod_ctx, {"action": "bootstrap"})
+            with self.assertRaises(ValueError):
+                dispatch_action(prod_ctx, {"action": "sandbox_prepare"})
+
+    def test_invalid_sandbox_id_is_rejected_instead_of_falling_back_to_baseline(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            prod_ctx = self._ctx(root)
+            dispatch_action(prod_ctx, {"action": "bootstrap"})
+            dispatch_action(prod_ctx, {"action": "save", "rows": [self._full_row(最終經銷商="BASELINE")]})
+
+            with self.assertRaises(ValueError):
+                ui_shell_module._resolve_ui_context(
+                    root=root,
+                    runtime_env_raw="",
+                    manifest_raw="",
+                    artifact_root_raw="",
+                    sandbox_raw="qa/01",
+                    workflow="dsp",
+                    template_version="v1",
+                    rule_version="v1",
+                )
+
+    def test_sandbox_reset_without_sandbox_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root)
+            dispatch_action(ctx, {"action": "bootstrap"})
+            with self.assertRaises(ValueError):
+                dispatch_action(ctx, {"action": "sandbox_reset"})
+
+    def test_multiple_sandbox_ids_do_not_pollute_each_other(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            prod_ctx = self._ctx(root)
+            dispatch_action(prod_ctx, {"action": "bootstrap"})
+            dispatch_action(prod_ctx, {"action": "save", "rows": [self._full_row(最終經銷商="BASELINE")]})
+            dispatch_action(prod_ctx, {"action": "sandbox_prepare"})
+            sandbox_a = ui_shell_module._resolve_ui_context(
+                root=root,
+                runtime_env_raw="",
+                manifest_raw="",
+                artifact_root_raw="",
+                sandbox_raw="qa-a",
+                workflow="dsp",
+                template_version="v1",
+                rule_version="v1",
+            )
+            sandbox_b = ui_shell_module._resolve_ui_context(
+                root=root,
+                runtime_env_raw="",
+                manifest_raw="",
+                artifact_root_raw="",
+                sandbox_raw="qa-b",
+                workflow="dsp",
+                template_version="v1",
+                rule_version="v1",
+            )
+            dispatch_action(sandbox_a, {"action": "save", "rows": [self._full_row(最終經銷商="A_DIRTY")]})
+            dispatch_action(sandbox_b, {"action": "save", "rows": [self._full_row(最終經銷商="B_DIRTY")]})
+            dispatch_action(sandbox_a, {"action": "sandbox_reset"})
+
+            frame_a = collect_workflow_frame(sandbox_a)
+            frame_b = collect_workflow_frame(sandbox_b)
+            self.assertEqual(frame_a["rows"][0]["最終經銷商"], "BASELINE")
+            self.assertEqual(frame_b["rows"][0]["最終經銷商"], "B_DIRTY")
+
     def test_dsp_export_fills_template_inputs_without_overwriting_formulas(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -1319,7 +1518,7 @@ class UiShellTests(unittest.TestCase):
                     "rows": [
                         self._full_row(
                             日期時間="2026-05-01 00:00:00",
-                            分類層級B="內經銷商",
+                            分類層級B="內部經銷商",
                             分類層級C="營銷事業處",
                             分類層級D="一般廣告",
                             最終廣告形式="一般廣告",
@@ -1327,11 +1526,35 @@ class UiShellTests(unittest.TestCase):
                         ),
                         self._full_row(
                             日期時間="2026-05-02 00:00:00",
-                            分類層級B="內經銷商",
+                            分類層級B="內部經銷商",
                             分類層級C="策略部",
                             分類層級D="蓋板/置底(展開&不展)/文中",
                             最終廣告形式="創意",
                             執行金額=456.0,
+                        ),
+                        self._full_row(
+                            日期時間="2026-05-03 00:00:00",
+                            分類層級B="外部經銷商",
+                            分類層級C="經銷推廣",
+                            分類層級D="玩藝國際股份有限公司",
+                            最終廣告形式="一般廣告",
+                            執行金額=111.0,
+                        ),
+                        self._full_row(
+                            日期時間="2026-05-03 00:00:00",
+                            分類層級B="外部經銷商",
+                            分類層級C="IO委刊",
+                            分類層級D="momo",
+                            最終廣告形式="一般廣告",
+                            執行金額=222.0,
+                        ),
+                        self._full_row(
+                            日期時間="2026-05-03 00:00:00",
+                            分類層級B="HB串接",
+                            分類層級C="MD",
+                            分類層級D="appier",
+                            最終廣告形式="一般廣告",
+                            執行金額=333.0,
                         ),
                     ],
                 },
@@ -1343,6 +1566,8 @@ class UiShellTests(unittest.TestCase):
                     "action": "tab4_delivery",
                     "main_tab": "dsp_tab3",
                     "sub_tab": "pivot",
+                    "period_week_start": "2026-04-27",
+                    "period_week_end": "2026-05-03",
                 },
             )
             export_out = dispatch_action(
@@ -1351,6 +1576,8 @@ class UiShellTests(unittest.TestCase):
                     "action": "export",
                     "main_tab": "dsp_tab4",
                     "sub_tab": "overview",
+                    "period_week_start": "2026-04-27",
+                    "period_week_end": "2026-05-03",
                 },
             )
             export_path = Path(str(export_out["artifact_path"]))
@@ -1370,6 +1597,9 @@ class UiShellTests(unittest.TestCase):
                 self.assertEqual(ws_detail["M7"].value, 123.0)
                 self.assertEqual(ws_detail["M27"].value, 456.0)
                 self.assertEqual(ws_detail["M26"].value, 0.0)
+                self.assertEqual(ws_detail["M46"].value, 111.0)
+                self.assertEqual(ws_detail["M65"].value, 222.0)
+                self.assertEqual(ws_detail["M84"].value, 333.0)
                 self.assertEqual(ws_detail["A24"].value, 2026)
             finally:
                 wb.close()
@@ -1392,6 +1622,8 @@ class UiShellTests(unittest.TestCase):
                     "action": "tab4_delivery",
                     "main_tab": "dsp_tab3",
                     "sub_tab": "pivot",
+                    "period_week_start": "2026-04-27",
+                    "period_week_end": "2026-05-03",
                 },
             )
             export_out = dispatch_action(
@@ -1400,6 +1632,8 @@ class UiShellTests(unittest.TestCase):
                     "action": "export",
                     "main_tab": "dsp_tab4",
                     "sub_tab": "overview",
+                    "period_week_start": "2026-04-27",
+                    "period_week_end": "2026-05-03",
                 },
             )
             artifact_path = Path(str(export_out.get("artifact_path") or ""))
@@ -1539,6 +1773,95 @@ class UiShellTests(unittest.TestCase):
                 server.server_close()
                 thread.join(timeout=2.0)
 
+    def test_api_action_sandbox_prepare_works_before_sandbox_snapshot_exists(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            prod_ctx = self._ctx(root)
+            dispatch_action(prod_ctx, {"action": "bootstrap"})
+            dispatch_action(prod_ctx, {"action": "save", "rows": [self._full_row(最終經銷商="BASELINE")]})
+
+            try:
+                server = ThreadingHTTPServer(("127.0.0.1", 0), UiRequestHandler)
+            except PermissionError:
+                self.skipTest("sandbox 禁止本地 socket bind，略過 sandbox_prepare endpoint")
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                host, port = server.server_address
+                req = Request(
+                    f"http://{host}:{port}/api/action",
+                    data=json.dumps(
+                        {
+                            "action": "sandbox_prepare",
+                            "root": str(root),
+                            "manifest": "bootstrap.manifest.json",
+                            "workflow": "dsp",
+                            "template_version": "v1",
+                            "rule_version": "v1",
+                            "artifact_root": "artifacts_sandbox/fresh-link",
+                            "sandbox": "fresh-link",
+                        }
+                    ).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with urlopen(req) as resp:
+                    response_payload = json.loads(resp.read().decode("utf-8"))
+                self.assertEqual(response_payload.get("status"), "ok")
+                self.assertEqual(response_payload.get("result", {}).get("status"), "ok")
+
+                sandbox_ctx = ui_shell_module._resolve_ui_context(
+                    root=root,
+                    runtime_env_raw="",
+                    manifest_raw="",
+                    artifact_root_raw="",
+                    sandbox_raw="fresh-link",
+                    workflow="dsp",
+                    template_version="v1",
+                    rule_version="v1",
+                )
+                self.assertTrue((sandbox_ctx.db_path or Path("")).exists())
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2.0)
+
+    def test_ssp_media_demand_endpoint_wraps_sandbox_errors_as_json(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            try:
+                server = ThreadingHTTPServer(("127.0.0.1", 0), UiRequestHandler)
+            except PermissionError:
+                self.skipTest("sandbox 禁止本地 socket bind，略過 media-demand error wrapper")
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                host, port = server.server_address
+                query = urlencode(
+                    {
+                        "root": str(root),
+                        "manifest": "bootstrap.manifest.json",
+                        "workflow": "ssp",
+                        "template_version": "v1",
+                        "rule_version": "v1",
+                        "artifact_root": "artifacts",
+                        "sandbox": "bad/id",
+                    }
+                )
+                with self.assertRaises(HTTPError) as exc_ctx:
+                    urlopen(f"http://{host}:{port}/api/ssp/media-demand?{query}")
+                self.assertEqual(exc_ctx.exception.code, 400)
+                payload = json.loads(exc_ctx.exception.read().decode("utf-8"))
+                self.assertEqual(payload.get("status"), "error")
+                self.assertEqual(payload.get("error_code"), "UI_MEDIA_DEMAND_FAILED")
+                self.assertIn("sandbox", str(payload.get("message") or ""))
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2.0)
+
     def test_ui_shell_strict_gate_respected(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -1569,6 +1892,45 @@ class UiShellTests(unittest.TestCase):
             self.assertIn("audit_log", status["recent"])
             # JSON serializable snapshot for UI rendering.
             json.dumps(status, ensure_ascii=False)
+
+    def test_ssp_status_recent_entries_do_not_mix_dsp_runs(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            dsp_ctx = self._ctx(root)
+            ssp_ctx = self._ctx(root, workflow="ssp")
+            dispatch_action(dsp_ctx, {"action": "bootstrap"})
+            dispatch_action(dsp_ctx, {"action": "save", "rows": [self._full_row(經銷商="DSP_ONLY")]})
+            dispatch_action(dsp_ctx, {"action": "tab4_delivery", "main_tab": "dsp_tab3", "sub_tab": "pivot"})
+            dispatch_action(
+                dsp_ctx,
+                {
+                    "action": "export",
+                    "main_tab": "dsp_tab4",
+                    "sub_tab": "overview",
+                },
+            )
+            dispatch_action(ssp_ctx, {"action": "save", "workflow": "ssp", "rows": [self._full_row(經銷商="SSP_ONLY")]})
+
+            ssp_status = collect_runtime_status(ssp_ctx)
+            run_log = ssp_status["recent"]["run_log"]
+            self.assertGreaterEqual(len(run_log), 1)
+            self.assertTrue(all(str(item.get("workflow") or "") == "ssp" for item in run_log), run_log)
+            audit_log = ssp_status["recent"]["audit_log"]
+            self.assertGreaterEqual(len(audit_log), 1)
+            self.assertTrue(
+                all(
+                    str(item.get("scope") or "").startswith("ssp:")
+                    or str(item.get("workflow") or "") == "ssp"
+                    for item in audit_log
+                ),
+                audit_log,
+            )
+            self.assertFalse(any(str(item.get("event_type") or "") == "tab4_delivery" for item in audit_log), audit_log)
+            self.assertEqual(ssp_status["recent"]["publish_runs"], [])
+            self.assertEqual(ssp_status["recent"]["evidence_index"], [])
+            self.assertFalse(bool(ssp_status["tab4_delivery"].get("ready")))
+            self.assertEqual(str(ssp_status["tab4_delivery"].get("last_delivery_run_id") or ""), "")
 
     def test_ssp_frame_falls_back_to_canonical_rows_when_ssp_raw_empty(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -2128,6 +2490,8 @@ class UiShellTests(unittest.TestCase):
                     "action": "tab4_delivery",
                     "main_tab": "dsp_tab3",
                     "sub_tab": "pivot",
+                    "period_week_start": "2026-04-27",
+                    "period_week_end": "2026-05-03",
                 },
             )
 
@@ -2153,7 +2517,7 @@ class UiShellTests(unittest.TestCase):
                         "period_week_end": "2026-05-10",
                     },
                 )
-            with self.assertRaisesRegex(ValueError, "dsp period has no matching base template"):
+            with self.assertRaisesRegex(PermissionError, "period mismatch"):
                 dispatch_action(
                     ctx,
                     {
@@ -3028,6 +3392,146 @@ class UiShellTests(unittest.TestCase):
                         publish_runs = status_payload["result"]["recent"]["publish_runs"]
                         self.assertGreaterEqual(len(publish_runs), 1)
                         self.assertEqual(str(publish_runs[0].get("run_id", "")), export_run_id)
+                    finally:
+                        context.close()
+                        browser.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2.0)
+
+    def test_dsp_tab4_browser_export_keeps_weekly_period_contract(self) -> None:
+        frontend_index = ui_shell_module.FRONTEND_DIST_DIR / "index.html"
+        if not frontend_index.exists():
+            self.skipTest("frontend dist 不存在，無法做真 browser acceptance（請先 pnpm build）")
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            baseline_dir = root / "data_seed_test" / "dsp_weekly_baselines"
+            baseline_dir.mkdir(parents=True, exist_ok=True)
+            baseline_name = "2026 DSP投資量報表_0101-0503.xlsx"
+            self._write_dsp_tab4_template(baseline_dir / baseline_name)
+            (baseline_dir / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "workflow": "dsp",
+                        "baselines": [
+                            {
+                                "week_end": "2026-05-03",
+                                "file": baseline_name,
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            ctx = UiContext(
+                root=root,
+                runtime_env="test",
+                manifest_rel="bootstrap.test.manifest.json",
+                workflow="dsp",
+                template_version="v1",
+                rule_version="v1",
+                artifact_root=(root / "artifacts_test").resolve(),
+            )
+            dispatch_action(ctx, {"action": "bootstrap"})
+            dispatch_action(
+                ctx,
+                {
+                    "action": "save",
+                    "rows": [
+                        self._full_row(日期時間="2026-05-04 00:00:00", 執行金額=125.0),
+                        self._full_row(日期時間="2026-05-03 23:59:59", 訂單="OUTSIDE", 執行金額=999.0),
+                    ],
+                },
+            )
+            delivery = dispatch_action(ctx, {"action": "tab4_delivery", "main_tab": "dsp_tab3", "sub_tab": "pivot"})
+            self.assertTrue(bool(delivery.get("ready")))
+
+            try:
+                server = ThreadingHTTPServer(("127.0.0.1", 0), UiRequestHandler)
+            except PermissionError:
+                self.skipTest("sandbox 禁止本地 socket bind，略過 browser acceptance")
+
+            try:
+                from playwright.sync_api import Error as PlaywrightError
+                from playwright.sync_api import sync_playwright
+            except Exception:
+                self.skipTest("缺少 playwright 依賴，請先安裝 playwright 並執行 playwright install chromium")
+
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                host, port = server.server_address
+                base_url = f"http://{host}:{port}"
+                query = urlencode(
+                    {
+                        "root": str(root),
+                        "env": "test",
+                        "manifest": "bootstrap.test.manifest.json",
+                        "workflow": "dsp",
+                        "template_version": "v1",
+                        "rule_version": "v1",
+                        "artifact_root": "artifacts_test",
+                        "main_tab": "dsp_tab4",
+                        "sub_tab": "overview",
+                        "period_preset": "last_week",
+                        "period_week_start": "2026-05-04",
+                        "period_week_end": "2026-05-10",
+                    }
+                )
+                with sync_playwright() as p:
+                    try:
+                        browser = p.chromium.launch(headless=True)
+                    except PlaywrightError as exc:
+                        self.skipTest(f"playwright browser context 無法啟動，請先 playwright install chromium: {exc}")
+                    context = browser.new_context(viewport={"width": 1440, "height": 1000}, accept_downloads=True)
+                    page = context.new_page()
+                    try:
+                        with page.expect_response(lambda resp: resp.request.method == "GET" and "/api/frame?" in resp.url) as frame_resp:
+                            page.goto(f"{base_url}/?{query}", wait_until="domcontentloaded")
+                        frame_url_query = parse_qs(urlparse(frame_resp.value.url).query)
+                        self.assertEqual(frame_url_query.get("period_week_start", [""])[0], "2026-05-04")
+                        self.assertEqual(frame_url_query.get("period_week_end", [""])[0], "2026-05-10")
+                        frame_payload = frame_resp.value.json()
+                        self.assertEqual(frame_payload.get("status"), "ok")
+                        page.locator("[data-testid='action-export']").wait_for(state="visible")
+
+                        with page.expect_download() as download_info:
+                            with page.expect_response(lambda resp: resp.request.method == "POST" and "/api/action" in resp.url) as export_resp:
+                                page.locator("[data-testid='action-export']").click()
+                        export_payload = export_resp.value.request.post_data_json
+                        if callable(export_payload):
+                            export_payload = export_payload()
+                        self.assertIsInstance(export_payload, dict)
+                        self.assertEqual(export_payload.get("action"), "export")
+                        self.assertEqual(export_payload.get("main_tab"), "dsp_tab4")
+                        self.assertEqual(export_payload.get("sub_tab"), "overview")
+                        self.assertEqual(export_payload.get("period_week_start"), "2026-05-04")
+                        self.assertEqual(export_payload.get("period_week_end"), "2026-05-10")
+                        export_result = export_resp.value.json()
+                        self.assertEqual(export_result.get("status"), "ok")
+                        result = export_result.get("result") if isinstance(export_result, dict) else {}
+                        self.assertIsInstance(result, dict)
+                        self.assertEqual(int(result.get("row_count") or 0), 1)
+                        self.assertEqual(str(result.get("week_start") or ""), "2026-05-04")
+                        self.assertEqual(str(result.get("week_end") or ""), "2026-05-10")
+                        artifact_path = Path(str(result.get("artifact_path") or ""))
+                        artifact_checksum = str(result.get("artifact_checksum") or "")
+                        self.assertEqual(artifact_path.name, "2026 DSP投資量報表_0504-0510.xlsx")
+                        self.assertTrue(artifact_path.exists())
+                        self.assertEqual(hashlib.sha256(artifact_path.read_bytes()).hexdigest(), artifact_checksum)
+                        download = download_info.value
+                        self.assertEqual(download.suggested_filename, "2026 DSP投資量報表_0504-0510.xlsx")
+                        download_query = parse_qs(urlparse(download.url).query)
+                        self.assertEqual(download_query.get("main_tab", [""])[0], "dsp_tab4")
+                        self.assertEqual(download_query.get("sub_tab", [""])[0], "overview")
+                        downloaded_path = download.path()
+                        self.assertIsNotNone(downloaded_path)
+                        if downloaded_path is not None:
+                            self.assertEqual(hashlib.sha256(Path(downloaded_path).read_bytes()).hexdigest(), artifact_checksum)
                     finally:
                         context.close()
                         browser.close()

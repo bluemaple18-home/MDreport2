@@ -5,12 +5,14 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from openpyxl import Workbook, load_workbook
 
 from domain.services import CanonicalService
 from infra.sqlite.bootstrap import bootstrap_init
 from infra.sqlite.repository import SQLiteRepository
+from infra.ssp_api import SspApiSettings
 
 
 class Phase2ServicesTests(unittest.TestCase):
@@ -471,6 +473,164 @@ class Phase2ServicesTests(unittest.TestCase):
                     week_end="2026-05-03",
                 )
 
+    def test_dsp_export_adds_only_period_rows_to_previous_week_baseline(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = self._setup_project(root)
+            baseline_root = root / "data_seed" / "dsp_weekly_baselines"
+            baseline_root.mkdir(parents=True, exist_ok=True)
+            baseline_path = baseline_root / "2026 DSP投資量報表_0101-0503.xlsx"
+
+            wb = load_workbook(root / "templates" / "dsp_tab4_template.xlsx")
+            try:
+                ws_detail = wb["各經銷商明細"]
+                ws_detail["E7"] = 50
+                ws_detail["M7"] = 100
+                wb.save(baseline_path)
+            finally:
+                wb.close()
+            (baseline_root / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "kind": "dsp_weekly_baseline_workbooks",
+                        "env": "test",
+                        "files": [
+                            {
+                                "week_end": "2026-05-03",
+                                "path": baseline_path.name,
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            svc = CanonicalService(repo)
+            svc.save(
+                workflow="dsp",
+                rows=[
+                    self._full_row(日期時間="2026-05-05 00:00:00", 執行金額=25.0),
+                    self._full_row(日期時間="2026-04-20 00:00:00", 執行金額=999.0),
+                ],
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            export_out = svc.export(
+                workflow="dsp",
+                artifact_root=root / "artifacts",
+                template_version="v1",
+                rule_version="v1",
+                week_start="2026-05-04",
+                week_end="2026-05-10",
+            )
+            self.assertEqual(int(export_out["row_count"]), 1)
+
+            export_wb = load_workbook(Path(export_out["artifact_path"]), data_only=False)
+            try:
+                ws_detail = export_wb["各經銷商明細"]
+                self.assertEqual(float(ws_detail["E7"].value), 50.0)
+                self.assertEqual(float(ws_detail["M7"].value), 125.0)
+            finally:
+                export_wb.close()
+
+    def test_dsp_export_supports_baselines_manifest_shape(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = self._setup_project(root)
+            baseline_root = root / "data_seed" / "dsp_weekly_baselines"
+            baseline_root.mkdir(parents=True, exist_ok=True)
+            baseline_path = baseline_root / "2026 DSP投資量報表_0101-0503.xlsx"
+
+            wb = load_workbook(root / "templates" / "dsp_tab4_template.xlsx")
+            try:
+                ws_detail = wb["各經銷商明細"]
+                ws_detail["M7"] = 100
+                wb.save(baseline_path)
+            finally:
+                wb.close()
+            (baseline_root / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "workflow": "dsp",
+                        "baselines": [
+                            {
+                                "week_end": "2026-05-03",
+                                "file": baseline_path.name,
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            svc = CanonicalService(repo)
+            svc.save(
+                workflow="dsp",
+                rows=[self._full_row(日期時間="2026-05-05 00:00:00", 執行金額=25.0)],
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            export_out = svc.export(
+                workflow="dsp",
+                artifact_root=root / "artifacts",
+                template_version="v1",
+                rule_version="v1",
+                week_start="2026-05-04",
+                week_end="2026-05-10",
+            )
+
+            export_wb = load_workbook(Path(export_out["artifact_path"]), data_only=False)
+            try:
+                ws_detail = export_wb["各經銷商明細"]
+                self.assertEqual(float(ws_detail["M7"].value), 125.0)
+            finally:
+                export_wb.close()
+
+    def test_dsp_export_fails_closed_when_only_test_weekly_baselines_exist(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = self._setup_project(root)
+            baseline_root = root / "data_seed_test" / "dsp_weekly_baselines"
+            baseline_root.mkdir(parents=True, exist_ok=True)
+            (baseline_root / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "kind": "dsp_weekly_baseline_workbooks",
+                        "env": "test",
+                        "files": [
+                            {
+                                "week_end": "2026-05-03",
+                                "path": "2026 DSP投資量報表_0101-0503.xlsx",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            svc = CanonicalService(repo)
+            svc.save(
+                workflow="dsp",
+                rows=[self._full_row(日期時間="2026-05-05 00:00:00", 執行金額=25.0)],
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            with self.assertRaisesRegex(FileNotFoundError, "找不到 DSP 週報基底 workbook"):
+                svc.export(
+                    workflow="dsp",
+                    artifact_root=root / "artifacts",
+                    template_version="v1",
+                    rule_version="v1",
+                    week_start="2026-05-04",
+                    week_end="2026-05-10",
+                )
+
     def test_validate_dsp_export_request_only_gates_ui_flow(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             repo = self._setup_project(Path(td))
@@ -508,6 +668,8 @@ class Phase2ServicesTests(unittest.TestCase):
                 sub_tab="pivot",
                 template_version="v1",
                 rule_version="v1",
+                week_start="2026-04-27",
+                week_end="2026-05-03",
             )
             delivery_meta = svc.validate_dsp_export_request(
                 workflow="dsp",
@@ -515,6 +677,8 @@ class Phase2ServicesTests(unittest.TestCase):
                 sub_tab="overview",
                 template_version="v1",
                 rule_version="v1",
+                week_start="2026-04-27",
+                week_end="2026-05-03",
             )
             self.assertEqual(
                 delivery_meta["delivery_snapshot_token"],
@@ -524,6 +688,16 @@ class Phase2ServicesTests(unittest.TestCase):
                 delivery_meta["delivery_run_id"],
                 str(delivered["run_id"]),
             )
+            with self.assertRaisesRegex(PermissionError, "period mismatch"):
+                svc.validate_dsp_export_request(
+                    workflow="dsp",
+                    main_tab="dsp_tab4",
+                    sub_tab="overview",
+                    template_version="v1",
+                    rule_version="v1",
+                    week_start="2026-05-04",
+                    week_end="2026-05-10",
+                )
 
     def test_save_rejects_contract_unknown_fields(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -833,6 +1007,123 @@ class Phase2ServicesTests(unittest.TestCase):
                 self.assertEqual(first_row["最終經銷商"], "SSP_CANONICAL")
             finally:
                 wb.close()
+
+    def test_fetch_ssp_api_replaces_only_ssp_runtime_rows_and_preserves_dsp(self) -> None:
+        class _FakeSspApiClient:
+            def __init__(self, settings: SspApiSettings) -> None:
+                self.settings = settings
+
+            def fetch_report_bundle(self, *, start_day: str, end_day: str) -> dict[str, object]:
+                if start_day != "2026-05-10" or end_day != "2026-05-11":
+                    raise AssertionError("SSP API fetch range should be preserved")
+                return {
+                    "auth": {
+                        "service_id": self.settings.service_id,
+                        "user": {"id": 2072, "email": "ssp@example.com"},
+                    },
+                    "login": {"id": 2072, "email": "ssp@example.com"},
+                    "report_id": 102,
+                    "report_ids": [101, 102],
+                    "records_total": 2,
+                    "chunk_mode": "daily",
+                    "chunk_days": 2,
+                    "daily": [
+                        {"date": "2026-05-10", "report_id": 101, "row_count": 1, "records_total": 1},
+                        {"date": "2026-05-11", "report_id": 102, "row_count": 1, "records_total": 1},
+                    ],
+                    "sum_row": {"request": 30, "impress": 300, "click": 20},
+                    "rows": [
+                        {
+                            "data_time": "2026-05-10 00:00:00",
+                            "zone_id": "1001",
+                            "zoneName": "SSP Slot A",
+                            "supplier_id": "11",
+                            "supplierName": "Supplier A",
+                            "site_id": "21",
+                            "siteName": "Site A",
+                            "request": "10",
+                            "impress": "100",
+                            "click": "5",
+                            "profit": "1.5",
+                            "advertiser_mu": "3.0",
+                        },
+                        {
+                            "data_time": "2026-05-11 00:00:00",
+                            "zone_id": "1002",
+                            "zoneName": "SSP Slot B",
+                            "supplier_id": "12",
+                            "supplierName": "Supplier B",
+                            "site_id": "22",
+                            "siteName": "Site B",
+                            "request": "20",
+                            "impress": "200",
+                            "click": "15",
+                            "profit": "2.5",
+                            "advertiser_mu": "5.0",
+                        },
+                    ],
+                }
+
+        with tempfile.TemporaryDirectory() as td:
+            repo = self._setup_project(Path(td))
+            svc = CanonicalService(repo)
+            svc.save(
+                workflow="dsp",
+                rows=[self._full_row(經銷商="DSP_KEEP", 最終經銷商="DSP_KEEP")],
+                template_version="v1",
+                rule_version="v1",
+            )
+            svc.save(
+                workflow="ssp",
+                rows=[self._full_row(經銷商="SSP_OLD", 最終經銷商="SSP_OLD")],
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            with repo.connect() as conn:
+                dsp_before = conn.execute("SELECT COUNT(1) FROM canonical_raw WHERE workflow='dsp'").fetchone()[0]
+                ssp_before = conn.execute("SELECT COUNT(1) FROM canonical_raw WHERE workflow='ssp'").fetchone()[0]
+            self.assertEqual(dsp_before, 1)
+            self.assertEqual(ssp_before, 1)
+
+            with patch("domain.services.SspApiClient", _FakeSspApiClient):
+                out = svc.fetch_ssp_api(
+                    start_day="2026-05-10",
+                    end_day="2026-05-11",
+                    template_version="v1",
+                    rule_version="v1",
+                    email="ssp@example.com",
+                    password="secret",
+                )
+
+            self.assertEqual(out["status"], "ok")
+            self.assertEqual(out["row_count"], 2)
+            self.assertEqual(out["records_total"], 2)
+            self.assertEqual(out["report_ids"], [101, 102])
+            self.assertEqual(out["chunk_mode"], "daily")
+            self.assertEqual(out["chunk_days"], 2)
+            self.assertEqual(len(out["daily"]), 2)
+
+            with repo.connect() as conn:
+                dsp_after = conn.execute("SELECT COUNT(1) FROM canonical_raw WHERE workflow='dsp'").fetchone()[0]
+                ssp_after = conn.execute("SELECT COUNT(1) FROM canonical_raw WHERE workflow='ssp'").fetchone()[0]
+                ssp_raw_summary = conn.execute(
+                    "SELECT COUNT(1), MIN(date), MAX(date), MIN(source), MAX(source) FROM ssp_raw"
+                ).fetchone()
+                dsp_label = conn.execute(
+                    "SELECT 最終經銷商 FROM canonical_raw WHERE workflow='dsp' AND row_order=0"
+                ).fetchone()[0]
+                detail_json = conn.execute(
+                    "SELECT detail_json FROM run_log WHERE run_type='fetch_ssp_api' AND workflow='ssp' ORDER BY created_at DESC LIMIT 1"
+                ).fetchone()[0]
+
+            self.assertEqual(dsp_after, dsp_before)
+            self.assertEqual(dsp_label, "DSP_KEEP")
+            self.assertEqual(ssp_after, 0)
+            self.assertEqual(tuple(ssp_raw_summary), (2, "2026-05-10", "2026-05-11", "ssp3_api", "ssp3_api"))
+            detail = json.loads(str(detail_json))
+            self.assertEqual(detail["daily"], out["daily"])
+            self.assertEqual(detail["chunk_days"], 2)
 
 
 if __name__ == "__main__":

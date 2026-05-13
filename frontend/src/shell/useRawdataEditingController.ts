@@ -279,6 +279,22 @@ export function useRawdataEditingController({
     }));
   }
 
+  function handleClearAllEdits(): void {
+    setRawEdits({});
+    setRevertedRows({});
+    dispatch({ type: "set_rows_json", value: "[]" });
+    dispatch({ type: "set_updates_json", value: "[]" });
+    dispatch({
+      type: "set_dirty_state",
+      value: {
+        rowCount: 0,
+        manualOverrideCount: 0,
+        hasDirty: false,
+        lastTouchedAt: "",
+      },
+    });
+  }
+
   function getCellValue(row: RowData, column: string, fallback: unknown, rowOrderFallback?: string | number): string {
     const rowOrderRaw = row.row_order;
     const rowOrder = typeof rowOrderRaw === "number" || typeof rowOrderRaw === "string"
@@ -380,6 +396,7 @@ export function useRawdataEditingController({
     handleEdit,
     handleRevertCell,
     handleClearRowEdits,
+    handleClearAllEdits,
     getCellValue,
     getCellError,
     isCellEdited,

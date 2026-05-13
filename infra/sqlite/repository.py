@@ -758,9 +758,13 @@ class SQLiteRepository:
                 "delivery_source_db_hash": "",
                 "delivery_template_version": "",
                 "delivery_rule_version": "",
+                "delivery_week_start": "",
+                "delivery_week_end": "",
             }
         delivery_detail = latest_delivery.get("detail")
         delivery_row_count = 0
+        delivery_week_start = ""
+        delivery_week_end = ""
         if isinstance(delivery_detail, dict):
             raw_row_count = delivery_detail.get("row_count")
             if isinstance(raw_row_count, (int, float)):
@@ -770,6 +774,8 @@ class SQLiteRepository:
                     delivery_row_count = int(str(raw_row_count or "0"))
                 except Exception:
                     delivery_row_count = 0
+            delivery_week_start = str(delivery_detail.get("week_start") or "")
+            delivery_week_end = str(delivery_detail.get("week_end") or "")
         delivery_key = (
             str(latest_delivery["created_at"]),
             int(latest_delivery["row_id"]),
@@ -792,6 +798,8 @@ class SQLiteRepository:
                 "delivery_source_db_hash": str(latest_delivery.get("source_db_hash") or ""),
                 "delivery_template_version": str(latest_delivery.get("template_version") or ""),
                 "delivery_rule_version": str(latest_delivery.get("rule_version") or ""),
+                "delivery_week_start": delivery_week_start,
+                "delivery_week_end": delivery_week_end,
             }
         delivery_snapshot_token = str(latest_delivery.get("canonical_token") or "")
         if not delivery_snapshot_token:
@@ -806,6 +814,8 @@ class SQLiteRepository:
                 "delivery_source_db_hash": str(latest_delivery.get("source_db_hash") or ""),
                 "delivery_template_version": str(latest_delivery.get("template_version") or ""),
                 "delivery_rule_version": str(latest_delivery.get("rule_version") or ""),
+                "delivery_week_start": delivery_week_start,
+                "delivery_week_end": delivery_week_end,
             }
         return {
             "ready": True,
@@ -818,6 +828,8 @@ class SQLiteRepository:
             "delivery_source_db_hash": str(latest_delivery.get("source_db_hash") or ""),
             "delivery_template_version": str(latest_delivery.get("template_version") or ""),
             "delivery_rule_version": str(latest_delivery.get("rule_version") or ""),
+            "delivery_week_start": delivery_week_start,
+            "delivery_week_end": delivery_week_end,
         }
 
     def assert_tab4_delivery_ready(self, conn: sqlite3.Connection, workflow: str) -> dict[str, object]:

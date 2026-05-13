@@ -4,7 +4,7 @@ import type { Workflow } from "../types";
 import type { RecentMap } from "../components/workspaces/shared";
 import { formatNumber } from "../utils/format";
 
-type RuntimeAction = "bootstrap" | "health";
+type RuntimeAction = "bootstrap" | "health" | "sandbox_prepare" | "sandbox_reset";
 
 type RuntimeUtilityStripProps = {
   healthStatus: string;
@@ -25,6 +25,7 @@ type RuntimeUtilityStripProps = {
   templateVersion: string;
   ruleVersion: string;
   artifactRoot: string;
+  sandboxId: string;
   rowsLoaded: number;
   visibleRows: number;
   rowLimit: number;
@@ -58,6 +59,7 @@ export function RuntimeUtilityStrip({
   templateVersion,
   ruleVersion,
   artifactRoot,
+  sandboxId,
   rowsLoaded,
   visibleRows,
   rowLimit,
@@ -67,6 +69,16 @@ export function RuntimeUtilityStrip({
   onRefreshFrame,
 }: RuntimeUtilityStripProps) {
   const dedicatedSspMainTab = workflow === "ssp" && (mainTab === "ssp_anomaly" || mainTab === "ssp_media_demand");
+  const handleResetSandbox = () => {
+    if (!sandboxId) {
+      return;
+    }
+    const typed = window.prompt(`輸入 sandbox id 才能重置：${sandboxId}`);
+    if (typed !== sandboxId) {
+      return;
+    }
+    onRuntimeAction("sandbox_reset");
+  };
   return (
     <section className="panel panel-full workbench-runtime-strip">
       <header className="panel-header">
@@ -81,6 +93,7 @@ export function RuntimeUtilityStrip({
             <span>health: {healthStatus}</span>
             <span>workflow: {workflow}</span>
             <span>{dedicatedSspMainTab ? `main: ${mainTab}` : `main/sub: ${mainTab} / ${subTab}`}</span>
+            <span>sandbox: {sandboxId || "off"}</span>
             <span>dirty: {dirtyHasDirty ? "yes" : "no"} ({formatNumber(dirtyManualOverrideCount)})</span>
             <span>run_log: {formatNumber(runLogCount)}</span>
             <span>publish: {formatNumber(publishCount)}</span>
@@ -126,8 +139,20 @@ export function RuntimeUtilityStrip({
                       variant={cfg.variant}
                     />
                   ))}
+                  <ActionButton
+                    label="Prepare Sandbox"
+                    onClick={() => onRuntimeAction("sandbox_prepare")}
+                    disabled={busy || !sandboxId}
+                    variant="secondary"
+                  />
                   <ActionButton label="Refresh Status" onClick={onRefreshStatus} disabled={busy} variant="ghost" />
                   <ActionButton label="Refresh Frame" onClick={onRefreshFrame} disabled={busy} variant="ghost" />
+                  <ActionButton
+                    label="Reset Sandbox"
+                    onClick={handleResetSandbox}
+                    disabled={busy || !sandboxId}
+                    variant="secondary"
+                  />
                 </div>
               </Panel>
             </div>
@@ -146,6 +171,7 @@ export function RuntimeUtilityStrip({
                   <span>template_version: {templateVersion}</span>
                   <span>rule_version: {ruleVersion}</span>
                   <span>artifact_root: {artifactRoot}</span>
+                  <span>sandbox: {sandboxId || "off"}</span>
                 </div>
                 <div className="status-bar">
                   <span>rows_loaded: {formatNumber(rowsLoaded)}</span>

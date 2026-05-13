@@ -11,6 +11,7 @@ import type {
   DirtyState,
   MainTab,
   ResultState,
+  RuntimeContext,
   SubTab,
   Tab4TemplateDetail,
   Tab4TemplateSummary,
@@ -63,15 +64,7 @@ type MainWorkspaceRendererProps = {
     resultState: ResultState;
     exportDeliverySnapshotToken: string;
     sspMediaDemandConfig?: SspMediaDemandConfig;
-    runtimeContext: {
-      root: string;
-      env: string;
-      manifest: string;
-      workflow: Workflow;
-      template_version: string;
-      rule_version: string;
-      artifact_root: string;
-    };
+    runtimeContext: RuntimeContext;
   };
   actions: {
     setRowFilter: (value: string) => void;

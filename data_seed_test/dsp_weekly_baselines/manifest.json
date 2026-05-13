@@ -1,0 +1,23 @@
+{
+  "kind": "dsp_weekly_baseline_workbooks",
+  "env": "test",
+  "note": "週報基底檔，只供測試環境比對與週版累加規則驗證使用；不是 rawdata，也不是正式 runtime template fallback。",
+  "files": [
+    {
+      "week_end": "2026-04-19",
+      "path": "2026 DSP投資量報表_0101-0419.xlsx"
+    },
+    {
+      "week_end": "2026-04-26",
+      "path": "2026 DSP投資量報表_0101-0426.xlsx"
+    },
+    {
+      "week_end": "2026-05-03",
+      "path": "2026 DSP投資量報表_0101-0503.xlsx"
+    },
+    {
+      "week_end": "2026-05-10",
+      "path": "2026 DSP投資量報表_0101-0510.xlsx"
+    }
+  ]
+}

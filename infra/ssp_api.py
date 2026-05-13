@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import importlib.util
 import json
 import os
 import re
@@ -12,6 +13,7 @@ import time
 import uuid
 from datetime import date, timedelta
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -132,6 +134,24 @@ def _safe_rate(numerator: float, denominator: float, *, scale: float) -> float:
     return _round_metric((numerator / denominator) * scale)
 
 
+def _load_legacy_api_config_credentials() -> dict[str, str]:
+    config_path = Path(os.getenv("MDREPORT_API_CONFIG_PATH") or "~/MDreport/config/api_config.py").expanduser()
+    if not config_path.exists():
+        return {}
+    spec = importlib.util.spec_from_file_location("mdreport_legacy_api_config", config_path)
+    if spec is None or spec.loader is None:
+        return {}
+    module = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        return {}
+    return {
+        "email": _strip_text(getattr(module, "API_EMAIL", "")),
+        "password": _strip_text(getattr(module, "API_PASSWORD", "")),
+    }
+
+
 def aggregate_ssp_sum_rows(sum_rows: list[dict[str, object]]) -> dict[str, object]:
     available_fields = {key for row in sum_rows for key in row.keys()}
     if not available_fields:
@@ -195,13 +215,24 @@ def resolve_ssp_api_settings(
     source_name: str | None = None,
     timeout_seconds: int | None = None,
 ) -> SspApiSettings:
-    resolved_email = _strip_text(email) or _strip_text(os.getenv("MDREP_SSP_EMAIL")) or _strip_text(os.getenv("MDREPORT_API_EMAIL"))
-    resolved_password = _strip_text(password) or _strip_text(os.getenv("MDREP_SSP_PASSWORD")) or _strip_text(os.getenv("MDREPORT_API_PASSWORD"))
+    legacy_config = _load_legacy_api_config_credentials()
+    resolved_email = (
+        _strip_text(email)
+        or _strip_text(os.getenv("MDREP_SSP_EMAIL"))
+        or _strip_text(os.getenv("MDREPORT_API_EMAIL"))
+        or _strip_text(legacy_config.get("email"))
+    )
+    resolved_password = (
+        _strip_text(password)
+        or _strip_text(os.getenv("MDREP_SSP_PASSWORD"))
+        or _strip_text(os.getenv("MDREPORT_API_PASSWORD"))
+        or _strip_text(legacy_config.get("password"))
+    )
 
     if not resolved_email or not resolved_password:
         raise SspAuthError(
             "缺少 SSP 正規登入帳密；請提供 --email/--password、設定 MDREP_SSP_EMAIL/MDREP_SSP_PASSWORD，"
-            "或設定 MDREPORT_API_EMAIL/MDREPORT_API_PASSWORD"
+            "設定 MDREPORT_API_EMAIL/MDREPORT_API_PASSWORD，或提供 ~/MDreport/config/api_config.py"
         )
 
     resolved_service_id = service_id if service_id is not None else _coerce_int(os.getenv("MDREP_SSP_SERVICE_ID")) or DEFAULT_SSP_SERVICE_ID
@@ -458,6 +489,7 @@ class SspApiClient:
         report_result = None
         report_id = 0
         report_ids: list[int] = []
+        daily: list[dict[str, object]] = []
         combined_rows: list[dict[str, object]] = []
         records_total = 0
         sum_rows: list[dict[str, object]] = []
@@ -479,8 +511,18 @@ class SspApiClient:
             rows = data.get("data")
             if not isinstance(rows, list):
                 raise SspApiError("report result 缺少 data rows")
-            combined_rows.extend(row for row in rows if isinstance(row, dict))
-            records_total += _coerce_int(data.get("recordsTotal"))
+            day_rows = [row for row in rows if isinstance(row, dict)]
+            day_records_total = _coerce_int(data.get("recordsTotal"))
+            combined_rows.extend(day_rows)
+            records_total += day_records_total
+            daily.append(
+                {
+                    "date": current_day,
+                    "report_id": report_id,
+                    "row_count": len(day_rows),
+                    "records_total": day_records_total,
+                }
+            )
             raw_sum_row = data.get("sumRow")
             if isinstance(raw_sum_row, dict):
                 sum_rows.append(raw_sum_row)
@@ -495,6 +537,7 @@ class SspApiClient:
             "report_condition": report_condition,
             "report_id": report_id,
             "report_ids": report_ids,
+            "daily": daily,
             "report_result": report_result,
             "rows": combined_rows,
             "records_total": records_total,
