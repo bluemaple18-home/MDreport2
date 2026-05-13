@@ -210,6 +210,7 @@ export function useAppShellController() {
         route: state.route.workflow === "dsp"
           ? { mainTab: "dsp_tab4", subTab: "overview" }
           : undefined,
+        deferRefresh: true,
       });
       if (result.status !== "ok") {
         return;
@@ -218,18 +219,8 @@ export function useAppShellController() {
       if (!artifactPath) {
         return;
       }
-      const artifactName = artifactPath.split("/").pop() || "export.xlsx";
       const downloadUrl = buildExportDownloadUrl(state.ctx, artifactPath, dspExportRoute);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = artifactName;
-      link.rel = "noopener";
-      link.style.display = "none";
-      document.body.appendChild(link);
-      link.click();
-      window.setTimeout(() => {
-        link.remove();
-      }, 0);
+      window.location.assign(downloadUrl);
     },
     handleSendPivotToTab4: async () => {
       const ok = await runAction("tab4_delivery");

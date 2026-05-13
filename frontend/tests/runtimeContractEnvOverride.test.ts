@@ -7,7 +7,11 @@ import ts from "typescript";
 
 function loadRestorePersistedState(): {
   FRONTEND_SESSION_KEY: string;
-  restorePersistedState: () => { ctx: { env: string; manifest: string; artifact_root: string } };
+  restorePersistedState: () => {
+    ctx: { env: string; manifest: string; artifact_root: string };
+    period: { preset: string; weekStart: string; weekEnd: string; label: string };
+    dspRawdataFilters: { dateBucket: string; distributor: string; adFormat: string; size: string; template: string };
+  };
   updatePeriodPreset: (
     current: { preset: string; weekStart: string; weekEnd: string; label: string },
     preset: string,
@@ -76,7 +80,11 @@ function loadRestorePersistedState(): {
 
   return {
     FRONTEND_SESSION_KEY: key as string,
-    restorePersistedState: restore as () => { ctx: { env: string; manifest: string; artifact_root: string } },
+    restorePersistedState: restore as () => {
+      ctx: { env: string; manifest: string; artifact_root: string };
+      period: { preset: string; weekStart: string; weekEnd: string; label: string };
+      dspRawdataFilters: { dateBucket: string; distributor: string; adFormat: string; size: string; template: string };
+    },
     updatePeriodPreset: updatePeriodPreset as (
       current: { preset: string; weekStart: string; weekEnd: string; label: string },
       preset: string,
@@ -125,6 +133,11 @@ function installRuntimeGlobals(search: string): void {
 function seedSessionContext(ctx: { env: string; manifest: string; artifact_root: string }): void {
   const storage = runtime.sandbox.sessionStorage as { setItem: (key: string, value: string) => void };
   storage.setItem(runtime.FRONTEND_SESSION_KEY, JSON.stringify({ ctx }));
+}
+
+function seedSessionState(state: Record<string, unknown>): void {
+  const storage = runtime.sandbox.sessionStorage as { setItem: (key: string, value: string) => void };
+  storage.setItem(runtime.FRONTEND_SESSION_KEY, JSON.stringify(state));
 }
 
 test("query env=test without manifest/artifact_root uses test defaults instead of session prod", () => {
@@ -179,6 +192,21 @@ test("dsp preset two_weeks_ago resolves to the previous full Monday-Sunday windo
   assert.equal(restored.weekStart, "2026-04-27");
   assert.equal(restored.weekEnd, "2026-05-03");
   assert.equal(restored.label, "2026-04-27 ~ 2026-05-03");
+});
+
+test("query dsp period keeps rawdata date filter on the selected week", () => {
+  installRuntimeGlobals(
+    "?workflow=dsp&main_tab=dsp_tab3&sub_tab=rawdata&period_preset=two_weeks_ago&period_week_start=2026-04-27&period_week_end=2026-05-03",
+  );
+  seedSessionState({
+    route: { workflow: "dsp", mainTab: "dsp_tab3", subTab: "rawdata" },
+    period: { preset: "last_week", weekStart: "2026-05-04", weekEnd: "2026-05-10", label: "2026-05-04 ~ 2026-05-10" },
+    dspRawdataFilters: { dateBucket: "last_week", distributor: "", adFormat: "", size: "", template: "" },
+  });
+
+  const restored = runtime.restorePersistedState();
+  assert.equal(restored.period.preset, "two_weeks_ago");
+  assert.equal(restored.dspRawdataFilters.dateBucket, "two_weeks_ago");
 });
 
 test("tab4 delivery readiness locks export when delivery period differs from current period", () => {

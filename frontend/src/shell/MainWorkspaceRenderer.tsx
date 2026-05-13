@@ -168,7 +168,6 @@ export function MainWorkspaceRenderer(props: MainWorkspaceRendererProps) {
   return (
     <section className="workbench-stage panel-full">
       <section className="workbench-main">
-        {hideDefaultWorkspace ? null : mainWorkspace}
         {showSspAnomalyWorkspace ? (
           <SspParityWorkspace
             rows={data.allRows}
@@ -207,6 +206,8 @@ export function MainWorkspaceRenderer(props: MainWorkspaceRendererProps) {
             onRefreshFrame={actions.refreshFrame}
           />
         ) : null}
+        {!hideDefaultWorkspace && !view.showTab4Workspace ? mainWorkspace : null}
+        {!hideDefaultWorkspace && view.showTab4Workspace ? mainWorkspace : null}
       </section>
     </section>
   );

@@ -535,6 +535,133 @@ class Phase2ServicesTests(unittest.TestCase):
             finally:
                 export_wb.close()
 
+    def test_dsp_cross_month_export_adds_april_and_may_period_rows_to_baseline(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = self._setup_project(root)
+            baseline_root = root / "data_seed" / "dsp_weekly_baselines"
+            baseline_root.mkdir(parents=True, exist_ok=True)
+            baseline_path = baseline_root / "2026 DSP投資量報表_0101-0426.xlsx"
+
+            wb = load_workbook(root / "templates" / "dsp_tab4_template.xlsx")
+            try:
+                ws_detail = wb["各經銷商明細"]
+                ws_detail["K7"] = 50
+                wb.save(baseline_path)
+            finally:
+                wb.close()
+            (baseline_root / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "kind": "dsp_weekly_baseline_workbooks",
+                        "env": "test",
+                        "files": [
+                            {
+                                "week_end": "2026-04-26",
+                                "path": baseline_path.name,
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            svc = CanonicalService(repo)
+            svc.save(
+                workflow="dsp",
+                rows=[
+                    self._full_row(日期時間="2026-04-30 00:00:00", 執行金額=10.0),
+                    self._full_row(日期時間="2026-05-01 00:00:00", 執行金額=25.0),
+                    self._full_row(日期時間="2026-04-20 00:00:00", 執行金額=999.0),
+                ],
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            export_out = svc.export(
+                workflow="dsp",
+                artifact_root=root / "artifacts",
+                template_version="v1",
+                rule_version="v1",
+                week_start="2026-04-27",
+                week_end="2026-05-03",
+            )
+            self.assertEqual(Path(export_out["artifact_path"]).name, "2026 DSP投資量報表_0427-0503.xlsx")
+            self.assertEqual(int(export_out["row_count"]), 2)
+
+            export_wb = load_workbook(Path(export_out["artifact_path"]), data_only=False)
+            try:
+                ws_detail = export_wb["各經銷商明細"]
+                self.assertEqual(float(ws_detail["K7"].value), 60.0)
+                self.assertEqual(float(ws_detail["M7"].value), 25.0)
+            finally:
+                export_wb.close()
+
+    def test_dsp_cross_month_export_splits_each_row_into_its_own_month(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = self._setup_project(root)
+            baseline_root = root / "data_seed" / "dsp_weekly_baselines"
+            baseline_root.mkdir(parents=True, exist_ok=True)
+            baseline_path = baseline_root / "2026 DSP投資量報表_0101-0426.xlsx"
+
+            wb = load_workbook(root / "templates" / "dsp_tab4_template.xlsx")
+            try:
+                ws_detail = wb["各經銷商明細"]
+                ws_detail["K7"] = 100
+                ws_detail["M7"] = 200
+                wb.save(baseline_path)
+            finally:
+                wb.close()
+            (baseline_root / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "kind": "dsp_weekly_baseline_workbooks",
+                        "env": "test",
+                        "files": [
+                            {
+                                "week_end": "2026-04-26",
+                                "path": baseline_path.name,
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            svc = CanonicalService(repo)
+            svc.save(
+                workflow="dsp",
+                rows=[
+                    self._full_row(日期時間="2026-04-27 00:00:00", 訂單="APR_A", 執行金額=10.0),
+                    self._full_row(日期時間="2026-04-30 00:00:00", 訂單="APR_B", 執行金額=20.0),
+                    self._full_row(日期時間="2026-05-01 00:00:00", 訂單="MAY_A", 執行金額=30.0),
+                    self._full_row(日期時間="2026-05-03 00:00:00", 訂單="MAY_B", 執行金額=40.0),
+                ],
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            export_out = svc.export(
+                workflow="dsp",
+                artifact_root=root / "artifacts",
+                template_version="v1",
+                rule_version="v1",
+                week_start="2026-04-27",
+                week_end="2026-05-03",
+            )
+            self.assertEqual(int(export_out["row_count"]), 4)
+
+            export_wb = load_workbook(Path(export_out["artifact_path"]), data_only=False)
+            try:
+                ws_detail = export_wb["各經銷商明細"]
+                self.assertEqual(float(ws_detail["K7"].value), 130.0)
+                self.assertEqual(float(ws_detail["M7"].value), 270.0)
+            finally:
+                export_wb.close()
+
     def test_dsp_export_supports_baselines_manifest_shape(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -590,7 +717,136 @@ class Phase2ServicesTests(unittest.TestCase):
             finally:
                 export_wb.close()
 
-    def test_dsp_export_fails_closed_when_only_test_weekly_baselines_exist(self) -> None:
+    def test_dsp_tab4_period_preview_without_baseline_keeps_year_to_date_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = self._setup_project(Path(td))
+            svc = CanonicalService(repo)
+            rows = [
+                self._full_row(日期時間="2026-04-20 00:00:00", 執行金額=50.0),
+                self._full_row(日期時間="2026-05-05 00:00:00", 執行金額=25.0),
+                self._full_row(日期時間="2026-05-11 00:00:00", 執行金額=999.0),
+            ]
+
+            summary, detail = svc.build_dsp_tab4_preview_payload_for_period(
+                rows=rows,
+                week_start="2026-05-04",
+                week_end="2026-05-10",
+                fallback_year=2026,
+            )
+
+            self.assertEqual(summary["source"], "canonical_raw")
+            self.assertEqual(float(summary["monthTotals"][3]), 50.0)
+            self.assertEqual(float(summary["monthTotals"][4]), 25.0)
+            self.assertEqual(detail["source"], "canonical_raw")
+            first_kpi = detail["kpiRows"][0]
+            self.assertEqual(float(first_kpi["monthlyAmounts"][3]), 50.0)
+            self.assertEqual(float(first_kpi["monthlyAmounts"][4]), 25.0)
+
+    def test_dsp_export_without_baseline_keeps_year_to_date_template_values(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = self._setup_project(root)
+            svc = CanonicalService(repo)
+            svc.save(
+                workflow="dsp",
+                rows=[
+                    self._full_row(日期時間="2026-04-20 00:00:00", 執行金額=50.0),
+                    self._full_row(日期時間="2026-05-05 00:00:00", 執行金額=25.0),
+                    self._full_row(日期時間="2026-05-11 00:00:00", 執行金額=999.0),
+                ],
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            export_out = svc.export(
+                workflow="dsp",
+                artifact_root=root / "artifacts",
+                template_version="v1",
+                rule_version="v1",
+                week_start="2026-05-04",
+                week_end="2026-05-10",
+            )
+            self.assertEqual(int(export_out["row_count"]), 1)
+
+            export_wb = load_workbook(Path(export_out["artifact_path"]), data_only=False)
+            try:
+                ws_detail = export_wb["各經銷商明細"]
+                self.assertEqual(float(ws_detail["K7"].value), 50.0)
+                self.assertEqual(float(ws_detail["M7"].value), 25.0)
+            finally:
+                export_wb.close()
+
+    def test_dsp_export_without_baseline_excludes_prior_year_rows_from_ytd(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = self._setup_project(root)
+            svc = CanonicalService(repo)
+            svc.save(
+                workflow="dsp",
+                rows=[
+                    self._full_row(日期時間="2025-01-15 00:00:00", 執行金額=999.0),
+                    self._full_row(日期時間="2026-01-15 00:00:00", 執行金額=50.0),
+                    self._full_row(日期時間="2026-05-05 00:00:00", 執行金額=25.0),
+                ],
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            export_out = svc.export(
+                workflow="dsp",
+                artifact_root=root / "artifacts",
+                template_version="v1",
+                rule_version="v1",
+                week_start="2026-05-04",
+                week_end="2026-05-10",
+            )
+            self.assertEqual(int(export_out["row_count"]), 1)
+
+            export_wb = load_workbook(Path(export_out["artifact_path"]), data_only=False)
+            try:
+                ws_detail = export_wb["各經銷商明細"]
+                self.assertEqual(float(ws_detail["E7"].value), 50.0)
+                self.assertEqual(float(ws_detail["M7"].value), 25.0)
+            finally:
+                export_wb.close()
+
+    def test_dsp_cross_month_export_without_baseline_keeps_ytd_and_counts_period_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = self._setup_project(root)
+            svc = CanonicalService(repo)
+            svc.save(
+                workflow="dsp",
+                rows=[
+                    self._full_row(日期時間="2026-04-20 00:00:00", 執行金額=50.0),
+                    self._full_row(日期時間="2026-04-30 00:00:00", 執行金額=10.0),
+                    self._full_row(日期時間="2026-05-01 00:00:00", 執行金額=25.0),
+                    self._full_row(日期時間="2026-05-04 00:00:00", 執行金額=999.0),
+                ],
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            export_out = svc.export(
+                workflow="dsp",
+                artifact_root=root / "artifacts",
+                template_version="v1",
+                rule_version="v1",
+                week_start="2026-04-27",
+                week_end="2026-05-03",
+            )
+            self.assertEqual(Path(export_out["artifact_path"]).name, "2026 DSP投資量報表_0427-0503.xlsx")
+            self.assertEqual(int(export_out["row_count"]), 2)
+
+            export_wb = load_workbook(Path(export_out["artifact_path"]), data_only=False)
+            try:
+                ws_detail = export_wb["各經銷商明細"]
+                self.assertEqual(float(ws_detail["K7"].value), 60.0)
+                self.assertEqual(float(ws_detail["M7"].value), 25.0)
+            finally:
+                export_wb.close()
+
+    def test_dsp_export_ignores_test_only_weekly_baselines_without_test_hooks(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             repo = self._setup_project(root)
@@ -616,12 +872,64 @@ class Phase2ServicesTests(unittest.TestCase):
             svc = CanonicalService(repo)
             svc.save(
                 workflow="dsp",
+                rows=[
+                    self._full_row(日期時間="2026-04-20 00:00:00", 執行金額=50.0),
+                    self._full_row(日期時間="2026-05-05 00:00:00", 執行金額=25.0),
+                ],
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            export_out = svc.export(
+                workflow="dsp",
+                artifact_root=root / "artifacts",
+                template_version="v1",
+                rule_version="v1",
+                week_start="2026-05-04",
+                week_end="2026-05-10",
+            )
+            self.assertEqual(int(export_out["row_count"]), 1)
+
+            export_wb = load_workbook(Path(export_out["artifact_path"]), data_only=False)
+            try:
+                ws_detail = export_wb["各經銷商明細"]
+                self.assertEqual(float(ws_detail["K7"].value), 50.0)
+                self.assertEqual(float(ws_detail["M7"].value), 25.0)
+            finally:
+                export_wb.close()
+
+    def test_dsp_export_fails_closed_when_test_weekly_baseline_manifest_is_active(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = self._setup_project(root)
+            baseline_root = root / "data_seed_test" / "dsp_weekly_baselines"
+            baseline_root.mkdir(parents=True, exist_ok=True)
+            (baseline_root / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "kind": "dsp_weekly_baseline_workbooks",
+                        "env": "test",
+                        "files": [
+                            {
+                                "week_end": "2026-05-03",
+                                "path": "2026 DSP投資量報表_0101-0503.xlsx",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            svc = CanonicalService(repo, feature_flags={"enable_test_hooks": True})
+            svc.save(
+                workflow="dsp",
                 rows=[self._full_row(日期時間="2026-05-05 00:00:00", 執行金額=25.0)],
                 template_version="v1",
                 rule_version="v1",
             )
 
-            with self.assertRaisesRegex(FileNotFoundError, "找不到 DSP 週報基底 workbook"):
+            with self.assertRaisesRegex(FileNotFoundError, "dsp weekly baseline workbook missing"):
                 svc.export(
                     workflow="dsp",
                     artifact_root=root / "artifacts",

@@ -17,7 +17,6 @@ import type {
   SubTab,
   Workflow,
 } from "../types";
-import { resolvePreferredDspDateBucket } from "../shell/dspRawdataFilters";
 import {
   defaultPeriodStateByWorkflow,
   defaultMainTabByWorkflow,
@@ -31,6 +30,7 @@ import {
   updatePeriodPreset,
   updatePeriodWindow,
 } from "./runtimeContract";
+import { hasDspRowsInDateBucket, resolvePreferredDspDateBucket } from "../shell/dspRawdataFilters";
 
 type RuntimeState = {
   ctx: RuntimeContext;
@@ -180,40 +180,46 @@ function deriveResultState(
   };
 }
 
-function extractFrameRows(framePayload: RuntimeEnvelope<RuntimeFrameResult>): Array<Record<string, unknown>> {
-  return Array.isArray(framePayload.result?.rows)
-    ? (framePayload.result.rows as Array<Record<string, unknown>>)
-    : [];
-}
-
-function syncDspRawdataDateBucketState(
+function applyFramePayload(
   state: RuntimeState,
   framePayload: RuntimeEnvelope<RuntimeFrameResult>,
 ): RuntimeState {
-  if (state.ctx.workflow !== "dsp") {
-    return state;
+  if (
+    state.ctx.workflow !== "dsp"
+    || state.route.workflow !== "dsp"
+    || state.route.mainTab !== "dsp_tab3"
+  ) {
+    return {
+      ...state,
+      framePayload,
+    };
   }
-  const rows = extractFrameRows(framePayload);
-  if (rows.length === 0) {
-    return state;
+  const rows = Array.isArray(framePayload.result?.rows)
+    ? (framePayload.result.rows as Array<Record<string, unknown>>)
+    : [];
+  if (rows.length === 0 || hasDspRowsInDateBucket(rows, state.dspRawdataFilters.dateBucket)) {
+    return {
+      ...state,
+      framePayload,
+    };
   }
   const preferredBucket = resolvePreferredDspDateBucket(rows);
-  const nextFilters = state.dspRawdataFilters.dateBucket === preferredBucket
-    ? state.dspRawdataFilters
-    : { ...state.dspRawdataFilters, dateBucket: preferredBucket };
-  const shouldKeepPeriod = state.route.workflow === "dsp" && state.route.mainTab === "dsp_tab4";
-  const nextPeriod = shouldKeepPeriod || state.period.preset === preferredBucket
-    ? state.period
-    : updatePeriodPreset(state.period, preferredBucket);
-  if (nextFilters === state.dspRawdataFilters && nextPeriod === state.period) {
-    return state;
+  if (preferredBucket === state.dspRawdataFilters.dateBucket) {
+    return {
+      ...state,
+      framePayload,
+    };
   }
-  const nextState = {
+  const nextPeriod = updatePeriodPreset(state.period, preferredBucket);
+  return {
     ...state,
+    framePayload,
     period: nextPeriod,
-    dspRawdataFilters: nextFilters,
+    dspRawdataFilters: {
+      ...state.dspRawdataFilters,
+      dateBucket: preferredBucket,
+    },
   };
-  return nextPeriod === state.period ? nextState : applyTab4DeliveryReadiness(nextState, nextPeriod);
 }
 
 function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
@@ -281,7 +287,7 @@ function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
     case "set_status":
       return applyTab4DeliveryReadiness({ ...state, statusPayload: action.payload }, state.period);
     case "set_frame":
-      return syncDspRawdataDateBucketState({ ...state, framePayload: action.payload }, action.payload);
+      return applyFramePayload({ ...state, framePayload: action.payload }, action.payload);
     case "set_result":
       return { ...state, resultPayload: action.payload };
     case "set_tab4_delivery_ready":
@@ -401,6 +407,7 @@ export function useRuntimeStore() {
         updates?: Array<Record<string, unknown>>;
         sspMediaSlots?: SspMediaDemandSlot[];
         route?: ActionRouteOverride;
+        deferRefresh?: boolean;
       },
     ): Promise<RuntimeEnvelope<Record<string, unknown>>> => {
       dispatch({ type: "busy", value: true });
@@ -440,16 +447,23 @@ export function useRuntimeStore() {
           type: "set_result_state",
           value: deriveResultState(state.resultState, action, result),
         });
-        const [statusPayload, framePayload] = await Promise.all([
-          fetchStatus(state.ctx),
-          fetchFrame(state.ctx, {
-            period_week_start: state.period.weekStart,
-            period_week_end: state.period.weekEnd,
-          }),
-        ]);
-        dispatch({ type: "set_status", payload: statusPayload });
-        syncTab4DeliveryState(statusPayload);
-        dispatch({ type: "set_frame", payload: framePayload });
+        const refreshRuntimePayloads = async () => {
+          const [statusPayload, framePayload] = await Promise.all([
+            fetchStatus(state.ctx),
+            fetchFrame(state.ctx, {
+              period_week_start: state.period.weekStart,
+              period_week_end: state.period.weekEnd,
+            }),
+          ]);
+          dispatch({ type: "set_status", payload: statusPayload });
+          syncTab4DeliveryState(statusPayload);
+          dispatch({ type: "set_frame", payload: framePayload });
+        };
+        if (overrides?.deferRefresh) {
+          void refreshRuntimePayloads().catch(() => undefined);
+        } else {
+          await refreshRuntimePayloads();
+        }
         return result;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -489,6 +503,7 @@ export function useRuntimeStore() {
         updates?: Array<Record<string, unknown>>;
         sspMediaSlots?: SspMediaDemandSlot[];
         route?: ActionRouteOverride;
+        deferRefresh?: boolean;
       },
     ): Promise<boolean> => {
       const result = await runActionWithResult(action, overrides);

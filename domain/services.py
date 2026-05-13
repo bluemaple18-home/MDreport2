@@ -422,8 +422,8 @@ class CanonicalService:
             self.repo.project_root / "data_seed" / "dsp_weekly_baselines",
         ]))
         baseline_feature_active = any(
-            (self.repo.project_root / root_name / "dsp_weekly_baselines" / "manifest.json").exists()
-            for root_name in ("data_seed", "data_seed_test")
+            (root / "manifest.json").exists()
+            for root in candidates
         )
         for root in candidates:
             manifest_path = root / "manifest.json"
@@ -475,6 +475,20 @@ class CanonicalService:
                 out.append(row)
         return out
 
+    def _filter_rows_through_period_end(self, rows: list[dict], *, week_end: str) -> list[dict]:
+        end = date.fromisoformat(week_end)
+        start = date(end.year, 1, 1)
+        out: list[dict] = []
+        for row in rows:
+            raw_date = str(row.get("日期時間") or row.get("date") or "").strip()[:10]
+            try:
+                row_date = date.fromisoformat(raw_date)
+            except ValueError:
+                continue
+            if start <= row_date <= end:
+                out.append(row)
+        return out
+
     def _hydrate_dsp_template_workbook(
         self,
         *,
@@ -498,17 +512,17 @@ class CanonicalService:
             ws_detail = wb["各經銷商明細"]
             ws_tracking = wb["北流進單追蹤"]
 
-            period_rows = self._filter_rows_by_period(rows, week_start=week_start, week_end=week_end)
             week_end_date = date.fromisoformat(week_end)
             for row_idx in DETAIL_YEAR_ROWS:
                 ws_detail[f"A{row_idx}"] = week_end_date.year
             ws_tracking["A1"] = f"{week_end_date.year}年{week_end_date.month}月份_北流進單狀態"
 
-            summary_year, detail_monthly_amounts = self._build_detail_matrix_values(
-                rows=period_rows,
-                fallback_year=week_end_date.year,
-            )
             if baseline_path is not None:
+                period_rows = self._filter_rows_by_period(rows, week_start=week_start, week_end=week_end)
+                summary_year, detail_monthly_amounts = self._build_detail_matrix_values(
+                    rows=period_rows,
+                    fallback_year=week_end_date.year,
+                )
                 self._add_template_input_cells(
                     ws_summary=ws_summary,
                     ws_detail=ws_detail,
@@ -516,6 +530,11 @@ class CanonicalService:
                     detail_monthly_amounts=detail_monthly_amounts,
                 )
             else:
+                ytd_rows = self._filter_rows_through_period_end(rows, week_end=week_end)
+                summary_year, detail_monthly_amounts = self._build_detail_matrix_values(
+                    rows=ytd_rows,
+                    fallback_year=week_end_date.year,
+                )
                 self._write_template_input_cells(
                     ws_summary=ws_summary,
                     ws_detail=ws_detail,
@@ -789,13 +808,13 @@ class CanonicalService:
         week_end: str,
         fallback_year: int,
     ) -> tuple[dict, dict]:
-        period_rows = self._filter_rows_by_period(rows, week_start=week_start, week_end=week_end)
-        preview_year, period_monthly_amounts = self._build_detail_matrix_values(
-            rows=period_rows,
-            fallback_year=fallback_year,
-        )
         baseline_path = self._resolve_dsp_weekly_baseline_path(week_start=week_start)
         if baseline_path is not None:
+            period_rows = self._filter_rows_by_period(rows, week_start=week_start, week_end=week_end)
+            preview_year, period_monthly_amounts = self._build_detail_matrix_values(
+                rows=period_rows,
+                fallback_year=fallback_year,
+            )
             wb = load_workbook(baseline_path, data_only=False)
             try:
                 baseline_monthly_amounts = self._read_template_input_cells(ws_detail=wb["各經銷商明細"])
@@ -811,8 +830,12 @@ class CanonicalService:
             detail_monthly_amounts = baseline_monthly_amounts
             source = "weekly_baseline_plus_period_delta"
         else:
-            detail_monthly_amounts = period_monthly_amounts
-            source = "period_delta"
+            ytd_rows = self._filter_rows_through_period_end(rows, week_end=week_end)
+            preview_year, detail_monthly_amounts = self._build_detail_matrix_values(
+                rows=ytd_rows,
+                fallback_year=fallback_year,
+            )
+            source = "canonical_raw"
         return self._build_dsp_tab4_preview_payload_from_amounts(
             preview_year=preview_year,
             detail_monthly_amounts=detail_monthly_amounts,
@@ -1478,16 +1501,20 @@ class CanonicalService:
         with self.repo.connect() as conn:
             self.repo.resolve_trace_binding(conn, workflow, template_version, rule_version)
             export_rows: list[dict]
+            hydrate_rows: list[dict]
             export_columns: list[str]
             if workflow == "ssp":
                 snapshot = self._resolve_ssp_effective_snapshot_in_tx(conn)
                 export_rows = list(snapshot["rows"])
+                hydrate_rows = export_rows
                 export_columns = list(snapshot["field_names"])
             else:
-                export_rows = self.repo.read_canonical_rows_in_tx(conn, workflow)
+                workflow_rows = self.repo.read_canonical_rows_in_tx(conn, workflow)
+                export_rows = workflow_rows
+                hydrate_rows = workflow_rows
                 if workflow == "dsp":
                     export_rows = self._filter_rows_by_period(
-                        export_rows,
+                        workflow_rows,
                         week_start=resolved_week_start,
                         week_end=resolved_week_end,
                     )
@@ -1504,7 +1531,7 @@ class CanonicalService:
                     self._hydrate_dsp_template_workbook(
                         template_path=template_path,
                         artifact_path=artifact_path,
-                        rows=export_rows,
+                        rows=hydrate_rows,
                         week_start=resolved_week_start,
                         week_end=resolved_week_end,
                     )

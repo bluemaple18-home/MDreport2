@@ -1,5 +1,6 @@
 import type {
   DirtyState,
+  DspDateBucket,
   DspRawdataFilters,
   MainTab,
   PeriodPreset,
@@ -267,6 +268,13 @@ function normalizePeriodPresetByWorkflow(workflow: Workflow, preset: PeriodPrese
     || preset === "four_weeks_ago" ? preset : fallback;
 }
 
+export function isDspDateBucketPreset(preset: PeriodPreset): preset is DspDateBucket {
+  return preset === "last_week"
+    || preset === "two_weeks_ago"
+    || preset === "three_weeks_ago"
+    || preset === "four_weeks_ago";
+}
+
 function buildPeriodLabel(weekStart: string, weekEnd: string): string {
   const start = weekStart.trim();
   const end = weekEnd.trim();
@@ -460,6 +468,12 @@ export function restorePersistedState(): PersistedState {
 
   const queryRowLimitRaw = params.get(QUERY_KEYS.rowLimit);
   const rowLimit = queryRowLimitRaw ? normalizeRowLimit(queryRowLimitRaw) : normalizeRowLimit(sessionParsed.rowLimit);
+  const dspRawdataFilters = {
+    ...(sessionParsed.dspRawdataFilters ?? defaultDspRawdataFilters),
+  };
+  if (workflow === "dsp" && isDspDateBucketPreset(currentPeriod.preset)) {
+    dspRawdataFilters.dateBucket = currentPeriod.preset;
+  }
 
   return {
     ctx,
@@ -471,7 +485,7 @@ export function restorePersistedState(): PersistedState {
     period: currentPeriod,
     rowFilter: params.get(QUERY_KEYS.rowFilter) ?? sessionParsed.rowFilter ?? "",
     rowLimit,
-    dspRawdataFilters: sessionParsed.dspRawdataFilters ?? defaultDspRawdataFilters,
+    dspRawdataFilters,
   };
 }
 

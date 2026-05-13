@@ -131,6 +131,10 @@ function rowMatchesDateBucket(row: RowData, bucket: DspDateBucket, reference = n
   return dateKey >= option.weekStart && dateKey <= option.weekEnd;
 }
 
+export function hasDspRowsInDateBucket(rows: RowData[], bucket: DspDateBucket, reference = new Date()): boolean {
+  return rows.some((row) => rowMatchesDateBucket(row, bucket, reference));
+}
+
 export function filterDspRawdataRows(
   rows: RowData[],
   filters: DspRawdataFilters,
@@ -160,12 +164,7 @@ export function filterDspRawdataRows(
 
 export function resolvePreferredDspDateBucket(rows: RowData[], reference = new Date()): DspDateBucket {
   for (const bucket of DATE_BUCKET_ORDER) {
-    const range = getWeekRangeByBucket(bucket.value, reference);
-    const hasRow = rows.some((row) => {
-      const dateKey = extractDateKey(row["日期時間"]);
-      return dateKey >= range.weekStart && dateKey <= range.weekEnd;
-    });
-    if (hasRow) {
+    if (hasDspRowsInDateBucket(rows, bucket.value, reference)) {
       return bucket.value;
     }
   }
