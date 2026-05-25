@@ -344,14 +344,16 @@
 
 .rawdata-table-wrap {
   overflow: auto;
+  overscroll-behavior-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .rawdata-table-wrap-dsp {
-  max-height: 620px;
+  max-height: min(620px, calc(100vh - 220px));
 }
 
 .rawdata-table-wrap-ssp {
-  max-height: 875px;
+  max-height: min(875px, calc(100vh - 220px));
 }
 
 .rawdata-table-wrap-no-scroll {
