@@ -3,7 +3,9 @@ import {
   PivotWorkspace,
   RawdataWorkspace,
   ResultWorkspace,
+  MonthlyP4Workspace,
   SspMediaDemandWorkspace,
+  SspAdGroupMonitorWorkspace,
   SspParityWorkspace,
   Tab4Workspace,
 } from "../components/workspaces";
@@ -17,7 +19,9 @@ import type {
   Tab4TemplateSummary,
   Workflow,
   SspMediaDemandConfig,
+  SspAdGroupMonitorSnapshot,
   SspMediaDemandSlot,
+  MonthlyP4Snapshot,
 } from "../types";
 import type { DspRawdataFilters } from "../types";
 import type { RecentMap, RowData } from "../components/workspaces/shared";
@@ -64,6 +68,9 @@ type MainWorkspaceRendererProps = {
     resultState: ResultState;
     exportDeliverySnapshotToken: string;
     sspMediaDemandConfig?: SspMediaDemandConfig;
+    sspAdGroupMonitor?: SspAdGroupMonitorSnapshot;
+    monthlyP4?: MonthlyP4Snapshot;
+    monthlyP4Test?: MonthlyP4Snapshot;
     runtimeContext: RuntimeContext;
   };
   actions: {
@@ -81,6 +88,11 @@ type MainWorkspaceRendererProps = {
     handleSendPivotToTab4: () => Promise<boolean>;
     handleReturnToPivotForDelivery: () => void;
     handleSspMediaSave: (slots: SspMediaDemandSlot[]) => Promise<boolean>;
+    handleSspAdGroupRefresh: (zoneGroupId: number, date: string) => Promise<boolean>;
+    handleMonthlyP4Save: (month: string, inputs: Record<string, number>) => Promise<boolean>;
+    handleMonthlyP4TestSave: (month: string, inputs: Record<string, number>) => Promise<boolean>;
+    handleMonthlyP4TestTemplateUpload: (kind: "base" | "check", file: File) => Promise<boolean>;
+    handleMonthlyP4Close: (month: string) => Promise<{ ok: boolean; message: string }>;
   };
   rawdataView: {
     capability: RawdataCapability;
@@ -99,7 +111,9 @@ export function MainWorkspaceRenderer(props: MainWorkspaceRendererProps) {
   const { route, view, data, actions, rawdataView } = props;
   const showSspAnomalyWorkspace = route.workflow === "ssp" && route.mainTab === "ssp_anomaly";
   const showSspMediaDemandWorkspace = route.workflow === "ssp" && route.mainTab === "ssp_media_demand";
-  const hideDefaultWorkspace = showSspAnomalyWorkspace || showSspMediaDemandWorkspace;
+  const showSspAdGroupWorkspace = route.workflow === "ssp" && route.mainTab === "ssp_ad_group";
+  const showMonthlyP4Workspace = route.workflow === "monthly" && route.mainTab === "monthly_p4";
+  const hideDefaultWorkspace = showSspAnomalyWorkspace || showSspMediaDemandWorkspace || showSspAdGroupWorkspace || showMonthlyP4Workspace;
   const mainWorkspace = route.subTab === "overview" ? (
     <OverviewWorkspace
       workflow={route.workflow}
@@ -187,6 +201,15 @@ export function MainWorkspaceRenderer(props: MainWorkspaceRendererProps) {
             onSaveSlots={actions.handleSspMediaSave}
           />
         ) : null}
+        {showSspAdGroupWorkspace ? (
+          <SspAdGroupMonitorWorkspace
+            snapshot={data.sspAdGroupMonitor}
+            busy={data.busy}
+            periodWeekStart={data.periodWeekStart}
+            periodWeekEnd={data.periodWeekEnd}
+            onRefresh={actions.handleSspAdGroupRefresh}
+          />
+        ) : null}
         {view.showTab4Workspace ? (
           <Tab4Workspace
             rows={data.allRows}
@@ -204,6 +227,16 @@ export function MainWorkspaceRenderer(props: MainWorkspaceRendererProps) {
             exportDeliverySnapshotToken={data.exportDeliverySnapshotToken}
             onReturnToPivotForDelivery={actions.handleReturnToPivotForDelivery}
             onRefreshFrame={actions.refreshFrame}
+          />
+        ) : null}
+        {showMonthlyP4Workspace ? (
+          <MonthlyP4Workspace
+            snapshot={route.subTab === "pivot" ? data.monthlyP4Test : data.monthlyP4}
+            busy={data.busy}
+            onSaveInputs={route.subTab === "pivot" ? actions.handleMonthlyP4TestSave : actions.handleMonthlyP4Save}
+            onUploadTestTemplate={actions.handleMonthlyP4TestTemplateUpload}
+            onCloseMonth={actions.handleMonthlyP4Close}
+            mode={route.subTab === "rawdata" ? "maintenance" : route.subTab === "pivot" ? "test" : "output"}
           />
         ) : null}
         {!hideDefaultWorkspace && !view.showTab4Workspace ? mainWorkspace : null}

@@ -48,6 +48,19 @@ const WORKFLOW_CAPABILITY_MAP: Record<Workflow, WorkflowCapability> = {
     tab4MainTab: "",
     tab4VisibleSubTabs: [],
   },
+  monthly: {
+    workflow: "monthly",
+    rawdata: {
+      mode: "read_only",
+      canEdit: false,
+      readOnly: true,
+      readOnlyReason: "月報使用 P4(J) 專用手 key 欄位與 snapshot，不直接編輯 rawdata。",
+    },
+    periodLocked: false,
+    sspParityEnabled: false,
+    tab4MainTab: "",
+    tab4VisibleSubTabs: [],
+  },
 };
 
 export function getWorkflowCapability(workflow: Workflow): WorkflowCapability {

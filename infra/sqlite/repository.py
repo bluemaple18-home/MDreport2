@@ -99,6 +99,204 @@ CREATE INDEX IF NOT EXISTS idx_ssp_media_slots_env_category
 ON ssp_media_slots(runtime_env, category, slot_order);
 """
 
+SSP_AD_GROUP_MONITOR_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS ssp_ad_group_report_runs (
+  run_id TEXT PRIMARY KEY,
+  zone_group_id INTEGER NOT NULL DEFAULT 0,
+  start_day TEXT NOT NULL DEFAULT '',
+  end_day TEXT NOT NULL DEFAULT '',
+  report_id INTEGER NOT NULL DEFAULT 0,
+  records_total INTEGER NOT NULL DEFAULT 0,
+  row_count INTEGER NOT NULL DEFAULT 0,
+  source TEXT NOT NULL DEFAULT '',
+  request_payload_json TEXT NOT NULL DEFAULT '{}',
+  response_payload_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_ssp_ad_group_report_runs_group_range
+ON ssp_ad_group_report_runs(zone_group_id, start_day, end_day);
+
+CREATE TABLE IF NOT EXISTS ssp_ad_group_daily_metrics (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  run_id TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL DEFAULT '',
+  zone_group_id INTEGER NOT NULL DEFAULT 0,
+  zone_group_name TEXT NOT NULL DEFAULT '',
+  ad_format TEXT NOT NULL DEFAULT '',
+  price_tier TEXT NOT NULL DEFAULT '',
+  date TEXT NOT NULL DEFAULT '',
+  zone_id INTEGER NOT NULL DEFAULT 0,
+  zone_name TEXT NOT NULL DEFAULT '',
+  request REAL NOT NULL DEFAULT 0.0,
+  impress REAL NOT NULL DEFAULT 0.0,
+  active_view REAL NOT NULL DEFAULT 0.0,
+  active_view_rate REAL NOT NULL DEFAULT 0.0,
+  click REAL NOT NULL DEFAULT 0.0,
+  ctr REAL NOT NULL DEFAULT 0.0,
+  ecpm REAL NOT NULL DEFAULT 0.0,
+  ecpc REAL NOT NULL DEFAULT 0.0,
+  invalid_impress REAL NOT NULL DEFAULT 0.0,
+  invalid_click REAL NOT NULL DEFAULT 0.0,
+  profit REAL NOT NULL DEFAULT 0.0,
+  site_mu REAL NOT NULL DEFAULT 0.0,
+  advertiser_mu REAL NOT NULL DEFAULT 0.0,
+  dsp_ecpm REAL NOT NULL DEFAULT 0.0,
+  dsp_ecpc REAL NOT NULL DEFAULT 0.0,
+  updated_at TEXT NOT NULL DEFAULT '',
+  UNIQUE(zone_group_id, date, zone_id)
+);
+CREATE INDEX IF NOT EXISTS idx_ssp_ad_group_metrics_group_date
+ON ssp_ad_group_daily_metrics(zone_group_id, date);
+CREATE INDEX IF NOT EXISTS idx_ssp_ad_group_metrics_format_tier
+ON ssp_ad_group_daily_metrics(ad_format, price_tier, date);
+"""
+
+SSP_AD_GROUP_METRIC_COLUMNS = [
+    "source",
+    "zone_group_id",
+    "zone_group_name",
+    "ad_format",
+    "price_tier",
+    "date",
+    "zone_id",
+    "zone_name",
+    "request",
+    "impress",
+    "active_view",
+    "active_view_rate",
+    "click",
+    "ctr",
+    "ecpm",
+    "ecpc",
+    "invalid_impress",
+    "invalid_click",
+    "profit",
+    "site_mu",
+    "advertiser_mu",
+    "dsp_ecpm",
+    "dsp_ecpc",
+]
+
+MONTHLY_P4_TARGET_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS monthly_p4_targets (
+  target_year INTEGER NOT NULL DEFAULT 2026,
+  item_key TEXT NOT NULL DEFAULT '',
+  month_index INTEGER NOT NULL DEFAULT 1,
+  target_value REAL NOT NULL DEFAULT 0.0,
+  label TEXT NOT NULL DEFAULT '',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY(target_year, item_key, month_index)
+);
+CREATE INDEX IF NOT EXISTS idx_monthly_p4_targets_year_item
+ON monthly_p4_targets(target_year, item_key, sort_order);
+"""
+
+MONTHLY_P4_MANUAL_INPUT_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS monthly_p4_manual_inputs (
+  month TEXT NOT NULL DEFAULT '',
+  input_key TEXT NOT NULL DEFAULT '',
+  input_value REAL NOT NULL DEFAULT 0.0,
+  note TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY(month, input_key)
+);
+CREATE INDEX IF NOT EXISTS idx_monthly_p4_manual_inputs_month
+ON monthly_p4_manual_inputs(month);
+"""
+
+MONTHLY_P4_TEST_INPUT_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS monthly_p4_test_inputs (
+  test_id TEXT NOT NULL DEFAULT 'default',
+  month TEXT NOT NULL DEFAULT '',
+  input_key TEXT NOT NULL DEFAULT '',
+  input_value REAL NOT NULL DEFAULT 0.0,
+  note TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY(test_id, month, input_key)
+);
+CREATE INDEX IF NOT EXISTS idx_monthly_p4_test_inputs_case_month
+ON monthly_p4_test_inputs(test_id, month);
+"""
+
+MONTHLY_P4_TEST_TEMPLATE_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS monthly_p4_test_templates (
+  test_id TEXT NOT NULL DEFAULT 'default',
+  template_kind TEXT NOT NULL DEFAULT '',
+  original_filename TEXT NOT NULL DEFAULT '',
+  stored_path TEXT NOT NULL DEFAULT '',
+  file_size INTEGER NOT NULL DEFAULT 0,
+  sheet_names_json TEXT NOT NULL DEFAULT '[]',
+  snapshot_json TEXT NOT NULL DEFAULT '{}',
+  updated_at TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY(test_id, template_kind)
+);
+CREATE INDEX IF NOT EXISTS idx_monthly_p4_test_templates_case
+ON monthly_p4_test_templates(test_id, template_kind);
+"""
+
+MONTHLY_DSP_ARCHIVE_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS monthly_dsp_archives (
+  month TEXT PRIMARY KEY,
+  workflow TEXT NOT NULL DEFAULT 'dsp',
+  marker TEXT NOT NULL DEFAULT '',
+  source_row_count INTEGER NOT NULL DEFAULT 0,
+  archive_row_count INTEGER NOT NULL DEFAULT 0,
+  source_total REAL NOT NULL DEFAULT 0.0,
+  archive_total REAL NOT NULL DEFAULT 0.0,
+  status TEXT NOT NULL DEFAULT '',
+  detail_json TEXT NOT NULL DEFAULT '',
+  archived_at TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_monthly_dsp_archives_workflow
+ON monthly_dsp_archives(workflow, month);
+"""
+
+MONTHLY_P4_DEFAULT_TARGETS: list[dict[str, object]] = [
+    {
+        "item_key": "mf_marketing",
+        "label": "內經銷商-營銷處",
+        "sort_order": 10,
+        "values": [7193000, 5273000, 4714000, 5012000, 5551000, 6115000, 7080000, 7030000, 7030000, 7055000, 7619000, 8584000],
+    },
+    {
+        "item_key": "mf_strategy",
+        "label": "內經銷商-策略部",
+        "sort_order": 20,
+        "values": [150000, 150000, 150000, 150000, 150000, 150000, 150000, 150000, 150000, 150000, 150000, 150000],
+    },
+    {
+        "item_key": "external_total",
+        "label": "外_經銷商(自操+IO)",
+        "sort_order": 30,
+        "values": [1175000, 1175000, 1345000, 1350000, 1295000, 1455000, 1300000, 1355000, 1640000, 1285000, 1385000, 1445000],
+    },
+    {
+        "item_key": "hb_revenue",
+        "label": "串接收入 (HB)",
+        "sort_order": 40,
+        "values": [110000, 110000, 110000, 110000, 150000, 150000, 150000, 150000, 170000, 170000, 170000, 170000],
+    },
+    {
+        "item_key": "external_beiliu_io",
+        "label": "外部經銷商北流委刊IO",
+        "sort_order": 50,
+        "values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    },
+    {
+        "item_key": "data_fee",
+        "label": "數據費: 外經銷,自操額5%",
+        "sort_order": 60,
+        "values": [51250, 51250, 59750, 60000, 57250, 65250, 57500, 60250, 74000, 56750, 61250, 64250],
+    },
+    {
+        "item_key": "remaining_traffic_revenue",
+        "label": "剩餘流量變現(無成本)",
+        "sort_order": 70,
+        "values": [168000, 168000, 168000, 168000, 168000, 168000, 168000, 168000, 168000, 168000, 168000, 168000],
+    },
+]
+
 
 class SQLiteRepository:
     def __init__(self, db_path: Path, *, project_root: Path | None = None, field_contract: FieldContract | None = None) -> None:
@@ -177,6 +375,63 @@ class SQLiteRepository:
             if column_name not in existing_columns:
                 conn.execute(f"ALTER TABLE ssp_media_slots ADD COLUMN {column_name} {column_sql}")
 
+    def _ensure_ssp_ad_group_monitor_tables(self, conn: sqlite3.Connection) -> None:
+        conn.executescript(SSP_AD_GROUP_MONITOR_TABLE_SQL)
+        existing_columns = {
+            str(row[1] or "")
+            for row in conn.execute("PRAGMA table_info(ssp_ad_group_daily_metrics)").fetchall()
+            if row
+        }
+        required_columns = {
+            "zone_group_name": "TEXT NOT NULL DEFAULT ''",
+            "ad_format": "TEXT NOT NULL DEFAULT ''",
+            "price_tier": "TEXT NOT NULL DEFAULT ''",
+        }
+        for column_name, column_sql in required_columns.items():
+            if column_name not in existing_columns:
+                conn.execute(f"ALTER TABLE ssp_ad_group_daily_metrics ADD COLUMN {column_name} {column_sql}")
+
+    def _ensure_monthly_p4_tables(self, conn: sqlite3.Connection) -> None:
+        conn.executescript(MONTHLY_P4_TARGET_TABLE_SQL)
+        conn.executescript(MONTHLY_P4_MANUAL_INPUT_TABLE_SQL)
+        existing = conn.execute("SELECT COUNT(1) FROM monthly_p4_targets").fetchone()
+        if existing and int(existing[0] or 0) > 0:
+            return
+        now = _now()
+        for item in MONTHLY_P4_DEFAULT_TARGETS:
+            values = list(item["values"])
+            for idx, value in enumerate(values, start=1):
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO monthly_p4_targets(
+                      target_year, item_key, month_index, target_value, label, sort_order, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        2026,
+                        str(item["item_key"]),
+                        idx,
+                        float(value or 0.0),
+                        str(item["label"]),
+                        int(item["sort_order"]),
+                        now,
+                    ),
+                )
+
+    def _ensure_monthly_p4_test_tables(self, conn: sqlite3.Connection) -> None:
+        conn.executescript(MONTHLY_P4_TEST_INPUT_TABLE_SQL)
+        conn.executescript(MONTHLY_P4_TEST_TEMPLATE_TABLE_SQL)
+        existing_columns = {
+            str(row[1] or "")
+            for row in conn.execute("PRAGMA table_info(monthly_p4_test_templates)").fetchall()
+            if row
+        }
+        if "snapshot_json" not in existing_columns:
+            conn.execute("ALTER TABLE monthly_p4_test_templates ADD COLUMN snapshot_json TEXT NOT NULL DEFAULT '{}'")
+
+    def _ensure_monthly_dsp_archive_table(self, conn: sqlite3.Connection) -> None:
+        conn.executescript(MONTHLY_DSP_ARCHIVE_TABLE_SQL)
+
     def save_canonical_rows(self, conn: sqlite3.Connection, workflow: str, rows: list[dict]) -> int:
         self._ensure_tables(conn)
         conn.execute("DELETE FROM canonical_raw WHERE workflow = ?", (workflow,))
@@ -242,6 +497,287 @@ class SQLiteRepository:
             changed = self.save_ssp_raw_rows(conn, rows)
             conn.commit()
             return changed
+
+    def save_ssp_ad_group_report(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        run_id: str,
+        zone_group_id: int,
+        start_day: str,
+        end_day: str,
+        report_id: int,
+        records_total: int,
+        source: str,
+        request_payload: dict,
+        response_payload: dict,
+        rows: list[dict],
+    ) -> int:
+        self._ensure_ssp_ad_group_monitor_tables(conn)
+        now = _now()
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO ssp_ad_group_report_runs(
+              run_id, zone_group_id, start_day, end_day, report_id, records_total,
+              row_count, source, request_payload_json, response_payload_json, created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                run_id,
+                int(zone_group_id),
+                str(start_day),
+                str(end_day),
+                int(report_id),
+                int(records_total),
+                len(rows),
+                str(source or ""),
+                json.dumps(request_payload, ensure_ascii=False, sort_keys=True, default=str),
+                json.dumps(response_payload, ensure_ascii=False, sort_keys=True, default=str),
+                now,
+            ),
+        )
+        conn.execute(
+            """
+            DELETE FROM ssp_ad_group_daily_metrics
+            WHERE zone_group_id = ? AND date >= ? AND date <= ?
+            """,
+            (int(zone_group_id), str(start_day), str(end_day)),
+        )
+        for row in rows:
+            normalized: list[object] = []
+            for col in SSP_AD_GROUP_METRIC_COLUMNS:
+                value = row.get(col, "")
+                if col in {"zone_group_id", "zone_id"}:
+                    try:
+                        normalized.append(int(value or 0))
+                    except Exception:
+                        normalized.append(0)
+                elif col in {
+                    "request",
+                    "impress",
+                    "active_view",
+                    "active_view_rate",
+                    "click",
+                    "ctr",
+                    "ecpm",
+                    "ecpc",
+                    "invalid_impress",
+                    "invalid_click",
+                    "profit",
+                    "site_mu",
+                    "advertiser_mu",
+                    "dsp_ecpm",
+                    "dsp_ecpc",
+                }:
+                    try:
+                        normalized.append(float(value or 0.0))
+                    except Exception:
+                        normalized.append(0.0)
+                else:
+                    normalized.append(str(value or ""))
+            columns_sql = ", ".join(["run_id", *SSP_AD_GROUP_METRIC_COLUMNS, "updated_at"])
+            placeholders = ", ".join("?" for _ in range(len(SSP_AD_GROUP_METRIC_COLUMNS) + 2))
+            conn.execute(
+                f"INSERT OR REPLACE INTO ssp_ad_group_daily_metrics({columns_sql}) VALUES ({placeholders})",
+                (run_id, *normalized, now),
+            )
+        return len(rows)
+
+    def read_ssp_ad_group_metrics(
+        self,
+        *,
+        zone_group_id: int,
+        start_day: str,
+        end_day: str,
+    ) -> list[dict[str, object]]:
+        with self.connect() as conn:
+            return self.read_ssp_ad_group_metrics_in_tx(
+                conn,
+                zone_group_id=zone_group_id,
+                start_day=start_day,
+                end_day=end_day,
+            )
+
+    def read_ssp_ad_group_metrics_for_groups(
+        self,
+        *,
+        zone_group_ids: list[int],
+        start_day: str,
+        end_day: str,
+    ) -> list[dict[str, object]]:
+        with self.connect() as conn:
+            self._ensure_ssp_ad_group_monitor_tables(conn)
+            normalized_ids = [int(item) for item in zone_group_ids if int(item or 0) > 0]
+            if not normalized_ids:
+                return []
+            placeholders = ", ".join("?" for _ in normalized_ids)
+            cur = conn.execute(
+                f"""
+                SELECT id, run_id, source, zone_group_id, zone_group_name, ad_format, price_tier,
+                  date, zone_id, zone_name, request, impress, active_view, active_view_rate,
+                  click, ctr, ecpm, ecpc, invalid_impress, invalid_click, profit, site_mu,
+                  advertiser_mu, dsp_ecpm, dsp_ecpc, updated_at
+                FROM ssp_ad_group_daily_metrics
+                WHERE zone_group_id IN ({placeholders}) AND date >= ? AND date <= ?
+                ORDER BY date DESC, zone_group_id ASC, request DESC, zone_id ASC
+                """,
+                (*normalized_ids, str(start_day), str(end_day)),
+            )
+            keys = [
+                "id",
+                "run_id",
+                "source",
+                "zone_group_id",
+                "zone_group_name",
+                "ad_format",
+                "price_tier",
+                "date",
+                "zone_id",
+                "zone_name",
+                "request",
+                "impress",
+                "active_view",
+                "active_view_rate",
+                "click",
+                "ctr",
+                "ecpm",
+                "ecpc",
+                "invalid_impress",
+                "invalid_click",
+                "profit",
+                "site_mu",
+                "advertiser_mu",
+                "dsp_ecpm",
+                "dsp_ecpc",
+                "updated_at",
+            ]
+            return [dict(zip(keys, raw)) for raw in cur.fetchall()]
+
+    def read_latest_ssp_ad_group_runs(
+        self,
+        *,
+        zone_group_ids: list[int],
+    ) -> list[dict[str, object]]:
+        with self.connect() as conn:
+            self._ensure_ssp_ad_group_monitor_tables(conn)
+            normalized_ids = [int(item) for item in zone_group_ids if int(item or 0) > 0]
+            if not normalized_ids:
+                return []
+            placeholders = ", ".join("?" for _ in normalized_ids)
+            cur = conn.execute(
+                f"""
+                SELECT r.run_id, r.zone_group_id, r.start_day, r.end_day, r.report_id,
+                  r.records_total, r.row_count, r.source, r.created_at
+                FROM ssp_ad_group_report_runs r
+                JOIN (
+                  SELECT zone_group_id, MAX(created_at) AS latest_created_at
+                  FROM ssp_ad_group_report_runs
+                  WHERE zone_group_id IN ({placeholders})
+                  GROUP BY zone_group_id
+                ) latest
+                  ON latest.zone_group_id = r.zone_group_id
+                 AND latest.latest_created_at = r.created_at
+                ORDER BY r.zone_group_id ASC
+                """,
+                tuple(normalized_ids),
+            )
+            return [
+                {
+                    "run_id": str(raw[0] or ""),
+                    "zone_group_id": int(raw[1] or 0),
+                    "start_day": str(raw[2] or ""),
+                    "end_day": str(raw[3] or ""),
+                    "report_id": int(raw[4] or 0),
+                    "records_total": int(raw[5] or 0),
+                    "row_count": int(raw[6] or 0),
+                    "source": str(raw[7] or ""),
+                    "created_at": str(raw[8] or ""),
+                }
+                for raw in cur.fetchall()
+            ]
+
+    def read_ssp_ad_group_metrics_in_tx(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        zone_group_id: int,
+        start_day: str,
+        end_day: str,
+    ) -> list[dict[str, object]]:
+        self._ensure_ssp_ad_group_monitor_tables(conn)
+        cur = conn.execute(
+            """
+            SELECT id, run_id, source, zone_group_id, zone_group_name, ad_format, price_tier,
+              date, zone_id, zone_name, request, impress, active_view, active_view_rate,
+              click, ctr, ecpm, ecpc, invalid_impress, invalid_click, profit, site_mu,
+              advertiser_mu, dsp_ecpm, dsp_ecpc, updated_at
+            FROM ssp_ad_group_daily_metrics
+            WHERE zone_group_id = ? AND date >= ? AND date <= ?
+            ORDER BY date DESC, request DESC, zone_id ASC
+            """,
+            (int(zone_group_id), str(start_day), str(end_day)),
+        )
+        keys = [
+            "id",
+            "run_id",
+            "source",
+            "zone_group_id",
+            "zone_group_name",
+            "ad_format",
+            "price_tier",
+            "date",
+            "zone_id",
+            "zone_name",
+            "request",
+            "impress",
+            "active_view",
+            "active_view_rate",
+            "click",
+            "ctr",
+            "ecpm",
+            "ecpc",
+            "invalid_impress",
+            "invalid_click",
+            "profit",
+            "site_mu",
+            "advertiser_mu",
+            "dsp_ecpm",
+            "dsp_ecpc",
+            "updated_at",
+        ]
+        return [dict(zip(keys, raw)) for raw in cur.fetchall()]
+
+    def read_latest_ssp_ad_group_run(
+        self,
+        *,
+        zone_group_id: int,
+    ) -> dict[str, object] | None:
+        with self.connect() as conn:
+            self._ensure_ssp_ad_group_monitor_tables(conn)
+            raw = conn.execute(
+                """
+                SELECT run_id, zone_group_id, start_day, end_day, report_id, records_total, row_count, source, created_at
+                FROM ssp_ad_group_report_runs
+                WHERE zone_group_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (int(zone_group_id),),
+            ).fetchone()
+        if not raw:
+            return None
+        return {
+            "run_id": str(raw[0] or ""),
+            "zone_group_id": int(raw[1] or 0),
+            "start_day": str(raw[2] or ""),
+            "end_day": str(raw[3] or ""),
+            "report_id": int(raw[4] or 0),
+            "records_total": int(raw[5] or 0),
+            "row_count": int(raw[6] or 0),
+            "source": str(raw[7] or ""),
+            "created_at": str(raw[8] or ""),
+        }
 
     def read_ssp_media_slots(self, runtime_env: str) -> list[dict]:
         with self.connect() as conn:
@@ -587,6 +1123,191 @@ class SQLiteRepository:
         with self.connect() as conn:
             self._ensure_tables(conn)
             return self.read_canonical_rows_in_tx(conn, workflow)
+
+    def read_monthly_p4_targets_in_tx(self, conn: sqlite3.Connection, target_year: int) -> list[dict]:
+        self._ensure_monthly_p4_tables(conn)
+        rows: list[dict] = []
+        for row in conn.execute(
+            """
+            SELECT item_key, month_index, target_value, label, sort_order
+            FROM monthly_p4_targets
+            WHERE target_year = ?
+            ORDER BY sort_order ASC, item_key ASC, month_index ASC
+            """,
+            (target_year,),
+        ).fetchall():
+            rows.append(
+                {
+                    "item_key": str(row[0] or ""),
+                    "month_index": int(row[1] or 0),
+                    "target_value": float(row[2] or 0.0),
+                    "label": str(row[3] or ""),
+                    "sort_order": int(row[4] or 0),
+                }
+            )
+        return rows
+
+    def read_monthly_p4_manual_inputs_in_tx(self, conn: sqlite3.Connection, months: list[str]) -> dict[str, dict[str, float]]:
+        self._ensure_monthly_p4_tables(conn)
+        if not months:
+            return {}
+        placeholders = ", ".join("?" for _ in months)
+        out: dict[str, dict[str, float]] = {month: {} for month in months}
+        for row in conn.execute(
+            f"""
+            SELECT month, input_key, input_value
+            FROM monthly_p4_manual_inputs
+            WHERE month IN ({placeholders})
+            ORDER BY month ASC, input_key ASC
+            """,
+            tuple(months),
+        ).fetchall():
+            month = str(row[0] or "")
+            key = str(row[1] or "")
+            if month and key:
+                out.setdefault(month, {})[key] = float(row[2] or 0.0)
+        return out
+
+    def read_monthly_p4_test_inputs_in_tx(self, conn: sqlite3.Connection, months: list[str], test_id: str = "default") -> dict[str, dict[str, float]]:
+        self._ensure_monthly_p4_test_tables(conn)
+        if not months:
+            return {}
+        placeholders = ", ".join("?" for _ in months)
+        out: dict[str, dict[str, float]] = {month: {} for month in months}
+        for row in conn.execute(
+            f"""
+            SELECT month, input_key, input_value
+            FROM monthly_p4_test_inputs
+            WHERE test_id = ? AND month IN ({placeholders})
+            ORDER BY month ASC, input_key ASC
+            """,
+            (test_id, *tuple(months)),
+        ).fetchall():
+            month = str(row[0] or "")
+            key = str(row[1] or "")
+            if month and key:
+                out.setdefault(month, {})[key] = float(row[2] or 0.0)
+        return out
+
+    def replace_monthly_p4_manual_inputs_in_tx(self, conn: sqlite3.Connection, month: str, inputs: dict[str, object]) -> int:
+        self._ensure_monthly_p4_tables(conn)
+        now = _now()
+        written = 0
+        for key, value in inputs.items():
+            key_text = str(key or "").strip()
+            if not key_text:
+                continue
+            try:
+                number = float(value or 0.0)
+            except Exception:
+                number = 0.0
+            conn.execute(
+                """
+                INSERT INTO monthly_p4_manual_inputs(month, input_key, input_value, note, updated_at)
+                VALUES (?, ?, ?, '', ?)
+                ON CONFLICT(month, input_key)
+                DO UPDATE SET input_value=excluded.input_value, updated_at=excluded.updated_at
+                """,
+                (month, key_text, number, now),
+            )
+            written += 1
+        return written
+
+    def replace_monthly_p4_test_inputs_in_tx(self, conn: sqlite3.Connection, month: str, inputs: dict[str, object], test_id: str = "default") -> int:
+        self._ensure_monthly_p4_test_tables(conn)
+        now = _now()
+        written = 0
+        for key, value in inputs.items():
+            key_text = str(key or "").strip()
+            if not key_text:
+                continue
+            try:
+                number = float(value or 0.0)
+            except Exception:
+                number = 0.0
+            conn.execute(
+                """
+                INSERT INTO monthly_p4_test_inputs(test_id, month, input_key, input_value, note, updated_at)
+                VALUES (?, ?, ?, ?, '', ?)
+                ON CONFLICT(test_id, month, input_key)
+                DO UPDATE SET input_value=excluded.input_value, updated_at=excluded.updated_at
+                """,
+                (test_id, month, key_text, number, now),
+            )
+            written += 1
+        return written
+
+    def read_monthly_p4_test_templates_in_tx(self, conn: sqlite3.Connection, test_id: str = "default") -> dict[str, dict[str, object]]:
+        self._ensure_monthly_p4_test_tables(conn)
+        out: dict[str, dict[str, object]] = {}
+        rows = conn.execute(
+            """
+            SELECT template_kind, original_filename, stored_path, file_size, sheet_names_json, snapshot_json, updated_at
+            FROM monthly_p4_test_templates
+            WHERE test_id = ?
+            ORDER BY template_kind ASC
+            """,
+            (test_id,),
+        ).fetchall()
+        for row in rows:
+            try:
+                sheet_names = json.loads(str(row[4] or "[]"))
+            except json.JSONDecodeError:
+                sheet_names = []
+            try:
+                snapshot = json.loads(str(row[5] or "{}"))
+            except json.JSONDecodeError:
+                snapshot = {}
+            out[str(row[0] or "")] = {
+                "kind": str(row[0] or ""),
+                "filename": str(row[1] or ""),
+                "storedPath": str(row[2] or ""),
+                "fileSize": int(row[3] or 0),
+                "sheetNames": sheet_names if isinstance(sheet_names, list) else [],
+                "snapshot": snapshot if isinstance(snapshot, dict) else {},
+                "updatedAt": str(row[6] or ""),
+            }
+        return out
+
+    def replace_monthly_p4_test_template_in_tx(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        test_id: str,
+        template_kind: str,
+        original_filename: str,
+        stored_path: str,
+        file_size: int,
+        sheet_names: list[str],
+        snapshot: dict[str, object] | None = None,
+    ) -> None:
+        self._ensure_monthly_p4_test_tables(conn)
+        conn.execute(
+            """
+            INSERT INTO monthly_p4_test_templates(
+              test_id, template_kind, original_filename, stored_path, file_size, sheet_names_json, snapshot_json, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(test_id, template_kind)
+            DO UPDATE SET
+              original_filename=excluded.original_filename,
+              stored_path=excluded.stored_path,
+              file_size=excluded.file_size,
+              sheet_names_json=excluded.sheet_names_json,
+              snapshot_json=excluded.snapshot_json,
+              updated_at=excluded.updated_at
+            """,
+            (
+                test_id,
+                template_kind,
+                original_filename,
+                stored_path,
+                int(file_size),
+                json.dumps(sheet_names, ensure_ascii=False),
+                json.dumps(snapshot or {}, ensure_ascii=False),
+                _now(),
+            ),
+        )
 
     def read_ssp_raw_rows(self) -> list[dict]:
         with self.connect() as conn:

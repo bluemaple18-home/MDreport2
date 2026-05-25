@@ -50,6 +50,8 @@ export const ACCEPTANCE_SELECTORS = {
   mainTabDspTab4: "main-tab-dsp-tab4",
   mainTabSspAnomaly: "main-tab-ssp-anomaly",
   mainTabSspMediaDemand: "main-tab-ssp-media-demand",
+  mainTabSspAdGroup: "main-tab-ssp-ad-group",
+  mainTabMonthlyP4: "main-tab-monthly-p4",
   subTabs: "sub-tabs",
   subTabOverview: "sub-tab-overview",
   subTabRawdata: "sub-tab-rawdata",
@@ -206,10 +208,33 @@ function lastNDaysRange(days: number): { weekStart: string; weekEnd: string } {
 }
 
 export function buildDefaultPeriodState(workflow: Workflow = "dsp"): PeriodState {
-  if (workflow === "ssp") {
-    const range = lastNDaysRange(7);
+  if (workflow === "monthly") {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now);
+    end.setDate(now.getDate() - 1);
+    const range = {
+      weekStart: toDateIso(start),
+      weekEnd: toDateIso(end),
+    };
     return {
-      preset: "last_7_days",
+      preset: "custom",
+      weekStart: range.weekStart,
+      weekEnd: range.weekEnd,
+      label: `${range.weekStart} ~ ${range.weekEnd}`,
+    };
+  }
+  if (workflow === "ssp") {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now);
+    end.setDate(now.getDate() - 1);
+    const range = {
+      weekStart: toDateIso(start),
+      weekEnd: toDateIso(end),
+    };
+    return {
+      preset: "current_month",
       weekStart: range.weekStart,
       weekEnd: range.weekEnd,
       label: `${range.weekStart} ~ ${range.weekEnd}`,
@@ -225,7 +250,7 @@ export function buildDefaultPeriodState(workflow: Workflow = "dsp"): PeriodState
 }
 
 function parseWorkflow(raw: string | null): Workflow | null {
-  return raw === "dsp" || raw === "ssp" ? raw : null;
+  return raw === "dsp" || raw === "ssp" || raw === "monthly" ? raw : null;
 }
 
 function parseMainTab(raw: string | null): MainTab | null {
@@ -234,6 +259,8 @@ function parseMainTab(raw: string | null): MainTab | null {
     || raw === "dsp_tab4"
     || raw === "ssp_anomaly"
     || raw === "ssp_media_demand"
+    || raw === "ssp_ad_group"
+    || raw === "monthly_p4"
   ) {
     return raw;
   }
@@ -253,14 +280,18 @@ function parsePeriodPreset(raw: string | null): PeriodPreset | null {
     || raw === "three_weeks_ago"
     || raw === "four_weeks_ago"
     || raw === "current_week"
+    || raw === "current_month"
     || raw === "last_7_days"
     || raw === "last_14_days"
     || raw === "custom" ? raw : null;
 }
 
 function normalizePeriodPresetByWorkflow(workflow: Workflow, preset: PeriodPreset | null, fallback: PeriodPreset): PeriodPreset {
+  if (workflow === "monthly") {
+    return "custom";
+  }
   if (workflow === "ssp") {
-    return preset === "custom" || preset === "last_7_days" || preset === "last_14_days" ? preset : fallback;
+    return preset === "custom" || preset === "current_month" || preset === "last_7_days" || preset === "last_14_days" ? preset : fallback;
   }
   return preset === "last_week"
     || preset === "two_weeks_ago"
@@ -290,6 +321,18 @@ function applyPreset(preset: PeriodPreset, fallback: PeriodState): PeriodState {
       ...fallback,
       preset,
       label: buildPeriodLabel(fallback.weekStart, fallback.weekEnd),
+    };
+  }
+  if (preset === "current_month") {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now);
+    end.setDate(now.getDate() - 1);
+    return {
+      preset,
+      weekStart: toDateIso(start),
+      weekEnd: toDateIso(end),
+      label: buildPeriodLabel(toDateIso(start), toDateIso(end)),
     };
   }
   if (preset === "last_14_days") {
@@ -337,10 +380,16 @@ type PersistedState = {
 };
 
 export function getMainTabOptions(workflow: Workflow): Array<{ value: MainTab; label: string }> {
+  if (workflow === "monthly") {
+    return [
+      { value: "monthly_p4", label: "P4(J) 月報" },
+    ];
+  }
   if (workflow === "ssp") {
     return [
       { value: "ssp_anomaly", label: "成效救火" },
       { value: "ssp_media_demand", label: "媒體要量" },
+      { value: "ssp_ad_group", label: "廣告群組成效" },
     ];
   }
   return [
@@ -350,7 +399,14 @@ export function getMainTabOptions(workflow: Workflow): Array<{ value: MainTab; l
 }
 
 export function getSubTabOptions(mainTab: MainTab): Array<{ value: SubTab; label: string }> {
-  if (mainTab === "ssp_anomaly" || mainTab === "ssp_media_demand") {
+  if (mainTab === "monthly_p4") {
+    return [
+      { value: "rawdata", label: "資料維護" },
+      { value: "overview", label: "月報輸出" },
+      { value: "pivot", label: "測試" },
+    ];
+  }
+  if (mainTab === "ssp_anomaly" || mainTab === "ssp_media_demand" || mainTab === "ssp_ad_group") {
     return [];
   }
   if (mainTab === "dsp_tab4") {
@@ -368,6 +424,9 @@ export function getSubTabOptions(mainTab: MainTab): Array<{ value: SubTab; label
 }
 
 export function defaultMainTabByWorkflow(workflow: Workflow): MainTab {
+  if (workflow === "monthly") {
+    return "monthly_p4";
+  }
   return workflow === "ssp" ? "ssp_anomaly" : "dsp_tab3";
 }
 
@@ -431,14 +490,21 @@ export function restorePersistedState(): PersistedState {
     workflowFallbackPeriod.preset,
   );
 
-  const weekStart = params.get(QUERY_KEYS.periodWeekStart)
+  const queryWeekStart = params.get(QUERY_KEYS.periodWeekStart);
+  const queryWeekEnd = params.get(QUERY_KEYS.periodWeekEnd);
+  const weekStart = queryWeekStart
     || sessionParsed.period?.weekStart
     || workflowFallbackPeriod.weekStart;
-  const weekEnd = params.get(QUERY_KEYS.periodWeekEnd)
+  const weekEnd = queryWeekEnd
     || sessionParsed.period?.weekEnd
     || workflowFallbackPeriod.weekEnd;
 
-  const currentPeriod = applyPreset(periodPreset, {
+  const currentPeriod = queryWeekStart && queryWeekEnd ? {
+    preset: periodPreset,
+    weekStart: queryWeekStart,
+    weekEnd: queryWeekEnd,
+    label: buildPeriodLabel(queryWeekStart, queryWeekEnd),
+  } : applyPreset(periodPreset, {
     preset: "custom",
     weekStart,
     weekEnd,

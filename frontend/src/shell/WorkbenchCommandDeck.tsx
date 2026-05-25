@@ -247,16 +247,21 @@ export function WorkbenchCommandDeck({
   onPeriodRangeChange,
 }: WorkbenchCommandDeckProps) {
   const isSspWorkflow = workflow === "ssp";
+  const isMonthlyWorkflow = workflow === "monthly";
   const hasSubTabs = subTabOptions.length > 0;
-  const periodPresetOptions = isSspWorkflow
+  const periodPresetOptions = isSspWorkflow || isMonthlyWorkflow
     ? [
+      { value: "current_month", label: "本月" },
       { value: "last_7_days", label: "最近 7 天" },
     ]
     : buildDspDateOptions();
-  const periodSubtitle = isSspWorkflow
-    ? "SSP 預設最近 7 天，可自由拉取日期區間"
+  const periodSubtitle = isMonthlyWorkflow
+    ? "月報以日期區間的結束月份作為最新月，顯示近三個月。"
+    : isSspWorkflow
+    ? "SSP 預設本月，可自由拉取日期區間"
     : "DSP 週期篩選（以完整週為單位）";
-  const sspPeriodModeText = periodPreset === "custom" ? "目前：自訂區間" : "目前：最近 7 天";
+  const sspPeriodModeText = periodPreset === "custom" ? "目前：自訂區間" : periodPreset === "current_month" ? "目前：本月" : "目前：最近 7 天";
+  const monthlyPeriodModeText = `最新月：${periodWeekEnd.slice(0, 7) || "未選"}`;
 
   return (
     <section className="panel panel-full workbench-command-deck">
@@ -303,6 +308,8 @@ export function WorkbenchCommandDeck({
                   if (tab.value === "dsp_tab4") testId = ACCEPTANCE_SELECTORS.mainTabDspTab4;
                   if (tab.value === "ssp_anomaly") testId = ACCEPTANCE_SELECTORS.mainTabSspAnomaly;
                   if (tab.value === "ssp_media_demand") testId = ACCEPTANCE_SELECTORS.mainTabSspMediaDemand;
+                  if (tab.value === "ssp_ad_group") testId = ACCEPTANCE_SELECTORS.mainTabSspAdGroup;
+                  if (tab.value === "monthly_p4") testId = ACCEPTANCE_SELECTORS.mainTabMonthlyP4;
                   return (
                     <ActionButton
                       key={tab.value}
@@ -358,18 +365,30 @@ export function WorkbenchCommandDeck({
               subtitle={periodSubtitle}
               testId={ACCEPTANCE_SELECTORS.periodSelector}
             >
-              <div className={isSspWorkflow ? "grid-2" : "grid-1"}>
-                {isSspWorkflow ? (
+              <div className={isSspWorkflow || isMonthlyWorkflow ? "grid-2" : "grid-1"}>
+                {isSspWorkflow || isMonthlyWorkflow ? (
                   <Field label="Period Preset">
                     <div className="period-preset-stack">
-                      <ActionButton
-                        label="套用最近 7 天"
-                        variant={periodPreset === "last_7_days" ? "primary" : "ghost"}
-                        onClick={() => onPeriodPresetChange("last_7_days")}
-                        disabled={dspPeriodLocked}
-                        testId={ACCEPTANCE_SELECTORS.periodPreset}
-                      />
-                      <span className="period-mode-note">{sspPeriodModeText}</span>
+                      {isMonthlyWorkflow ? (
+                        <span className="period-mode-note">{monthlyPeriodModeText}</span>
+                      ) : (
+                        <div className="btn-row">
+                          <ActionButton
+                            label="本月"
+                            variant={periodPreset === "current_month" ? "primary" : "ghost"}
+                            onClick={() => onPeriodPresetChange("current_month")}
+                            disabled={dspPeriodLocked}
+                            testId={ACCEPTANCE_SELECTORS.periodPreset}
+                          />
+                          <ActionButton
+                            label="最近 7 天"
+                            variant={periodPreset === "last_7_days" ? "primary" : "ghost"}
+                            onClick={() => onPeriodPresetChange("last_7_days")}
+                            disabled={dspPeriodLocked}
+                          />
+                        </div>
+                      )}
+                      <span className="period-mode-note">{isMonthlyWorkflow ? "近三個月比較" : sspPeriodModeText}</span>
                     </div>
                   </Field>
                 ) : (
@@ -386,7 +405,7 @@ export function WorkbenchCommandDeck({
                     </select>
                   </Field>
                 )}
-                {isSspWorkflow ? (
+                {isSspWorkflow || isMonthlyWorkflow ? (
                   <Field label="Date Range">
                     <SspDateRangePicker
                       start={periodWeekStart}

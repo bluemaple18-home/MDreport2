@@ -4,8 +4,11 @@ import json
 import os
 import hashlib
 import re
-from datetime import date, timedelta
+import calendar
+import base64
+from datetime import date, datetime, timedelta
 from dataclasses import replace
+from io import BytesIO
 from pathlib import Path
 
 from openpyxl import Workbook, load_workbook
@@ -13,7 +16,12 @@ from openpyxl.utils import get_column_letter
 
 from infra.dsp_api import DspApiClient, normalize_dsp_report_rows, resolve_dsp_api_settings
 from infra.sqlite.repository import SQLiteRepository
-from infra.ssp_api import SspApiClient, normalize_ssp_report_rows, resolve_ssp_api_settings
+from infra.ssp_api import (
+    SspApiClient,
+    normalize_ssp_ad_group_report_rows,
+    normalize_ssp_report_rows,
+    resolve_ssp_api_settings,
+)
 
 DSP_TEMPLATE_SHEET_NAMES = [
     "2025年_MF_合作績效統計總表",
@@ -39,6 +47,67 @@ TEMPLATE_MMDD_RANGE_RE = re.compile(r"_(\d{4})-(\d{4})$")
 WORKBOOK_ILLEGAL_CHAR_RE = re.compile(r"[\x00-\x08\x0B-\x0C\x0E-\x1F]")
 
 TAB4_MONTH_LABELS = [f"{idx + 1}月" for idx in range(MONTH_COUNT)]
+MONTHLY_P4_MANUAL_INPUTS = [
+    {"key": "external_io_momo", "label": "外部 IO momo"},
+    {"key": "external_io_live", "label": "外部 IO 直播"},
+    {"key": "hb_revenue", "label": "串接收入 (HB)"},
+    {"key": "external_beiliu_io", "label": "外部經銷商 北流委刊IO"},
+    {"key": "remaining_traffic_revenue", "label": "剩餘流量變現(無成本)"},
+    {"key": "data_monetization_adjustment", "label": "數據變現補值"},
+]
+MONTHLY_P4_TEST_TEMPLATE_KINDS = {
+    "base": "基礎模板",
+    "check": "檢核模板",
+}
+MONTHLY_P4_SNAPSHOT_ROW_SPECS = [
+    ("product_total", ["產品處廣告總營收", "廣告總營收"]),
+    ("mf_marketing", ["內經銷商營銷處", "營銷處"]),
+    ("mf_strategy", ["內經銷商策略部", "策略部"]),
+    ("external_total", ["外經銷商自操io", "外經銷商"]),
+    ("hb_revenue", ["串接收入hb", "串接收入"]),
+    ("external_beiliu_io", ["北流委刊io", "北流"]),
+    ("data_fee", ["數據費", "數據變現"]),
+    ("remaining_traffic_revenue", ["剩餘流量變現"]),
+    ("mf_total", ["mltiforce總目標", "mtliforce總目標", "multiforce總目標"]),
+]
+MONTHLY_P4_MONTH_LABELS = {
+    "jan": "2026-01", "january": "2026-01", "1月": "2026-01", "01月": "2026-01",
+    "feb": "2026-02", "february": "2026-02", "2月": "2026-02", "02月": "2026-02",
+    "mar": "2026-03", "march": "2026-03", "3月": "2026-03", "03月": "2026-03",
+    "apr": "2026-04", "april": "2026-04", "4月": "2026-04", "04月": "2026-04",
+    "may": "2026-05", "5月": "2026-05", "05月": "2026-05",
+    "jun": "2026-06", "june": "2026-06", "6月": "2026-06", "06月": "2026-06",
+    "jul": "2026-07", "july": "2026-07", "7月": "2026-07", "07月": "2026-07",
+    "aug": "2026-08", "august": "2026-08", "8月": "2026-08", "08月": "2026-08",
+    "sep": "2026-09", "sept": "2026-09", "september": "2026-09", "9月": "2026-09", "09月": "2026-09",
+    "oct": "2026-10", "october": "2026-10", "10月": "2026-10",
+    "nov": "2026-11", "november": "2026-11", "11月": "2026-11",
+    "dec": "2026-12", "december": "2026-12", "12月": "2026-12",
+    "total": "total", "ttl": "total",
+}
+MONTHLY_DSP_ARCHIVE_ORDER_MARKER_PREFIX = "MONTHLY_ARCHIVE_DSP"
+SSP_AD_GROUP_CATALOG = [
+    {"id": 330, "name": "文中創意 高價版位", "format": "文中創意", "tier": "高"},
+    {"id": 329, "name": "文中創意 中價版位", "format": "文中創意", "tier": "中"},
+    {"id": 328, "name": "文中創意 低價版位", "format": "文中創意", "tier": "低"},
+    {"id": 327, "name": "純蓋板 高價版位", "format": "純蓋板", "tier": "高"},
+    {"id": 326, "name": "純蓋板 中價版位", "format": "純蓋板", "tier": "中"},
+    {"id": 325, "name": "純蓋板 低價版位", "format": "純蓋板", "tier": "低"},
+    {"id": 324, "name": "置底展開 高價版位", "format": "置底展開", "tier": "高"},
+    {"id": 323, "name": "置底展開 中價版位", "format": "置底展開", "tier": "中"},
+    {"id": 322, "name": "置底展開 低價版位", "format": "置底展開", "tier": "低"},
+    {"id": 321, "name": "置底非展開 高價版位", "format": "置底非展開", "tier": "高"},
+    {"id": 320, "name": "置底非展開 中價版位", "format": "置底非展開", "tier": "中"},
+    {"id": 319, "name": "置底非展開 低價版位", "format": "置底非展開", "tier": "低"},
+    {"id": 318, "name": "展示型 高價版位", "format": "展示型", "tier": "高"},
+    {"id": 317, "name": "展示型 中價版位", "format": "展示型", "tier": "中"},
+    {"id": 316, "name": "展示型 低價版位", "format": "展示型", "tier": "低"},
+    {"id": 335, "name": "知名媒體 高價版位 BN", "format": "知名媒體 BN", "tier": "高"},
+    {"id": 334, "name": "知名媒體 中價版位 BN", "format": "知名媒體 BN", "tier": "中"},
+    {"id": 333, "name": "知名媒體 低價版位 BN", "format": "知名媒體 BN", "tier": "低"},
+]
+SSP_AD_GROUP_CATALOG_BY_ID = {int(item["id"]): item for item in SSP_AD_GROUP_CATALOG}
+SSP_AD_GROUP_METRICS = ["request", "impress", "click", "ctr", "ecpm", "ecpc", "advertiser_mu"]
 TAB4_DETAIL_SECTION_SPECS = [
     {
         "id": "marketing",
@@ -174,6 +243,44 @@ def _inclusive_day_texts(start_day: str, end_day: str) -> set[str]:
     return days
 
 
+def _month_text_from_date_text(value: str) -> str:
+    raw = str(value or "").strip().replace("/", "-")
+    return raw[:7] if re.match(r"^\d{4}-\d{2}", raw) else ""
+
+
+def _shift_month(month_text: str, offset: int) -> str:
+    year, month = [int(part) for part in month_text.split("-")]
+    month_index = year * 12 + (month - 1) + offset
+    next_year = month_index // 12
+    next_month = month_index % 12 + 1
+    return f"{next_year:04d}-{next_month:02d}"
+
+
+def _year_month_from_month_text(month_text: str) -> tuple[int, int]:
+    year, month = [int(part) for part in month_text.split("-")]
+    return year, month - 1
+
+
+def _month_window_from_period(*, week_start: str | None, week_end: str | None) -> tuple[str, list[str]]:
+    anchor = _month_text_from_date_text(week_end or "") or _month_text_from_date_text(week_start or "")
+    if not anchor:
+        today = date.today()
+        month_index = today.year * 12 + today.month - 1
+        anchor = f"{month_index // 12:04d}-{month_index % 12 + 1:02d}"
+    return anchor, [_shift_month(anchor, -2), _shift_month(anchor, -1), anchor]
+
+
+def _month_year_window(anchor_month: str) -> list[str]:
+    year, _month_idx = _year_month_from_month_text(anchor_month)
+    return [f"{year:04d}-{month_idx:02d}" for month_idx in range(1, 13)]
+
+
+def _month_date_range(month_text: str) -> tuple[str, str]:
+    year, month = [int(part) for part in month_text.split("-")]
+    last_day = calendar.monthrange(year, month)[1]
+    return f"{year:04d}-{month:02d}-01", f"{year:04d}-{month:02d}-{last_day:02d}"
+
+
 def _to_number(value: object) -> float:
     if isinstance(value, (int, float)):
         out = float(value)
@@ -211,9 +318,48 @@ def _same_cell_value(left: object, right: object, *, tol: float = 1e-6) -> bool:
     return left == right
 
 
+def _normalize_p4_token(value: object) -> str:
+    return re.sub(r"[^0-9a-zA-Z\u4e00-\u9fff]+", "", str(value or "").strip()).lower()
+
+
+def _coerce_p4_numeric(value: object, *, metric: str) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        number = float(value)
+    else:
+        text = str(value).strip()
+        if not text or text in {"-", "－"}:
+            return None
+        is_percent = "%" in text
+        cleaned = re.sub(r"[^0-9.\-]", "", text)
+        if cleaned in {"", "-", "."}:
+            return None
+        try:
+            number = float(cleaned)
+        except ValueError:
+            return None
+        if is_percent:
+            return number
+    if metric == "rate" and abs(number) <= 10:
+        return number * 100
+    return number
+
+
+def _display_p4_value(value: float, *, metric: str) -> float:
+    return float(round(value))
+
+
 class CanonicalService:
-    def __init__(self, repo: SQLiteRepository, *, feature_flags: dict[str, bool] | None = None) -> None:
+    def __init__(
+        self,
+        repo: SQLiteRepository,
+        *,
+        feature_flags: dict[str, bool] | None = None,
+        monthly_test_repo: SQLiteRepository | None = None,
+    ) -> None:
         self.repo = repo
+        self.monthly_test_repo = monthly_test_repo or repo
         self._field_contract = repo.field_contract
         self._feature_flags = feature_flags or {}
 
@@ -226,6 +372,701 @@ class CanonicalService:
         if not self._feature_flags.get("enable_test_hooks", False):
             return {}
         return {"test_hooks_enabled": True}
+
+    def _target_map_for_year(self, conn, target_year: int) -> dict[str, dict[int, float]]:
+        out: dict[str, dict[int, float]] = {}
+        for row in self.repo.read_monthly_p4_targets_in_tx(conn, target_year):
+            out.setdefault(str(row["item_key"]), {})[int(row["month_index"])] = float(row["target_value"] or 0.0)
+        return out
+
+    def _target_value(self, targets: dict[str, dict[int, float]], item_key: str, month_text: str) -> float:
+        month_index = int(month_text.split("-")[1])
+        return float(targets.get(item_key, {}).get(month_index, 0.0))
+
+    def _target_value_for_month(
+        self,
+        targets_by_year: dict[int, dict[str, dict[int, float]]],
+        item_key: str,
+        month_text: str,
+    ) -> float:
+        target_year, _month_idx = _year_month_from_month_text(month_text)
+        return self._target_value(targets_by_year.get(target_year, {}), item_key, month_text)
+
+    def _monthly_p4_entry_key(self, item_key: str, metric: str, month: str) -> str:
+        return f"{item_key}.{metric}.{month}"
+
+    def _monthly_p4_snapshot_from_payloads(self, month_payloads: list[dict[str, object]]) -> dict[str, object]:
+        entries: dict[str, dict[str, object]] = {}
+        item_keys = [
+            "product_total",
+            "mf_marketing",
+            "mf_strategy",
+            "external_total",
+            "hb_revenue",
+            "external_beiliu_io",
+            "data_fee",
+            "remaining_traffic_revenue",
+            "mf_total",
+        ]
+        for raw_month in month_payloads:
+            month = str(raw_month.get("month") or "")
+            if not month:
+                continue
+            targets = raw_month.get("targets") if isinstance(raw_month.get("targets"), dict) else {}
+            actuals = raw_month.get("actuals") if isinstance(raw_month.get("actuals"), dict) else {}
+            for item_key in item_keys:
+                target = float(targets.get(item_key, 0.0) or 0.0)
+                actual = float(actuals.get(item_key, 0.0) or 0.0)
+                for metric, value in (
+                    ("target", target),
+                    ("actual", actual),
+                    ("rate", (actual / target * 100.0) if target else 0.0),
+                ):
+                    entries[self._monthly_p4_entry_key(item_key, metric, month)] = {
+                        "itemKey": item_key,
+                        "metric": metric,
+                        "month": month,
+                        "value": _display_p4_value(value, metric=metric),
+                        "source": "runtime",
+                    }
+        months = [str(item.get("month") or "") for item in month_payloads if str(item.get("month") or "")]
+        for item_key in item_keys:
+            target_total = 0.0
+            actual_total = 0.0
+            for month in months:
+                target_total += float(entries.get(self._monthly_p4_entry_key(item_key, "target", month), {}).get("value", 0.0) or 0.0)
+                actual_total += float(entries.get(self._monthly_p4_entry_key(item_key, "actual", month), {}).get("value", 0.0) or 0.0)
+            for metric, value in (
+                ("target", target_total),
+                ("actual", actual_total),
+                ("rate", (actual_total / target_total * 100.0) if target_total else 0.0),
+            ):
+                entries[self._monthly_p4_entry_key(item_key, metric, "total")] = {
+                    "itemKey": item_key,
+                    "metric": metric,
+                    "month": "total",
+                    "value": _display_p4_value(value, metric=metric),
+                    "source": "runtime",
+                }
+        return {"entries": entries, "entryCount": len(entries), "source": "runtime"}
+
+    def _apply_monthly_p4_base_snapshot(
+        self,
+        month_payloads: list[dict[str, object]],
+        base_snapshot: dict[str, object] | None,
+        *,
+        anchor_month: str,
+    ) -> list[dict[str, object]]:
+        if not base_snapshot:
+            return month_payloads
+        base_entries = base_snapshot.get("entries") if isinstance(base_snapshot.get("entries"), dict) else {}
+        if not base_entries:
+            return month_payloads
+        out: list[dict[str, object]] = []
+        for month_payload in month_payloads:
+            month = str(month_payload.get("month") or "")
+            if not month or month >= anchor_month:
+                out.append(month_payload)
+                continue
+            next_payload = dict(month_payload)
+            targets = dict(next_payload.get("targets") if isinstance(next_payload.get("targets"), dict) else {})
+            actuals = dict(next_payload.get("actuals") if isinstance(next_payload.get("actuals"), dict) else {})
+            for key, entry in base_entries.items():
+                if not isinstance(entry, dict) or entry.get("month") != month:
+                    continue
+                item_key = str(entry.get("itemKey") or "")
+                metric = str(entry.get("metric") or "")
+                value = float(entry.get("value") or 0.0)
+                if metric == "target":
+                    targets[item_key] = value
+                elif metric == "actual":
+                    actuals[item_key] = value
+            next_payload["targets"] = targets
+            next_payload["actuals"] = actuals
+            out.append(next_payload)
+        return out
+
+    def _parse_monthly_p4_workbook_snapshot(self, file_bytes: bytes, *, filename: str) -> dict[str, object]:
+        workbook = load_workbook(BytesIO(file_bytes), read_only=False, data_only=True)
+        try:
+            best_sheet = None
+            best_months: dict[int, str] = {}
+            best_score = -1
+            for sheet in workbook.worksheets:
+                for row in sheet.iter_rows():
+                    month_cols: dict[int, str] = {}
+                    for cell in row:
+                        token = _normalize_p4_token(cell.value)
+                        if token in MONTHLY_P4_MONTH_LABELS:
+                            month_cols[int(cell.column)] = MONTHLY_P4_MONTH_LABELS[token]
+                    score = len([month for month in month_cols.values() if month != "total"])
+                    if score > best_score:
+                        best_sheet = sheet
+                        best_months = month_cols
+                        best_score = score
+            if best_sheet is None or best_score <= 0:
+                return {"source": "excel", "filename": filename, "sheet": "", "entries": {}, "entryCount": 0, "warnings": ["找不到月份欄位"]}
+
+            entries: dict[str, dict[str, object]] = {}
+            current_key = ""
+            for row in best_sheet.iter_rows():
+                row_text = _normalize_p4_token(" ".join(str(cell.value or "") for cell in row if cell.value is not None))
+                if not row_text:
+                    continue
+                for item_key, needles in MONTHLY_P4_SNAPSHOT_ROW_SPECS:
+                    if any(_normalize_p4_token(needle) in row_text for needle in needles):
+                        current_key = item_key
+                        break
+                metric = ""
+                if "實際績效" in row_text:
+                    current_key = "mf_total"
+                    metric = "actual"
+                elif "總目標" in row_text:
+                    current_key = "mf_total"
+                    metric = "target"
+                elif "達成率" in row_text:
+                    metric = "rate"
+                elif "實績" in row_text:
+                    metric = "actual"
+                elif "目標" in row_text:
+                    metric = "target"
+                if not current_key or not metric:
+                    continue
+                for cell in row:
+                    month = best_months.get(int(cell.column))
+                    if not month:
+                        continue
+                    number = _coerce_p4_numeric(cell.value, metric=metric)
+                    if number is None:
+                        continue
+                    key = self._monthly_p4_entry_key(current_key, metric, month)
+                    entries[key] = {
+                        "itemKey": current_key,
+                        "metric": metric,
+                        "month": month,
+                        "value": _display_p4_value(number, metric=metric),
+                        "cell": f"{best_sheet.title}!{cell.coordinate}",
+                        "source": "excel",
+                    }
+            return {
+                "source": "excel",
+                "filename": filename,
+                "sheet": best_sheet.title,
+                "months": list(dict.fromkeys(best_months.values())),
+                "entries": entries,
+                "entryCount": len(entries),
+                "warnings": [],
+            }
+        finally:
+            workbook.close()
+
+    def _monthly_p4_diff(self, candidate_snapshot: dict[str, object], answer_snapshot: dict[str, object] | None) -> dict[str, object]:
+        if not answer_snapshot:
+            return {"status": "missing_answer", "diffs": [], "diffCount": 0}
+        candidate_entries = candidate_snapshot.get("entries") if isinstance(candidate_snapshot.get("entries"), dict) else {}
+        answer_entries = answer_snapshot.get("entries") if isinstance(answer_snapshot.get("entries"), dict) else {}
+        diffs: list[dict[str, object]] = []
+        for key in sorted(set(candidate_entries.keys()) | set(answer_entries.keys())):
+            candidate = candidate_entries.get(key)
+            answer = answer_entries.get(key)
+            if not isinstance(candidate, dict) and not isinstance(answer, dict):
+                continue
+            source = answer if isinstance(answer, dict) else candidate
+            if not isinstance(source, dict):
+                continue
+            candidate_value = candidate.get("value") if isinstance(candidate, dict) else None
+            answer_value = answer.get("value") if isinstance(answer, dict) else None
+            if candidate_value == answer_value:
+                continue
+            if not isinstance(candidate, dict):
+                reason = "missing_in_candidate"
+            elif not isinstance(answer, dict):
+                reason = "missing_in_check_template"
+            else:
+                reason = "value_mismatch"
+            diffs.append({
+                "key": key,
+                "reason": reason,
+                "itemKey": source.get("itemKey", ""),
+                "metric": source.get("metric", ""),
+                "month": source.get("month", ""),
+                "candidate": candidate_value,
+                "answer": answer_value,
+                "delta": (float(candidate_value or 0.0) - float(answer_value or 0.0)) if candidate_value is not None and answer_value is not None else None,
+                "cell": answer.get("cell", "") if isinstance(answer, dict) else "",
+            })
+        status = "matched" if not diffs else "mismatch"
+        return {"status": status, "diffs": diffs, "diffCount": len(diffs)}
+
+    def _monthly_p4_computed_amounts(self, rows: list[dict], months: list[str]) -> dict[str, dict[str, float]]:
+        row_to_key = {
+            0: "mf_marketing",
+            1: "mf_strategy",
+            2: "external_self_operated",
+        }
+        out: dict[str, dict[str, float]] = {}
+        rows_by_month: dict[str, list[dict]] = {month: [] for month in months}
+        for row in rows:
+            resolved = _resolve_year_month(row)
+            if resolved is None:
+                continue
+            row_month = f"{resolved[0]:04d}-{resolved[1] + 1:02d}"
+            if row_month in rows_by_month:
+                rows_by_month[row_month].append(row)
+
+        for month_text in months:
+            year, month_idx = _year_month_from_month_text(month_text)
+            summary, _detail = self.build_dsp_tab4_preview_payload(rows=rows_by_month[month_text], fallback_year=year)
+            tab4_rows = summary.get("rows") or []
+            for row_idx, key in row_to_key.items():
+                monthly_amounts = list((tab4_rows[row_idx] or {}).get("monthlyAmounts") or []) if row_idx < len(tab4_rows) else []
+                amount = monthly_amounts[month_idx] if month_idx < len(monthly_amounts) else 0.0
+                out.setdefault(month_text, {})[key] = float(amount or 0.0)
+        return out
+
+    def _monthly_archive_detail_row_meta(self) -> dict[int, dict[str, str]]:
+        def section_block(spec_id: str) -> tuple[str, str, str]:
+            if spec_id == "marketing":
+                return "內部經銷商", "營銷事業處", "營銷事業處"
+            if spec_id == "strategy":
+                return "內部經銷商", "策略部", "策略部"
+            if spec_id == "external_self":
+                return "外部經銷商", "經銷推廣", "外部經銷商"
+            if spec_id == "external_io":
+                return "外部經銷商", "IO委刊", "IO委刊"
+            if spec_id == "hb_bridge":
+                return "HB串接", "MD", "HB串接"
+            return spec_id, "", spec_id
+
+        row_meta: dict[int, dict[str, str]] = {}
+        for spec in TAB4_DETAIL_SECTION_SPECS:
+            total_row = int(spec["total_row"])
+            block_b, block_c, distributor = section_block(str(spec["id"]))
+            for idx, label in enumerate(spec["detail_labels"]):
+                row_idx = total_row + 1 + idx
+                label_b = str(label.get("b") or "")
+                label_c = str(label.get("c") or "")
+                label_d = str(label.get("d") or "")
+                ad_format = label_d or label_c or label_b
+                if label_b.upper() == "CTV":
+                    ad_format = "CTV"
+                row_meta[row_idx] = {
+                    "distributor": distributor,
+                    "block_b": block_b,
+                    "block_c": block_c,
+                    "label_b": label_b,
+                    "label_c": label_c,
+                    "label_d": label_d,
+                    "ad_format": ad_format,
+                    "section": str(spec["total_label_a"]),
+                }
+        return row_meta
+
+    def archive_dsp_month(self, *, month: str, force: bool = False) -> dict:
+        month_text = _month_text_from_date_text(f"{month}-01")
+        if not month_text:
+            raise ValueError("month must be YYYY-MM")
+        year, month_idx = _year_month_from_month_text(month_text)
+        marker = f"{MONTHLY_DSP_ARCHIVE_ORDER_MARKER_PREFIX}_{month_text}"
+        row_meta = self._monthly_archive_detail_row_meta()
+        with self.repo.connect() as conn:
+            self.repo._ensure_monthly_dsp_archive_table(conn)
+            existing = conn.execute(
+                "SELECT archive_row_count FROM monthly_dsp_archives WHERE month = ? AND status = 'ok'",
+                (month_text,),
+            ).fetchone()
+            if existing and not force:
+                return {
+                    "month": month_text,
+                    "marker": marker,
+                    "status": "skipped",
+                    "reason": "already_archived",
+                    "archive_row_count": int(existing[0] or 0),
+                }
+
+            rows = self.repo.read_canonical_rows_in_tx(conn, "dsp")
+            source_rows = [
+                row for row in rows
+                if _month_text_from_date_text(str(row.get("日期時間") or "")) == month_text
+                and str(row.get("訂單") or "") != marker
+                and not str(row.get("訂單") or "").startswith(MONTHLY_DSP_ARCHIVE_ORDER_MARKER_PREFIX)
+            ]
+            _summary_year, detail_amounts = self._build_detail_matrix_values(rows=source_rows, fallback_year=year)
+            source_total = sum(_to_number(row.get("執行金額")) for row in source_rows)
+            archive_rows: list[dict[str, object]] = []
+            for row_idx in DETAIL_INPUT_ROWS:
+                amount = float(detail_amounts.get(row_idx, [0.0 for _ in range(MONTH_COUNT)])[month_idx] or 0.0)
+                if abs(amount) <= 1e-9:
+                    continue
+                meta = row_meta[row_idx]
+                archive_rows.append(
+                    {
+                        "日期時間": _month_date_range(month_text)[1],
+                        "經銷商": meta["distributor"],
+                        "訂單": marker,
+                        "素材": f"row{row_idx}_month{month_idx + 1}",
+                        "廣告形式": meta["ad_format"],
+                        "尺寸": "",
+                        "素材樣板": meta["label_d"] or meta["ad_format"],
+                        "執行金額": amount,
+                        "系統營收": amount,
+                        "媒體費用": amount,
+                        "原始經銷商": meta["distributor"],
+                        "原始廣告形式": meta["ad_format"],
+                        "最終經銷商": meta["distributor"],
+                        "規則命中_經銷商": "monthly_dsp_archive",
+                        "最終來源_經銷商": "monthly_dsp_archive",
+                        "分類層級B": meta["block_b"],
+                        "分類層級C": meta["block_c"],
+                        "分類層級D": "CTV" if meta["label_b"].upper() == "CTV" else meta["label_d"] or meta["label_c"] or meta["label_b"],
+                        "最終廣告形式": meta["ad_format"],
+                        "規則命中_廣告形式": "monthly_dsp_archive",
+                        "最終來源_廣告形式": "monthly_dsp_archive",
+                    }
+                )
+
+            deleted = conn.execute(
+                """
+                DELETE FROM canonical_raw
+                WHERE workflow = 'dsp'
+                  AND substr("日期時間", 1, 7) = ?
+                """,
+                (month_text,),
+            ).rowcount
+            max_order = conn.execute(
+                "SELECT COALESCE(MAX(row_order), -1) FROM canonical_raw WHERE workflow = 'dsp'"
+            ).fetchone()[0]
+            now = datetime.now().isoformat(timespec="seconds")
+            insert_columns = ["workflow", "row_order", *self.repo.canonical_columns, "updated_at"]
+            sql = (
+                "INSERT INTO canonical_raw("
+                + ", ".join(insert_columns)
+                + ") VALUES ("
+                + ", ".join("?" for _ in insert_columns)
+                + ")"
+            )
+            for offset, row in enumerate(archive_rows, start=1):
+                values = [
+                    "dsp",
+                    int(max_order) + offset,
+                    *[row.get(col, self.repo.field_contract.by_name[col].default) for col in self.repo.canonical_columns],
+                    now,
+                ]
+                conn.execute(sql, values)
+
+            archive_total = sum(float(row.get("執行金額") or 0.0) for row in archive_rows)
+            detail = {
+                "deleted_rows": int(deleted or 0),
+                "retention_policy": "raw data keeps recent two months; closed older months are archived to monthly detail rows",
+                "source": "canonical_raw",
+            }
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO monthly_dsp_archives(
+                  month, workflow, marker, source_row_count, archive_row_count,
+                  source_total, archive_total, status, detail_json, archived_at
+                ) VALUES (?, 'dsp', ?, ?, ?, ?, ?, 'ok', ?, ?)
+                """,
+                (
+                    month_text,
+                    marker,
+                    len(source_rows),
+                    len(archive_rows),
+                    float(source_total),
+                    float(archive_total),
+                    json.dumps(detail, ensure_ascii=False, sort_keys=True),
+                    now,
+                ),
+            )
+            self.repo.append_audit_event(
+                conn,
+                event_type="monthly_dsp_archive",
+                scope=f"dsp:{month_text}",
+                status="ok",
+                payload={
+                    "workflow": "dsp",
+                    "month": month_text,
+                    "marker": marker,
+                    "source_row_count": len(source_rows),
+                    "archive_row_count": len(archive_rows),
+                    "source_total": float(source_total),
+                    "archive_total": float(archive_total),
+                },
+            )
+            conn.commit()
+
+        return {
+            "month": month_text,
+            "marker": marker,
+            "status": "ok",
+            "source_row_count": len(source_rows),
+            "archive_row_count": len(archive_rows),
+            "source_total": float(source_total),
+            "archive_total": float(archive_total),
+        }
+
+    def build_monthly_p4_snapshot(
+        self,
+        *,
+        week_start: str | None = None,
+        week_end: str | None = None,
+        manual_source: str = "formal",
+        test_id: str = "default",
+    ) -> dict:
+        anchor_month, months = _month_window_from_period(week_start=week_start, week_end=week_end)
+        available_months = _month_year_window(anchor_month)
+        payload_months = list(dict.fromkeys([*available_months, *months]))
+        target_years = sorted({_year_month_from_month_text(month)[0] for month in payload_months})
+        with self.repo.connect() as conn:
+            targets_by_year = {target_year: self._target_map_for_year(conn, target_year) for target_year in target_years}
+            if manual_source == "test":
+                with self.monthly_test_repo.connect() as test_conn:
+                    manual_inputs = self.monthly_test_repo.read_monthly_p4_test_inputs_in_tx(
+                        test_conn,
+                        payload_months,
+                        test_id=test_id,
+                    )
+                    test_templates = self.monthly_test_repo.read_monthly_p4_test_templates_in_tx(test_conn, test_id=test_id)
+            else:
+                manual_inputs = self.repo.read_monthly_p4_manual_inputs_in_tx(conn, payload_months)
+                test_templates = {}
+            canonical_rows = self.repo.read_canonical_rows_in_tx(conn, "dsp")
+
+        computed = self._monthly_p4_computed_amounts(canonical_rows, payload_months)
+
+        def manual(month: str, key: str) -> float:
+            return float(manual_inputs.get(month, {}).get(key, 0.0))
+
+        month_payloads: list[dict[str, object]] = []
+        for month in payload_months:
+            month_computed = computed.get(month, {})
+            external_self = float(month_computed.get("external_self_operated", 0.0))
+            external_total_actual = external_self + manual(month, "external_io_momo") + manual(month, "external_io_live")
+            data_fee_actual = external_self * 0.05 + manual(month, "data_monetization_adjustment")
+            remaining_actual = manual(month, "remaining_traffic_revenue")
+            mf_actuals = {
+                "mf_marketing": float(month_computed.get("mf_marketing", 0.0)),
+                "mf_strategy": float(month_computed.get("mf_strategy", 0.0)),
+                "external_total": external_total_actual,
+                "hb_revenue": manual(month, "hb_revenue"),
+                "external_beiliu_io": manual(month, "external_beiliu_io"),
+            }
+            other_actuals = {
+                "data_fee": data_fee_actual,
+                "remaining_traffic_revenue": remaining_actual,
+            }
+            mf_target = sum(self._target_value_for_month(targets_by_year, key, month) for key in mf_actuals)
+            mf_actual = sum(mf_actuals.values())
+            other_target = sum(self._target_value_for_month(targets_by_year, key, month) for key in other_actuals)
+            other_actual = sum(other_actuals.values())
+            total_target = mf_target + other_target
+            total_actual = mf_actual + other_actual
+            month_payloads.append(
+                {
+                    "month": month,
+                    "dateRange": _month_date_range(month),
+                    "targets": {
+                        "mf_marketing": self._target_value_for_month(targets_by_year, "mf_marketing", month),
+                        "mf_strategy": self._target_value_for_month(targets_by_year, "mf_strategy", month),
+                        "external_total": self._target_value_for_month(targets_by_year, "external_total", month),
+                        "hb_revenue": self._target_value_for_month(targets_by_year, "hb_revenue", month),
+                        "external_beiliu_io": self._target_value_for_month(targets_by_year, "external_beiliu_io", month),
+                        "data_fee": self._target_value_for_month(targets_by_year, "data_fee", month),
+                        "remaining_traffic_revenue": self._target_value_for_month(targets_by_year, "remaining_traffic_revenue", month),
+                        "mf_total": mf_target,
+                        "other_total": other_target,
+                        "product_total": total_target,
+                    },
+                    "computed": {
+                        "mf_marketing": mf_actuals["mf_marketing"],
+                        "mf_strategy": mf_actuals["mf_strategy"],
+                        "external_self_operated": external_self,
+                    },
+                    "manualInputs": manual_inputs.get(month, {}),
+                    "actuals": {
+                        **mf_actuals,
+                        **other_actuals,
+                        "mf_total": mf_actual,
+                        "other_total": other_actual,
+                        "product_total": total_actual,
+                    },
+                }
+            )
+
+        base_snapshot = None
+        if isinstance(test_templates.get("base"), dict):
+            raw_base = test_templates["base"].get("snapshot")
+            if isinstance(raw_base, dict):
+                base_snapshot = raw_base
+        if manual_source == "test":
+            month_payloads = self._apply_monthly_p4_base_snapshot(
+                month_payloads,
+                base_snapshot,
+                anchor_month=anchor_month,
+            )
+        candidate_snapshot = self._monthly_p4_snapshot_from_payloads(month_payloads)
+        answer_snapshot = None
+        if isinstance(test_templates.get("check"), dict):
+            raw_answer = test_templates["check"].get("snapshot")
+            if isinstance(raw_answer, dict):
+                answer_snapshot = raw_answer
+
+        return {
+            "anchorMonth": anchor_month,
+            "months": months,
+            "availableMonths": available_months,
+            "manualInputDefinitions": MONTHLY_P4_MANUAL_INPUTS,
+            "monthPayloads": month_payloads,
+            "candidateSnapshot": candidate_snapshot if manual_source == "test" else {},
+            "diff": self._monthly_p4_diff(candidate_snapshot, answer_snapshot) if manual_source == "test" else {},
+            "source": "monthly_p4_test_runtime" if manual_source == "test" else "monthly_p4_runtime",
+            "testDbPath": str(self.monthly_test_repo.db_path) if manual_source == "test" else "",
+            "testTemplates": test_templates,
+            "note": "P4(J) 月報表格，手 key 欄位存檔後即時重算。",
+        }
+
+    def save_monthly_p4_manual_inputs(
+        self,
+        *,
+        month: str,
+        inputs: dict[str, object],
+        template_version: str,
+        rule_version: str,
+    ) -> dict:
+        if not re.match(r"^\d{4}-\d{2}$", month or ""):
+            raise ValueError("month must be YYYY-MM")
+        allowed = {str(item["key"]) for item in MONTHLY_P4_MANUAL_INPUTS}
+        filtered = {key: value for key, value in inputs.items() if key in allowed}
+        with self.repo.connect() as conn:
+            written = self.repo.replace_monthly_p4_manual_inputs_in_tx(conn, month, filtered)
+            self.repo.append_audit_event(
+                conn,
+                event_type="monthly_p4_save",
+                scope=f"monthly:{month}",
+                status="ok",
+                payload={
+                    "workflow": "monthly",
+                    "month": month,
+                    "input_count": written,
+                    "template_version": template_version,
+                    "rule_version": rule_version,
+                    **self._extra_debug_payload(),
+                },
+            )
+        return {"status": "ok", "month": month, "input_count": written}
+
+    def save_monthly_p4_test_inputs(
+        self,
+        *,
+        month: str,
+        inputs: dict[str, object],
+        template_version: str,
+        rule_version: str,
+        test_id: str = "default",
+    ) -> dict:
+        if not re.match(r"^\d{4}-\d{2}$", month or ""):
+            raise ValueError("month must be YYYY-MM")
+        allowed = {str(item["key"]) for item in MONTHLY_P4_MANUAL_INPUTS}
+        filtered = {key: value for key, value in inputs.items() if key in allowed}
+        with self.monthly_test_repo.connect() as conn:
+            written = self.monthly_test_repo.replace_monthly_p4_test_inputs_in_tx(conn, month, filtered, test_id=test_id)
+            self.monthly_test_repo.append_audit_event(
+                conn,
+                event_type="monthly_p4_test_save",
+                scope=f"monthly-test:{test_id}:{month}",
+                status="ok",
+                payload={
+                    "workflow": "monthly",
+                    "test_id": test_id,
+                    "month": month,
+                    "input_count": written,
+                    "template_version": template_version,
+                    "rule_version": rule_version,
+                    **self._extra_debug_payload(),
+                },
+            )
+        return {"status": "ok", "month": month, "test_id": test_id, "input_count": written}
+
+    def save_monthly_p4_test_template(
+        self,
+        *,
+        template_kind: str,
+        filename: str,
+        content_base64: str,
+        template_version: str,
+        rule_version: str,
+        test_id: str = "default",
+    ) -> dict:
+        kind = str(template_kind or "").strip()
+        if kind not in MONTHLY_P4_TEST_TEMPLATE_KINDS:
+            raise ValueError("template_kind must be base or check")
+        original_filename = Path(str(filename or "").strip()).name
+        if not original_filename:
+            raise ValueError("filename required")
+        suffix = Path(original_filename).suffix.lower()
+        if suffix not in {".xlsx", ".xlsm"}:
+            raise ValueError("只支援 .xlsx / .xlsm")
+        raw_base64 = str(content_base64 or "").strip()
+        if "," in raw_base64 and raw_base64.lower().startswith("data:"):
+            raw_base64 = raw_base64.split(",", 1)[1]
+        file_bytes = base64.b64decode(raw_base64, validate=True)
+        if not file_bytes:
+            raise ValueError("上傳檔案是空的")
+        if len(file_bytes) > 25 * 1024 * 1024:
+            raise ValueError("檔案超過 25MB")
+        workbook = load_workbook(BytesIO(file_bytes), read_only=True, data_only=False)
+        try:
+            sheet_names = list(workbook.sheetnames)
+        finally:
+            workbook.close()
+        parsed_snapshot = self._parse_monthly_p4_workbook_snapshot(file_bytes, filename=original_filename)
+
+        target_dir = self.monthly_test_repo.db_path.parent / "monthly_p4_test_templates"
+        target_dir.mkdir(parents=True, exist_ok=True)
+        stored_name = f"{test_id}_{kind}{suffix}"
+        stored_path = (target_dir / stored_name).resolve()
+        stored_path.write_bytes(file_bytes)
+        with self.monthly_test_repo.connect() as conn:
+            self.monthly_test_repo.replace_monthly_p4_test_template_in_tx(
+                conn,
+                test_id=test_id,
+                template_kind=kind,
+                original_filename=original_filename,
+                stored_path=str(stored_path),
+                file_size=len(file_bytes),
+                sheet_names=sheet_names,
+                snapshot=parsed_snapshot,
+            )
+            self.monthly_test_repo.append_audit_event(
+                conn,
+                event_type="monthly_p4_test_template_upload",
+                scope=f"monthly-test:{test_id}:{kind}",
+                status="ok",
+                payload={
+                    "workflow": "monthly",
+                    "test_id": test_id,
+                    "template_kind": kind,
+                    "filename": original_filename,
+                    "file_size": len(file_bytes),
+                    "sheet_names": sheet_names,
+                    "parsed_entry_count": parsed_snapshot.get("entryCount", 0),
+                    "template_version": template_version,
+                    "rule_version": rule_version,
+                    **self._extra_debug_payload(),
+                },
+            )
+        return {
+            "status": "ok",
+            "test_id": test_id,
+            "template_kind": kind,
+            "template_label": MONTHLY_P4_TEST_TEMPLATE_KINDS[kind],
+            "filename": original_filename,
+            "stored_path": str(stored_path),
+            "file_size": len(file_bytes),
+            "sheet_names": sheet_names,
+            "parsed_entry_count": parsed_snapshot.get("entryCount", 0),
+            "parsed_sheet": parsed_snapshot.get("sheet", ""),
+        }
 
     def resolve_ssp_effective_snapshot(self) -> dict[str, object]:
         with self.repo.connect() as conn:
@@ -1252,6 +2093,451 @@ class CanonicalService:
             "login_email": login_email,
             "source_name": settings.source_name,
             "sum_row": bundle.get("sum_row") if isinstance(bundle.get("sum_row"), dict) else {},
+        }
+
+    def fetch_ssp_ad_group_api(
+        self,
+        *,
+        zone_group_id: int,
+        start_day: str,
+        end_day: str,
+        template_version: str,
+        rule_version: str,
+        email: str | None = None,
+        password: str | None = None,
+        scope_check_url: str | None = None,
+        api_base_url: str | None = None,
+        auth_decrypt_key: str | None = None,
+        service_id: int | None = None,
+        source_name: str | None = None,
+        timeout_seconds: int | None = None,
+    ) -> dict:
+        settings = resolve_ssp_api_settings(
+            email=email,
+            password=password,
+            scope_check_url=scope_check_url,
+            api_base_url=api_base_url,
+            auth_decrypt_key=auth_decrypt_key,
+            service_id=service_id,
+            source_name=source_name,
+            timeout_seconds=timeout_seconds,
+        )
+        catalog_item = SSP_AD_GROUP_CATALOG_BY_ID.get(int(zone_group_id), {})
+        bundle = SspApiClient(settings).fetch_ad_group_report_bundle(
+            start_day=start_day,
+            end_day=end_day,
+            zone_group_id=zone_group_id,
+            zone_group_name=str(catalog_item.get("name") or ""),
+        )
+        rows = normalize_ssp_ad_group_report_rows(
+            [row for row in bundle["rows"] if isinstance(row, dict)],
+            zone_group_id=zone_group_id,
+            source_name=settings.source_name,
+        )
+        for row in rows:
+            row["zone_group_name"] = str(catalog_item.get("name") or f"zone_group {zone_group_id}")
+            row["ad_format"] = str(catalog_item.get("format") or "")
+            row["price_tier"] = str(catalog_item.get("tier") or "")
+        auth = bundle.get("auth") if isinstance(bundle.get("auth"), dict) else {}
+        auth_user = auth.get("user") if isinstance(auth.get("user"), dict) else {}
+        login = bundle.get("login") if isinstance(bundle.get("login"), dict) else {}
+        login_user_id = int(auth_user.get("id") or login.get("id") or 0)
+        login_email = str(auth_user.get("email") or login.get("email") or "")
+        report_condition = bundle.get("report_condition") if isinstance(bundle.get("report_condition"), dict) else {}
+        report_result = bundle.get("report_result") if isinstance(bundle.get("report_result"), dict) else {}
+
+        with self.repo.connect() as conn:
+            self.repo.resolve_trace_binding(conn, "ssp", template_version, rule_version)
+            trace = self.repo.build_trace_meta(conn, "ssp", template_version, rule_version)
+            detail = {
+                "zone_group_id": int(zone_group_id),
+                "start_day": start_day,
+                "end_day": end_day,
+                "row_count": len(rows),
+                "records_total": int(bundle.get("records_total") or 0),
+                "report_id": int(bundle.get("report_id") or 0),
+                "report_ids": list(bundle.get("report_ids") or []),
+                "chunk_mode": str(bundle.get("chunk_mode") or "single"),
+                "chunk_days": int(bundle.get("chunk_days") or 1),
+                "service_id": int(auth.get("service_id") or 0),
+                "source_name": settings.source_name,
+                "login_user_id": login_user_id,
+                "login_email": login_email,
+                "sum_row": bundle.get("sum_row") if isinstance(bundle.get("sum_row"), dict) else {},
+            }
+            run_id = self.repo.insert_run_log(
+                conn,
+                run_type="fetch_ssp_ad_group_api",
+                workflow="ssp",
+                status="ok",
+                trace=trace,
+                detail=detail,
+            )
+            changed = self.repo.save_ssp_ad_group_report(
+                conn,
+                run_id=run_id,
+                zone_group_id=zone_group_id,
+                start_day=start_day,
+                end_day=end_day,
+                report_id=int(bundle.get("report_id") or 0),
+                records_total=int(bundle.get("records_total") or 0),
+                source=settings.source_name,
+                request_payload=report_condition,
+                response_payload=report_result,
+                rows=rows,
+            )
+            self.repo.append_audit_event(
+                conn,
+                event_type="fetch_ssp_ad_group_api",
+                scope="service",
+                status="ok",
+                payload={"run_id": run_id, **detail, "row_count": changed},
+            )
+            conn.commit()
+
+        return {
+            "status": "ok",
+            "workflow": "ssp",
+            "run_id": run_id,
+            "zone_group_id": int(zone_group_id),
+            "start_day": start_day,
+            "end_day": end_day,
+            "row_count": changed,
+            "records_total": int(bundle.get("records_total") or 0),
+            "report_id": int(bundle.get("report_id") or 0),
+            "report_ids": list(bundle.get("report_ids") or []),
+            "service_id": int(auth.get("service_id") or 0),
+            "login_user_id": login_user_id,
+            "login_email": login_email,
+            "source_name": settings.source_name,
+            "sum_row": bundle.get("sum_row") if isinstance(bundle.get("sum_row"), dict) else {},
+        }
+
+    def fetch_all_ssp_ad_group_api(
+        self,
+        *,
+        start_day: str,
+        end_day: str,
+        template_version: str,
+        rule_version: str,
+        email: str | None = None,
+        password: str | None = None,
+        scope_check_url: str | None = None,
+        api_base_url: str | None = None,
+        auth_decrypt_key: str | None = None,
+        service_id: int | None = None,
+        source_name: str | None = None,
+        timeout_seconds: int | None = None,
+    ) -> dict:
+        groups: list[dict[str, object]] = []
+        row_count = 0
+        records_total = 0
+        for item in SSP_AD_GROUP_CATALOG:
+            result = self.fetch_ssp_ad_group_api(
+                zone_group_id=int(item["id"]),
+                start_day=start_day,
+                end_day=end_day,
+                template_version=template_version,
+                rule_version=rule_version,
+                email=email,
+                password=password,
+                scope_check_url=scope_check_url,
+                api_base_url=api_base_url,
+                auth_decrypt_key=auth_decrypt_key,
+                service_id=service_id,
+                source_name=source_name,
+                timeout_seconds=timeout_seconds,
+            )
+            groups.append(result)
+            row_count += int(result.get("row_count") or 0)
+            records_total += int(result.get("records_total") or 0)
+        return {
+            "status": "ok",
+            "workflow": "ssp",
+            "start_day": start_day,
+            "end_day": end_day,
+            "group_count": len(groups),
+            "row_count": row_count,
+            "records_total": records_total,
+            "groups": groups,
+        }
+
+    def build_ssp_ad_group_monitor_snapshot(
+        self,
+        *,
+        start_day: str,
+        end_day: str,
+    ) -> dict[str, object]:
+        catalog = [dict(item) for item in SSP_AD_GROUP_CATALOG]
+        rows = self.repo.read_ssp_ad_group_metrics_for_groups(
+            zone_group_ids=[int(item["id"]) for item in catalog],
+            start_day=start_day,
+            end_day=end_day,
+        )
+        latest_runs = self.repo.read_latest_ssp_ad_group_runs(
+            zone_group_ids=[int(item["id"]) for item in catalog],
+        )
+        latest_by_group = {int(item.get("zone_group_id") or 0): item for item in latest_runs}
+        metric_keys = ["request", "impress", "click", "profit", "advertiser_mu"]
+
+        def empty_group(item: dict[str, object]) -> dict[str, object]:
+            return {
+                "zone_group_id": int(item["id"]),
+                "zone_group_name": str(item["name"]),
+                "ad_format": str(item["format"]),
+                "price_tier": str(item["tier"]),
+                **{key: 0.0 for key in metric_keys},
+                "invalid_impress": 0.0,
+                "invalid_click": 0.0,
+            }
+
+        total = {key: 0.0 for key in metric_keys}
+        by_group: dict[int, dict[str, object]] = {int(item["id"]): empty_group(item) for item in catalog}
+        by_format: dict[str, dict[str, object]] = {}
+        placements_by_group: dict[int, dict[int, dict[str, object]]] = {}
+        all_dates = sorted({str(row.get("date") or "") for row in rows if str(row.get("date") or "")})
+        group_daily: dict[int, dict[str, dict[str, object]]] = {}
+        format_daily: dict[str, dict[str, dict[str, object]]] = {}
+        placement_daily: dict[int, dict[int, dict[str, dict[str, object]]]] = {}
+        for row in rows:
+            group_id = int(row.get("zone_group_id") or 0)
+            date_key = str(row.get("date") or "")
+            catalog_item = SSP_AD_GROUP_CATALOG_BY_ID.get(group_id, {})
+            group = by_group.setdefault(
+                group_id,
+                {
+                    "zone_group_id": group_id,
+                    "zone_group_name": str(row.get("zone_group_name") or catalog_item.get("name") or ""),
+                    "ad_format": str(row.get("ad_format") or catalog_item.get("format") or ""),
+                    "price_tier": str(row.get("price_tier") or catalog_item.get("tier") or ""),
+                    **{key: 0.0 for key in metric_keys},
+                    "invalid_impress": 0.0,
+                    "invalid_click": 0.0,
+                },
+            )
+            ad_format = str(group.get("ad_format") or "")
+            fmt = by_format.setdefault(
+                ad_format,
+                {
+                    "ad_format": ad_format,
+                    **{key: 0.0 for key in metric_keys},
+                    "invalid_impress": 0.0,
+                    "invalid_click": 0.0,
+                },
+            )
+            zone_id = int(row.get("zone_id") or 0)
+            daily_group = group_daily.setdefault(group_id, {}).setdefault(
+                date_key,
+                {
+                    "date": date_key,
+                    "zone_group_id": group_id,
+                    "zone_group_name": str(group.get("zone_group_name") or ""),
+                    "ad_format": ad_format,
+                    "price_tier": str(group.get("price_tier") or ""),
+                    **{key: 0.0 for key in metric_keys},
+                    "invalid_impress": 0.0,
+                    "invalid_click": 0.0,
+                },
+            )
+            daily_format = format_daily.setdefault(ad_format, {}).setdefault(
+                date_key,
+                {
+                    "date": date_key,
+                    "ad_format": ad_format,
+                    **{key: 0.0 for key in metric_keys},
+                    "invalid_impress": 0.0,
+                    "invalid_click": 0.0,
+                },
+            )
+            placement = placements_by_group.setdefault(group_id, {}).setdefault(
+                zone_id,
+                {
+                    "zone_id": zone_id,
+                    "zone_name": str(row.get("zone_name") or ""),
+                    "zone_group_id": group_id,
+                    "zone_group_name": str(group.get("zone_group_name") or ""),
+                    "ad_format": ad_format,
+                    "price_tier": str(group.get("price_tier") or ""),
+                    **{key: 0.0 for key in metric_keys},
+                    "invalid_impress": 0.0,
+                    "invalid_click": 0.0,
+                },
+            )
+            daily_placement = placement_daily.setdefault(group_id, {}).setdefault(zone_id, {}).setdefault(
+                date_key,
+                {
+                    "date": date_key,
+                    "zone_id": zone_id,
+                    "zone_name": str(row.get("zone_name") or ""),
+                    "zone_group_id": group_id,
+                    "zone_group_name": str(group.get("zone_group_name") or ""),
+                    "ad_format": ad_format,
+                    "price_tier": str(group.get("price_tier") or ""),
+                    **{key: 0.0 for key in metric_keys},
+                    "invalid_impress": 0.0,
+                    "invalid_click": 0.0,
+                },
+            )
+            for key in metric_keys:
+                value = float(row.get(key) or 0.0)
+                total[key] += value
+                group[key] = float(group.get(key) or 0.0) + value
+                fmt[key] = float(fmt.get(key) or 0.0) + value
+                placement[key] = float(placement.get(key) or 0.0) + value
+                daily_group[key] = float(daily_group.get(key) or 0.0) + value
+                daily_format[key] = float(daily_format.get(key) or 0.0) + value
+                daily_placement[key] = float(daily_placement.get(key) or 0.0) + value
+            for key in ("invalid_impress", "invalid_click"):
+                value = float(row.get(key) or 0.0)
+                group[key] = float(group.get(key) or 0.0) + value
+                fmt[key] = float(fmt.get(key) or 0.0) + value
+                placement[key] = float(placement.get(key) or 0.0) + value
+                daily_group[key] = float(daily_group.get(key) or 0.0) + value
+                daily_format[key] = float(daily_format.get(key) or 0.0) + value
+                daily_placement[key] = float(daily_placement.get(key) or 0.0) + value
+
+        def enrich(item: dict[str, object]) -> dict[str, object]:
+            impress = float(item.get("impress") or 0.0)
+            click = float(item.get("click") or 0.0)
+            profit = float(item.get("profit") or 0.0)
+            advertiser_mu = float(item.get("advertiser_mu") or 0.0)
+            item["ctr"] = round((click / impress) * 100, 6) if impress else 0.0
+            item["ecpm"] = round((advertiser_mu / impress) * 1000, 6) if impress else 0.0
+            item["ecpc"] = round(advertiser_mu / click, 6) if click else 0.0
+            item["dsp_cpm"] = round((advertiser_mu / impress) * 1000, 6) if impress else 0.0
+            item["dsp_cpc"] = round(advertiser_mu / click, 6) if click else 0.0
+            return item
+
+        def compact_daily(item: dict[str, object]) -> dict[str, object]:
+            enriched = enrich(dict(item))
+            return {key: enriched.get(key, 0.0) for key in SSP_AD_GROUP_METRICS}
+
+        def avg_metrics(daily_items: dict[str, dict[str, object]], recent_dates: list[str]) -> dict[str, object]:
+            base = {key: 0.0 for key in metric_keys}
+            active_dates = 0
+            for date_key in recent_dates:
+                daily_item = daily_items.get(date_key)
+                if not daily_item:
+                    continue
+                active_dates += 1
+                for key in metric_keys:
+                    base[key] += float(daily_item.get(key) or 0.0)
+            divisor = max(1, active_dates)
+            for key in metric_keys:
+                base[key] = base[key] / divisor
+            return compact_daily(base)
+
+        def has_metric_anomaly(
+            daily_metrics: dict[str, object] | None,
+            average_metrics: dict[str, object] | None,
+        ) -> bool:
+            if not daily_metrics or not average_metrics:
+                return False
+            for metric in ("ctr", "ecpm", "ecpc"):
+                baseline = float(average_metrics.get(metric) or 0.0)
+                value = float(daily_metrics.get(metric) or 0.0)
+                if baseline <= 0:
+                    continue
+                delta = (value - baseline) / baseline
+                if abs(delta) <= 0.05:
+                    continue
+                lower_is_better = metric in {"ecpm", "ecpc"}
+                if (lower_is_better and delta > 0) or (not lower_is_better and delta < 0):
+                    return True
+            return False
+
+        summary = enrich({"label": "全部", **total})
+        group_rows = [enrich(item) for item in by_group.values()]
+        format_rows = [enrich(item) for item in by_format.values()]
+        recent_dates = list(reversed(all_dates[-7:]))
+        compare_date = recent_dates[0] if recent_dates else ""
+
+        for item in format_rows:
+            ad_format = str(item.get("ad_format") or "")
+            item["zone_group_name"] = ad_format
+            item["price_tier"] = "全部"
+            item["daily_metrics"] = {
+                date_key: compact_daily(daily_item)
+                for date_key, daily_item in format_daily.get(ad_format, {}).items()
+            }
+            item["avg_metrics"] = avg_metrics(format_daily.get(ad_format, {}), recent_dates)
+            item["status"] = "alert" if has_metric_anomaly(
+                item["daily_metrics"].get(compare_date) if isinstance(item.get("daily_metrics"), dict) else None,
+                item.get("avg_metrics") if isinstance(item.get("avg_metrics"), dict) else None,
+            ) else "ok"
+            item["reasons"] = []
+
+        for item in group_rows:
+            group_id = int(item.get("zone_group_id") or 0)
+            item["daily_metrics"] = {
+                date_key: compact_daily(daily_item)
+                for date_key, daily_item in group_daily.get(group_id, {}).items()
+            }
+            item["avg_metrics"] = avg_metrics(group_daily.get(group_id, {}), recent_dates)
+            item["status"] = "alert" if has_metric_anomaly(
+                item["daily_metrics"].get(compare_date) if isinstance(item.get("daily_metrics"), dict) else None,
+                item.get("avg_metrics") if isinstance(item.get("avg_metrics"), dict) else None,
+            ) else "ok"
+            item["reasons"] = []
+            item["latest_run"] = latest_by_group.get(int(item.get("zone_group_id") or 0))
+
+        group_rows.sort(
+            key=lambda item: (
+                str(item.get("ad_format") or ""),
+                {"高": 0, "中": 1, "低": 2}.get(str(item.get("price_tier") or ""), 9),
+            )
+        )
+        format_rows.sort(key=lambda item: str(item.get("ad_format") or ""))
+
+        placement_groups: dict[str, list[dict[str, object]]] = {}
+        for group_id, placements in placements_by_group.items():
+            group_key = str(group_id)
+            enriched = [enrich(item) for item in placements.values()]
+            enriched.sort(key=lambda item: float(item.get("request") or 0.0), reverse=True)
+            for placement in enriched:
+                zone_id = int(placement.get("zone_id") or 0)
+                placement["daily_metrics"] = {
+                    date_key: compact_daily(daily_item)
+                    for date_key, daily_item in placement_daily.get(group_id, {}).get(zone_id, {}).items()
+                }
+                placement["avg_metrics"] = avg_metrics(
+                    placement_daily.get(group_id, {}).get(zone_id, {}),
+                    recent_dates,
+                )
+                placement["status"] = "alert" if has_metric_anomaly(
+                    placement["daily_metrics"].get(compare_date) if isinstance(placement.get("daily_metrics"), dict) else None,
+                    placement.get("avg_metrics") if isinstance(placement.get("avg_metrics"), dict) else None,
+                ) else "ok"
+                placement["reasons"] = []
+            important_alerts = [
+                item
+                for item in enriched
+                if item.get("status") == "alert" and float(item.get("request") or 0.0) >= 100.0
+            ][:10]
+            limited_by_zone: dict[int, dict[str, object]] = {}
+            for item in [*enriched[:20], *important_alerts]:
+                limited_by_zone[int(item.get("zone_id") or 0)] = item
+            placement_groups[group_key] = sorted(
+                limited_by_zone.values(),
+                key=lambda item: float(item.get("request") or 0.0),
+                reverse=True,
+            )
+
+        return {
+            "start_day": start_day,
+            "end_day": end_day,
+            "catalog": catalog,
+            "formats": sorted({str(item["format"]) for item in catalog}),
+            "metrics": list(SSP_AD_GROUP_METRICS),
+            "default_metric": "ecpc",
+            "summary": summary,
+            "groups": group_rows,
+            "format_summary": format_rows,
+            "placements_by_group": placement_groups,
+            "date_keys_desc": list(reversed(all_dates[-30:])),
+            "latest_runs": latest_runs,
+            "row_count": len(rows),
+            "group_count": len(group_rows),
         }
 
     def fetch_dsp_api(

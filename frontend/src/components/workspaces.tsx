@@ -3,6 +3,8 @@ export {
   PivotWorkspace,
   RawdataWorkspace,
   ResultWorkspace,
+  MonthlyP4Workspace,
+  SspAdGroupMonitorWorkspace,
   SspMediaDemandWorkspace,
   SspParityWorkspace,
   Tab4Workspace,

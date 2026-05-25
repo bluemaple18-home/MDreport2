@@ -186,6 +186,10 @@ def _build_parser() -> argparse.ArgumentParser:
     fetch_dsp_p.add_argument("--source-name", default=None)
     fetch_dsp_p.add_argument("--timeout-seconds", type=int, default=None)
 
+    archive_dsp_p = sub.add_parser("archive-dsp-month", help="Archive a closed DSP month into monthly summary canonical rows")
+    archive_dsp_p.add_argument("--month", required=True, help="Month to archive (YYYY-MM)")
+    archive_dsp_p.add_argument("--force", action="store_true", help="Rebuild archive even if the month was archived before")
+
     save_p = sub.add_parser("save", help="Save canonical rows from a JSON file")
     save_p.add_argument("--workflow", required=True)
     save_p.add_argument("--template-version", required=True)
@@ -323,6 +327,10 @@ def run_cli(argv: list[str] | None = None) -> int:
                     timeout_seconds=args.timeout_seconds,
                 )
             )
+
+        if args.command == "archive-dsp-month":
+            svc = _service(root, manifest_rel, args.env)
+            return _ok(svc.archive_dsp_month(month=args.month, force=bool(args.force)))
 
         if args.command == "save":
             rows = _load_json_list(Path(args.rows_json), "INVALID_ROWS_JSON")

@@ -50,7 +50,12 @@ SANDBOX_MUTATING_ACTIONS = {
     "export",
     "tab4_delivery",
     "ssp_media_save",
+    "monthly_p4_save",
+    "monthly_p4_test_save",
+    "monthly_p4_test_template_upload",
+    "monthly_p4_close",
     "fetch_ssp_api",
+    "fetch_ssp_ad_group_api",
     "fetch_dsp_api",
     "seed_rebuild",
     "seed_promote_live",
@@ -74,6 +79,7 @@ class UiContext:
     rule_version: str
     artifact_root: Path
     db_path: Path | None = None
+    monthly_p4_test_db_path: Path | None = None
     sandbox_id: str = ""
     sandbox_baseline_db_path: Path | None = None
 
@@ -93,12 +99,17 @@ def _build_service(
     runtime_env: str | None = None,
     *,
     db_path: Path | None = None,
+    monthly_p4_test_db_path: Path | None = None,
 ) -> CanonicalService:
     ensure_acceptance_gate(root, manifest_rel, runtime_env)
     cfg = build_config(root, manifest_rel, runtime_env)
     feature_flags = get_feature_flags(root, manifest_rel, runtime_env)
-    repo = SQLiteRepository(db_path or cfg.db_path, project_root=root)
-    return CanonicalService(repo, feature_flags=feature_flags)
+    effective_db_path = db_path or cfg.db_path
+    repo = SQLiteRepository(effective_db_path, project_root=root)
+    test_db_path = monthly_p4_test_db_path or _resolve_monthly_p4_test_db_path(effective_db_path)
+    _ensure_sqlite_file(test_db_path)
+    monthly_test_repo = SQLiteRepository(test_db_path, project_root=root)
+    return CanonicalService(repo, feature_flags=feature_flags, monthly_test_repo=monthly_test_repo)
 
 
 def _normalize_sandbox_id(raw: object) -> str:
@@ -138,6 +149,16 @@ def _copy_sqlite_db(*, source: Path, target: Path) -> None:
         src.execute("PRAGMA wal_checkpoint(FULL);")
         with sqlite3.connect(str(target), timeout=30.0) as dst:
             src.backup(dst)
+
+
+def _ensure_sqlite_file(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(str(path), timeout=30.0):
+        pass
+
+
+def _resolve_monthly_p4_test_db_path(db_path: Path) -> Path:
+    return (db_path.parent / "monthly_p4_test.sqlite").resolve()
 
 
 def _remove_dir_contents(path: Path) -> int:
@@ -310,6 +331,7 @@ def _resolve_ui_context(
         rule_version=rule_version,
         artifact_root=artifact_root,
         db_path=db_path,
+        monthly_p4_test_db_path=_resolve_monthly_p4_test_db_path(db_path),
         sandbox_id=sandbox_id,
         sandbox_baseline_db_path=baseline_db_path,
     )
@@ -439,6 +461,7 @@ def collect_runtime_status(ctx: UiContext) -> dict[str, Any]:
 def collect_workflow_frame(
     ctx: UiContext,
     *,
+    main_tab: str = "",
     period_week_start: str | None = None,
     period_week_end: str | None = None,
 ) -> dict[str, Any]:
@@ -484,19 +507,37 @@ def collect_workflow_frame(
         return summary
 
     try:
-        repo = SQLiteRepository(db_path, project_root=ctx.root)
-        service = CanonicalService(repo, feature_flags=get_feature_flags(ctx.root, ctx.manifest_rel, ctx.runtime_env))
+        service = _build_service(
+            ctx.root,
+            ctx.manifest_rel,
+            ctx.runtime_env,
+            db_path=db_path,
+            monthly_p4_test_db_path=ctx.monthly_p4_test_db_path,
+        )
+        repo = service.repo
         if ctx.workflow == "ssp":
-            snapshot = service.resolve_ssp_effective_snapshot()
-            rows = list(snapshot["rows"])
-            columns = list(snapshot["columns"])
-            summary["source_table"] = str(snapshot["source"])
-            summary["field_names"] = list(snapshot["field_names"])
-            summary["manual_fields"] = list(snapshot["manual_fields"])
-            summary["ssp_media_demand"] = repo.resolve_ssp_media_demand_config(
-                ctx.runtime_env,
-                cfg.data_seed_root,
-            )
+            if main_tab == "ssp_ad_group":
+                rows = []
+                columns = []
+                summary["source_table"] = "ssp_ad_group_daily_metrics"
+                summary["field_names"] = []
+                summary["manual_fields"] = []
+            else:
+                snapshot = service.resolve_ssp_effective_snapshot()
+                rows = list(snapshot["rows"])
+                columns = list(snapshot["columns"])
+                summary["source_table"] = str(snapshot["source"])
+                summary["field_names"] = list(snapshot["field_names"])
+                summary["manual_fields"] = list(snapshot["manual_fields"])
+                summary["ssp_media_demand"] = repo.resolve_ssp_media_demand_config(
+                    ctx.runtime_env,
+                    cfg.data_seed_root,
+                )
+            if main_tab == "ssp_ad_group":
+                summary["ssp_ad_group_monitor"] = service.build_ssp_ad_group_monitor_snapshot(
+                    start_day=period_week_start or "",
+                    end_day=period_week_end or "",
+                )
         else:
             rows = repo.read_canonical_rows(ctx.workflow)
             columns = ["row_order", *repo.canonical_columns, "updated_at"]
@@ -544,6 +585,16 @@ def collect_workflow_frame(
                 )
             summary["tab4_preview_template_summary"] = template_summary
             summary["tab4_preview_template_detail"] = template_detail
+        if ctx.workflow == "monthly":
+            summary["monthly_p4"] = service.build_monthly_p4_snapshot(
+                week_start=period_week_start,
+                week_end=period_week_end,
+            )
+            summary["monthly_p4_test"] = service.build_monthly_p4_snapshot(
+                week_start=period_week_start,
+                week_end=period_week_end,
+                manual_source="test",
+            )
     except Exception as exc:
         summary["frame_error"] = str(exc)
     return summary
@@ -728,6 +779,36 @@ def _dispatch_mutating_action(
             source_name=str(payload.get("source_name") or payload.get("sourceName") or "").strip() or None,
             timeout_seconds=int(payload["timeout_seconds"]) if payload.get("timeout_seconds") not in (None, "") else (int(payload["timeoutSeconds"]) if payload.get("timeoutSeconds") not in (None, "") else None),
         )
+    if action == "fetch_ssp_ad_group_api":
+        if not ctx.sandbox_id:
+            bootstrap_init(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+        if workflow != "ssp":
+            raise ValueError("fetch_ssp_ad_group_api only supports ssp workflow")
+        service = _build_service(ctx.root, ctx.manifest_rel, ctx.runtime_env, db_path=ctx.db_path)
+        start_day, end_day = _resolve_fetch_range(
+            single_date=payload.get("date"),
+            start_day=payload.get("start_day") or payload.get("startDay") or payload.get("period_week_start"),
+            end_day=payload.get("end_day") or payload.get("endDay") or payload.get("period_week_end"),
+        )
+        zone_group_id = int(payload.get("zone_group_id") or payload.get("zoneGroupId") or 0)
+        if zone_group_id <= 0:
+            raise ValueError("zone_group_id required")
+        target_day = str(payload.get("date") or payload.get("targetDate") or end_day).strip() or end_day
+        return service.fetch_ssp_ad_group_api(
+            zone_group_id=zone_group_id,
+            start_day=target_day,
+            end_day=target_day,
+            template_version=template_version,
+            rule_version=rule_version,
+            email=str(payload.get("email") or "").strip() or None,
+            password=str(payload.get("password") or "").strip() or None,
+            scope_check_url=str(payload.get("scope_check_url") or payload.get("scopeCheckUrl") or "").strip() or None,
+            api_base_url=str(payload.get("api_base_url") or payload.get("apiBaseUrl") or "").strip() or None,
+            auth_decrypt_key=str(payload.get("auth_decrypt_key") or payload.get("authDecryptKey") or "").strip() or None,
+            service_id=int(payload["service_id"]) if payload.get("service_id") not in (None, "") else (int(payload["serviceId"]) if payload.get("serviceId") not in (None, "") else None),
+            source_name=str(payload.get("source_name") or payload.get("sourceName") or "").strip() or None,
+            timeout_seconds=int(payload["timeout_seconds"]) if payload.get("timeout_seconds") not in (None, "") else (int(payload["timeoutSeconds"]) if payload.get("timeoutSeconds") not in (None, "") else None),
+        )
     if action == "fetch_dsp_api":
         if not ctx.sandbox_id:
             bootstrap_init(ctx.root, ctx.manifest_rel, ctx.runtime_env)
@@ -767,6 +848,39 @@ def _dispatch_mutating_action(
             template_version=template_version,
             rule_version=rule_version,
         )
+    if action == "monthly_p4_save":
+        month = str(payload.get("month") or "").strip()
+        inputs = payload.get("monthly_p4_inputs")
+        if not isinstance(inputs, dict):
+            raise ValueError("monthly_p4_inputs must be object")
+        return service.save_monthly_p4_manual_inputs(
+            month=month,
+            inputs=inputs,
+            template_version=template_version,
+            rule_version=rule_version,
+        )
+    if action == "monthly_p4_test_save":
+        month = str(payload.get("month") or "").strip()
+        inputs = payload.get("monthly_p4_inputs")
+        if not isinstance(inputs, dict):
+            raise ValueError("monthly_p4_inputs must be object")
+        return service.save_monthly_p4_test_inputs(
+            month=month,
+            inputs=inputs,
+            template_version=template_version,
+            rule_version=rule_version,
+        )
+    if action == "monthly_p4_test_template_upload":
+        return service.save_monthly_p4_test_template(
+            template_kind=str(payload.get("template_kind") or payload.get("templateKind") or "").strip(),
+            filename=str(payload.get("filename") or "").strip(),
+            content_base64=str(payload.get("content_base64") or payload.get("contentBase64") or "").strip(),
+            template_version=template_version,
+            rule_version=rule_version,
+        )
+    if action == "monthly_p4_close":
+        month = str(payload.get("month") or "").strip()
+        return service.archive_dsp_month(month=month)
     if action == "save":
         rows = payload.get("rows")
         if not isinstance(rows, list):
@@ -935,6 +1049,11 @@ class UiRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
         path = parsed.path
+        if path == "/favicon.ico":
+            self.send_response(HTTPStatus.NO_CONTENT)
+            self.send_header("Cache-Control", "max-age=86400")
+            self.end_headers()
+            return
         if path.startswith("/api/export/download"):
             params = parse_qs(parsed.query)
             try:
@@ -997,6 +1116,7 @@ class UiRequestHandler(BaseHTTPRequestHandler):
                 )
                 payload = collect_workflow_frame(
                     ctx,
+                    main_tab=str(params.get("main_tab", [""])[0]).strip(),
                     period_week_start=str(params.get("period_week_start", [""])[0]).strip() or None,
                     period_week_end=str(params.get("period_week_end", [""])[0]).strip() or None,
                 )
