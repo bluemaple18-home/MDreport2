@@ -111,21 +111,26 @@ STATUS=0
   echo "start_date=${MDREP_DAILY_FETCH_START_DATE:-auto}"
   echo "runtime_env=${MDREP_DAILY_FETCH_ENV:-prod}"
 
-  "${PYTHON_CMD[@]}" "${ROOT_DIR}/scripts/detect_missing_fetch_days.py" "${detect_args[@]}" > "${TASK_FILE}"
+  if ! "${PYTHON_CMD[@]}" "${ROOT_DIR}/scripts/detect_missing_fetch_days.py" "${detect_args[@]}" > "${TASK_FILE}"; then
+    echo "缺漏日期偵測失敗，略過本次抓取與前台 DB 同步。"
+    STATUS=1
+  fi
   echo "task_file=${TASK_FILE}"
   echo "task_count=$(wc -l < "${TASK_FILE}" | tr -d ' ')"
 
-  if [ ! -s "${TASK_FILE}" ]; then
+  if [ "${STATUS}" -eq 0 ] && [ ! -s "${TASK_FILE}" ]; then
     echo "沒有偵測到缺漏日期。"
   fi
 
-  while IFS=$'\t' read -r workflow fetch_date; do
-    [ -n "${workflow}" ] || continue
-    [ -n "${fetch_date}" ] || continue
-    run_fetch "${workflow}" "${fetch_date}" || STATUS=1
-  done < "${TASK_FILE}"
+  if [ "${STATUS}" -eq 0 ]; then
+    while IFS=$'\t' read -r workflow fetch_date; do
+      [ -n "${workflow}" ] || continue
+      [ -n "${fetch_date}" ] || continue
+      run_fetch "${workflow}" "${fetch_date}" || STATUS=1
+    done < "${TASK_FILE}"
 
-  run_ssp_ad_group_fetch "${END_DATE}" || STATUS=1
+    run_ssp_ad_group_fetch "${END_DATE}" || STATUS=1
+  fi
 
   if [ "${STATUS}" -eq 0 ]; then
     sandbox_args=()
@@ -138,7 +143,9 @@ STATUS=0
   fi
 
   echo "status=${STATUS}"
+  exit "${STATUS}"
 } 2>&1 | tee "${RUN_LOG}"
 
+PIPE_STATUS="${PIPESTATUS[0]}"
 cp "${RUN_LOG}" "${LATEST_LOG}"
-exit "${STATUS}"
+exit "${PIPE_STATUS}"

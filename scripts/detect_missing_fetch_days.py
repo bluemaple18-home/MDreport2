@@ -11,7 +11,13 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from infra.sqlite.bootstrap import build_config, resolve_manifest_rel, resolve_project_root
+from infra.sqlite.bootstrap import build_config, resolve_manifest_rel
+
+
+def _resolve_project_root(raw_root: str | None) -> Path:
+    if raw_root:
+        return Path(raw_root).expanduser().resolve()
+    return ROOT_DIR
 
 
 def _parse_day(raw: str, *, field_name: str) -> date:
@@ -81,7 +87,8 @@ def _detect_missing(conn: sqlite3.Connection, workflow: str, start_day: date | N
     existing = _existing_days(conn, workflow)
     if start_day is None:
         if existing:
-            start_day = min(date.fromisoformat(day) for day in existing)
+            latest_existing = max(date.fromisoformat(day) for day in existing)
+            start_day = latest_existing + timedelta(days=1)
         else:
             start_day = end_day
     expected = set(_day_range(start_day, end_day))
@@ -102,7 +109,7 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
-    root = resolve_project_root(args.root)
+    root = _resolve_project_root(args.root)
     manifest_rel = resolve_manifest_rel(args.manifest, args.env)
     cfg = build_config(root, manifest_rel, args.env)
     end_day = _parse_day(args.end_day, field_name="end-day") if args.end_day else _yesterday_taipei()
