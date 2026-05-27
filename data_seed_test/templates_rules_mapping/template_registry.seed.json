@@ -1,0 +1,18 @@
+[
+  {
+    "template_id": "dsp-default",
+    "template_version": "v1",
+    "workflow": "dsp",
+    "mapping_version": "v1",
+    "is_active": 1,
+    "meta_json": {"note": "bootstrap default"}
+  },
+  {
+    "template_id": "ssp-default",
+    "template_version": "v1",
+    "workflow": "ssp",
+    "mapping_version": "v1",
+    "is_active": 1,
+    "meta_json": {"note": "bootstrap default"}
+  }
+]

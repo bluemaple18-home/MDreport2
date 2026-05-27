@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mattkuo.mdreport.daily-fetch</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__MDREPORT_ROOT__/scripts/fetch_previous_day.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__MDREPORT_ROOT__</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>MDREPORT_API_CONFIG_PATH</key>
+    <string>__MDREPORT_API_CONFIG_PATH__</string>
+  </dict>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>0</integer>
+    <key>Minute</key>
+    <integer>30</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__MDREPORT_ROOT__/logs/daily_fetch/launchd.out.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>__MDREPORT_ROOT__/logs/daily_fetch/launchd.err.log</string>
+</dict>
+</plist>

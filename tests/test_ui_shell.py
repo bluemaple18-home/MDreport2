@@ -346,6 +346,13 @@ class UiShellTests(unittest.TestCase):
             ],
         }
 
+    def _mock_ssp_ad_group_fetch_bundle(self) -> dict[str, object]:
+        bundle = self._mock_ssp_fetch_bundle()
+        bundle["report_id"] = 274425
+        bundle["records_total"] = 1
+        bundle["sum_row"] = {"request": 2885, "impress": 1386, "profit": 2.08}
+        return bundle
+
     def _mock_ssp_fetch_bundle_multi_day(self) -> dict[str, object]:
         return {
             "auth": {
@@ -852,6 +859,62 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual(int(result["report_id"]), 174425)
             self.assertEqual(result["sum_row"], {"request": 2885, "impress": 1386, "profit": 2.08})
 
+    def test_fetch_ssp_ad_group_api_cli_uses_runtime_command_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            with patch("domain.services.resolve_ssp_api_settings") as mock_settings, patch("domain.services.SspApiClient") as mock_client:
+                mock_settings.return_value = SspApiSettings(email="matt@clickforce.com.tw", password="24450379")
+                mock_client.return_value.fetch_ad_group_report_bundle.return_value = self._mock_ssp_ad_group_fetch_bundle()
+
+                code, payload = self._run_cli_json(
+                    [
+                        "--root",
+                        str(root),
+                        "fetch-ssp-ad-group-api",
+                        "--date",
+                        "2026-05-11",
+                        "--zone-group-id",
+                        "335",
+                    ]
+                )
+
+            self.assertEqual(code, 0)
+            self.assertEqual(payload["status"], "ok")
+            result = payload["result"]
+            self.assertEqual(result["workflow"], "ssp")
+            self.assertEqual(result["start_day"], "2026-05-11")
+            self.assertEqual(result["end_day"], "2026-05-11")
+            self.assertEqual(int(result["group_count"]), 1)
+            self.assertEqual(int(result["row_count"]), 1)
+            self.assertEqual(int(result["records_total"]), 1)
+            group = result["groups"][0]
+            self.assertEqual(int(group["zone_group_id"]), 335)
+            self.assertEqual(int(group["service_id"]), 14)
+            self.assertEqual(int(group["report_id"]), 274425)
+
+            conn = sqlite3.connect(root / "data" / "mdrep.sqlite")
+            try:
+                metric_row = conn.execute(
+                    """
+                    SELECT source, zone_group_id, zone_group_name, ad_format, price_tier, date, request, impress, profit
+                    FROM ssp_ad_group_daily_metrics
+                    LIMIT 1
+                    """
+                ).fetchone()
+            finally:
+                conn.close()
+
+            self.assertEqual(str(metric_row[0]), "ssp3_api")
+            self.assertEqual(int(metric_row[1]), 335)
+            self.assertEqual(str(metric_row[2]), "知名媒體 高價版位 BN")
+            self.assertEqual(str(metric_row[3]), "知名媒體 BN")
+            self.assertEqual(str(metric_row[4]), "高")
+            self.assertEqual(str(metric_row[5]), "2026-05-11")
+            self.assertEqual(float(metric_row[6]), 2885.0)
+            self.assertEqual(float(metric_row[7]), 1386.0)
+            self.assertEqual(float(metric_row[8]), 2.08)
+
     def test_fetch_ssp_api_cli_multi_day_sum_row_is_aggregated(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -1014,7 +1077,7 @@ class UiShellTests(unittest.TestCase):
             root = Path(td)
             self._make_project(root)
 
-            for command in ("fetch-ssp-api", "fetch-dsp-api"):
+            for command in ("fetch-ssp-api", "fetch-ssp-ad-group-api", "fetch-dsp-api"):
                 code, payload = self._run_cli_json(
                     [
                         "--root",

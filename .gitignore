@@ -17,3 +17,11 @@ output/
 frontend/dist/
 frontend/node_modules/
 node_modules/
+.codegraph/
+.runtime.log
+.runtime_shared/
+logs/
+*.egg-info/
+data_seed_test/canonical/
+data_seed_test/logs/
+data_seed_test/manifests/

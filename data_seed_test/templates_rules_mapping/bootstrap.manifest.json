@@ -1,0 +1,30 @@
+{
+  "project_id": "mdrep-bootstrap-test",
+  "env": "test",
+  "db": {
+    "path": "data_test/mdrep.test.sqlite"
+  },
+  "schema": {
+    "target_version": "0001"
+  },
+  "template_registry": {
+    "seed": "templates/template_registry.seed.json"
+  },
+  "rule_registry": {
+    "seed": "templates/ruleset.seed.json"
+  },
+  "data_seed": {
+    "root": "data_seed_test",
+    "raw_sources": []
+  },
+  "feature_flags": {
+    "enable_test_hooks": true,
+    "enable_trace_markers": false,
+    "strict_acceptance_gate": true
+  },
+  "artifact_root": "artifacts_test",
+  "runlog_policy": {
+    "require_checksums": true
+  },
+  "created_at": "2026-05-11T00:00:00+08:00"
+}

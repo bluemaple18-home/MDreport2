@@ -1,0 +1,27 @@
+{
+  "contract_version": "v1",
+  "description": "DSP canonical fields baseline. Template differences are handled by mapping and rules, not schema branching.",
+  "fields": [
+    {"name": "日期時間", "type": "datetime", "nullable": false, "default": "", "source_level": "raw"},
+    {"name": "經銷商", "type": "text", "nullable": false, "default": "", "source_level": "raw"},
+    {"name": "訂單", "type": "text", "nullable": false, "default": "", "source_level": "raw"},
+    {"name": "素材", "type": "text", "nullable": false, "default": "", "source_level": "raw"},
+    {"name": "廣告形式", "type": "text", "nullable": false, "default": "", "source_level": "raw"},
+    {"name": "尺寸", "type": "text", "nullable": false, "default": "", "source_level": "raw"},
+    {"name": "素材樣板", "type": "text", "nullable": false, "default": "", "source_level": "raw"},
+    {"name": "執行金額", "type": "real", "nullable": false, "default": 0.0, "source_level": "raw"},
+    {"name": "系統營收", "type": "real", "nullable": false, "default": 0.0, "source_level": "raw"},
+    {"name": "媒體費用", "type": "real", "nullable": false, "default": 0.0, "source_level": "raw"},
+    {"name": "原始經銷商", "type": "text", "nullable": false, "default": "", "source_level": "derived"},
+    {"name": "原始廣告形式", "type": "text", "nullable": false, "default": "", "source_level": "derived"},
+    {"name": "最終經銷商", "type": "text", "nullable": false, "default": "", "source_level": "manual"},
+    {"name": "規則命中_經銷商", "type": "text", "nullable": false, "default": "", "source_level": "derived"},
+    {"name": "最終來源_經銷商", "type": "text", "nullable": false, "default": "", "source_level": "derived"},
+    {"name": "分類層級B", "type": "text", "nullable": false, "default": "", "source_level": "derived"},
+    {"name": "分類層級C", "type": "text", "nullable": false, "default": "", "source_level": "derived"},
+    {"name": "分類層級D", "type": "text", "nullable": false, "default": "", "source_level": "derived"},
+    {"name": "最終廣告形式", "type": "text", "nullable": false, "default": "", "source_level": "manual"},
+    {"name": "規則命中_廣告形式", "type": "text", "nullable": false, "default": "", "source_level": "derived"},
+    {"name": "最終來源_廣告形式", "type": "text", "nullable": false, "default": "", "source_level": "derived"}
+  ]
+}

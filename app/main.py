@@ -171,6 +171,21 @@ def _build_parser() -> argparse.ArgumentParser:
     fetch_ssp_p.add_argument("--service-id", type=int, default=None)
     fetch_ssp_p.add_argument("--source-name", default=None)
     fetch_ssp_p.add_argument("--timeout-seconds", type=int, default=None)
+    fetch_ssp_ad_group_p = sub.add_parser("fetch-ssp-ad-group-api", help="Fetch SSP ad group demand data from the regular HolmesMind API flow")
+    fetch_ssp_ad_group_p.add_argument("--date", default=None, help="Single fetch date (YYYY-MM-DD)")
+    fetch_ssp_ad_group_p.add_argument("--start-day", default=None, help="Fetch range start date (YYYY-MM-DD)")
+    fetch_ssp_ad_group_p.add_argument("--end-day", default=None, help="Fetch range end date (YYYY-MM-DD)")
+    fetch_ssp_ad_group_p.add_argument("--zone-group-id", type=int, action="append", default=[], help="Fetch one zone group id; repeatable. Default: all configured groups")
+    fetch_ssp_ad_group_p.add_argument("--template-version", default="v1")
+    fetch_ssp_ad_group_p.add_argument("--rule-version", default="v1")
+    fetch_ssp_ad_group_p.add_argument("--email", default=None)
+    fetch_ssp_ad_group_p.add_argument("--password", default=None)
+    fetch_ssp_ad_group_p.add_argument("--scope-check-url", default=None)
+    fetch_ssp_ad_group_p.add_argument("--api-base-url", default=None)
+    fetch_ssp_ad_group_p.add_argument("--auth-decrypt-key", default=None)
+    fetch_ssp_ad_group_p.add_argument("--service-id", type=int, default=None)
+    fetch_ssp_ad_group_p.add_argument("--source-name", default=None)
+    fetch_ssp_ad_group_p.add_argument("--timeout-seconds", type=int, default=None)
     fetch_dsp_p = sub.add_parser("fetch-dsp-api", help="Fetch DSP data from the regular HolmesMind API flow")
     fetch_dsp_p.add_argument("--date", default=None, help="Single fetch date (YYYY-MM-DD)")
     fetch_dsp_p.add_argument("--start-day", default=None, help="Fetch range start date (YYYY-MM-DD)")
@@ -303,6 +318,47 @@ def run_cli(argv: list[str] | None = None) -> int:
                     timeout_seconds=args.timeout_seconds,
                 )
             )
+        if args.command == "fetch-ssp-ad-group-api":
+            bootstrap_init(root, manifest_rel, args.env)
+            svc = _service(root, manifest_rel, args.env)
+            start_day, end_day = _resolve_fetch_range(
+                single_date=args.date,
+                start_day=args.start_day,
+                end_day=args.end_day,
+            )
+            common_kwargs = {
+                "start_day": start_day,
+                "end_day": end_day,
+                "template_version": args.template_version,
+                "rule_version": args.rule_version,
+                "email": args.email,
+                "password": args.password,
+                "scope_check_url": args.scope_check_url,
+                "api_base_url": args.api_base_url,
+                "auth_decrypt_key": args.auth_decrypt_key,
+                "service_id": args.service_id,
+                "source_name": args.source_name,
+                "timeout_seconds": args.timeout_seconds,
+            }
+            zone_group_ids = [int(item) for item in (args.zone_group_id or []) if int(item or 0) > 0]
+            if zone_group_ids:
+                groups = [
+                    svc.fetch_ssp_ad_group_api(zone_group_id=zone_group_id, **common_kwargs)
+                    for zone_group_id in zone_group_ids
+                ]
+                return _ok(
+                    {
+                        "status": "ok",
+                        "workflow": "ssp",
+                        "start_day": start_day,
+                        "end_day": end_day,
+                        "group_count": len(groups),
+                        "row_count": sum(int(item.get("row_count") or 0) for item in groups),
+                        "records_total": sum(int(item.get("records_total") or 0) for item in groups),
+                        "groups": groups,
+                    }
+                )
+            return _ok(svc.fetch_all_ssp_ad_group_api(**common_kwargs))
         if args.command == "fetch-dsp-api":
             bootstrap_init(root, manifest_rel, args.env)
             svc = _service(root, manifest_rel, args.env)
