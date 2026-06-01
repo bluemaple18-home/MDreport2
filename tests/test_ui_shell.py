@@ -830,6 +830,74 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual(int(canonical_count[0] or 0), 0)
             self.assertEqual(tuple(str(v) for v in run_row), ("fetch_ssp_api", "ssp", "ok"))
 
+    def test_dispatch_action_fetch_ssp_api_preserves_other_days_when_refreshing_single_day(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="ssp")
+            dispatch_action(ctx, {"action": "bootstrap"})
+
+            cfg = build_config(root, ctx.manifest_rel, ctx.runtime_env)
+            repo = SQLiteRepository(cfg.db_path, project_root=root)
+            with repo.connect() as conn:
+                repo.save_ssp_raw_rows(
+                    conn,
+                    [
+                        {
+                            "source": "ssp3_api",
+                            "ts": "2026-05-10 00:00:00",
+                            "date": "2026-05-10",
+                            "hour": 0,
+                            "placement_id": 10229,
+                            "placement_name": "OLD_PLACEMENT",
+                            "request": 100.0,
+                            "impression": 50.0,
+                            "clicks": 1.0,
+                            "revenue": 2.0,
+                            "dsp_amount": 4.0,
+                            "supplier_id": 1,
+                            "supplier_name": "OLD_SUPPLIER",
+                            "site_id": 784,
+                            "site_name": "OLD_SITE",
+                        }
+                    ],
+                )
+                conn.commit()
+
+            with patch("domain.services.resolve_ssp_api_settings") as mock_settings, patch("domain.services.SspApiClient") as mock_client:
+                mock_settings.return_value = SspApiSettings(email="matt@clickforce.com.tw", password="24450379")
+                mock_client.return_value.fetch_report_bundle.return_value = self._mock_ssp_fetch_bundle()
+
+                out = dispatch_action(
+                    ctx,
+                    {
+                        "action": "fetch_ssp_api",
+                        "workflow": "ssp",
+                        "date": "2026-05-11",
+                    },
+                )
+
+            self.assertEqual(out["status"], "ok")
+            self.assertEqual(int(out["fetched_row_count"]), 1)
+            self.assertEqual(int(out["retained_row_count"]), 1)
+            self.assertEqual(int(out["replaced_day_count"]), 1)
+            self.assertEqual(int(out["row_count"]), 1)
+            self.assertEqual(int(out["total_row_count"]), 2)
+
+            conn = sqlite3.connect(str(root / "data" / "mdrep.sqlite"))
+            try:
+                rows = conn.execute(
+                    """
+                    SELECT date, placement_name, request
+                    FROM ssp_raw
+                    ORDER BY date ASC, row_order ASC
+                    """
+                ).fetchall()
+            finally:
+                conn.close()
+
+            self.assertEqual(rows, [("2026-05-10", "OLD_PLACEMENT", 100.0), ("2026-05-11", "DEMO LINK 專用", 2885.0)])
+
     def test_fetch_ssp_api_cli_uses_runtime_command_contract(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

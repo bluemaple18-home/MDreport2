@@ -230,6 +230,11 @@ def _canonical_day_text(row: dict) -> str:
     return raw[:10] if len(raw) >= 10 else raw
 
 
+def _ssp_raw_day_text(row: dict) -> str:
+    raw = str(row.get("date") or row.get("ts") or "").strip()
+    return raw[:10] if len(raw) >= 10 else raw
+
+
 def _inclusive_day_texts(start_day: str, end_day: str) -> set[str]:
     start = date.fromisoformat(start_day)
     end = date.fromisoformat(end_day)
@@ -2040,13 +2045,31 @@ class CanonicalService:
 
         with self.repo.connect() as conn:
             self.repo.resolve_trace_binding(conn, "ssp", template_version, rule_version)
-            changed = self.repo.save_ssp_raw_rows(conn, rows)
+            existing_rows = self.repo.read_ssp_raw_rows_in_tx(conn)
+            requested_days = _inclusive_day_texts(start_day, end_day)
+            preserved_rows = [row for row in existing_rows if _ssp_raw_day_text(row) not in requested_days]
+            merged_rows = [*preserved_rows, *rows]
+            merged_rows.sort(
+                key=lambda row: (
+                    _ssp_raw_day_text(row),
+                    str(row.get("ts") or ""),
+                    str(row.get("supplier_name") or ""),
+                    str(row.get("site_name") or ""),
+                    str(row.get("placement_name") or ""),
+                    int(row.get("row_order") or 0),
+                )
+            )
+            changed = self.repo.save_ssp_raw_rows(conn, merged_rows)
             self.repo.save_canonical_rows(conn, "ssp", [])
             trace = self.repo.build_trace_meta(conn, "ssp", template_version, rule_version)
             detail = {
                 "start_day": start_day,
                 "end_day": end_day,
-                "row_count": changed,
+                "row_count": len(rows),
+                "total_row_count": changed,
+                "fetched_row_count": len(rows),
+                "retained_row_count": len(preserved_rows),
+                "replaced_day_count": len(requested_days),
                 "records_total": int(bundle.get("records_total") or 0),
                 "report_id": int(bundle.get("report_id") or 0),
                 "report_ids": list(bundle.get("report_ids") or []),
@@ -2081,7 +2104,11 @@ class CanonicalService:
             "run_id": run_id,
             "start_day": start_day,
             "end_day": end_day,
-            "row_count": changed,
+            "row_count": len(rows),
+            "total_row_count": changed,
+            "fetched_row_count": len(rows),
+            "retained_row_count": len(preserved_rows),
+            "replaced_day_count": len(requested_days),
             "records_total": int(bundle.get("records_total") or 0),
             "report_id": int(bundle.get("report_id") or 0),
             "report_ids": list(bundle.get("report_ids") or []),

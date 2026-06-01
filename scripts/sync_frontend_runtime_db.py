@@ -34,6 +34,7 @@ def main(argv: list[str] | None = None) -> int:
     for sandbox_id in args.sandbox or []:
         normalized = str(sandbox_id or "").strip()
         if normalized:
+            targets.append(root / "data_sandbox" / normalized / "mdrep.sqlite")
             targets.append(root / "data_sandbox" / normalized / "mdrep.test.sqlite")
 
     for target in targets:
