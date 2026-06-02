@@ -69,6 +69,10 @@ export default function App() {
             resultState: controller.state.resultState,
             exportDeliverySnapshotToken: controller.exportDeliverySnapshotToken,
             sspMediaDemandConfig: controller.sspMediaDemandConfig,
+            sspAdGroupMonitor: controller.sspAdGroupMonitor,
+            monthlyP4: controller.monthlyP4,
+            monthlyP4Test: controller.monthlyP4Test,
+            monthlyCharts: controller.monthlyCharts,
             runtimeContext: controller.state.ctx,
           }}
           actions={{
@@ -86,6 +90,11 @@ export default function App() {
             handleSendPivotToTab4: controller.handleSendPivotToTab4,
             handleReturnToPivotForDelivery: controller.handleReturnToPivotForDelivery,
             handleSspMediaSave: controller.handleSspMediaSave,
+            handleSspAdGroupRefresh: controller.handleSspAdGroupRefresh,
+            handleMonthlyP4Save: controller.handleMonthlyP4Save,
+            handleMonthlyP4TestSave: controller.handleMonthlyP4TestSave,
+            handleMonthlyP4TestTemplateUpload: controller.handleMonthlyP4TestTemplateUpload,
+            handleMonthlyP4Close: controller.handleMonthlyP4Close,
           }}
           rawdataView={{
             capability: controller.rawdataCapability,

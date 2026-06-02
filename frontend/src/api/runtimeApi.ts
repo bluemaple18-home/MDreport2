@@ -89,6 +89,7 @@ export async function fetchStatus(ctx: RuntimeContext): Promise<RuntimeEnvelope<
 export async function fetchFrame(
   ctx: RuntimeContext,
   period?: { period_week_start: string; period_week_end: string },
+  route?: { main_tab?: MainTab; sub_tab?: SubTab },
 ): Promise<RuntimeEnvelope<RuntimeFrameResult>> {
   const query = new URLSearchParams(withQuery(ctx));
   if (period?.period_week_start) {
@@ -96,6 +97,12 @@ export async function fetchFrame(
   }
   if (period?.period_week_end) {
     query.set("period_week_end", period.period_week_end);
+  }
+  if (route?.main_tab) {
+    query.set("main_tab", route.main_tab);
+  }
+  if (route?.sub_tab) {
+    query.set("sub_tab", route.sub_tab);
   }
   const resp = await fetch(`${buildApiUrl("/api/frame")}?${query.toString()}`, { cache: "no-store" });
   return parseEnvelope<RuntimeFrameResult>(resp);
@@ -136,12 +143,20 @@ export type ActionPayload = {
   rows?: Array<Record<string, unknown>>;
   updates?: Array<Record<string, unknown>>;
   ssp_media_slots?: SspMediaDemandSlot[];
+  month?: string;
+  zone_group_id?: number;
+  date?: string;
+  monthly_p4_inputs?: Record<string, number>;
+  template_kind?: "base" | "check";
+  filename?: string;
+  content_base64?: string;
   period_preset?:
     | "last_week"
     | "two_weeks_ago"
     | "three_weeks_ago"
     | "four_weeks_ago"
     | "current_week"
+    | "current_month"
     | "last_7_days"
     | "last_14_days"
     | "custom";

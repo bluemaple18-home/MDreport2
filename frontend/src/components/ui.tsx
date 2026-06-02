@@ -135,6 +135,12 @@ export function ModeSwitcher({ workflow, busy, onChange }: ModeSwitcherProps) {
           onClick={() => onChange("ssp")}
           disabled={busy}
         />
+        <ActionButton
+          label="Use 月報"
+          variant={workflow === "monthly" ? "primary" : "ghost"}
+          onClick={() => onChange("monthly")}
+          disabled={busy}
+        />
       </div>
     </Panel>
   );

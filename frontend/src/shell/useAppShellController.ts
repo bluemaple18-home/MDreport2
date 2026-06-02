@@ -3,7 +3,7 @@ import type { RecentMap } from "../components/workspaces/shared";
 import { buildExportDownloadUrl } from "../api/runtimeApi";
 import { getMainTabOptions, getSubTabOptions } from "../state/runtimeContract";
 import { useRuntimeStore } from "../state/useRuntimeStore";
-import type { DspDateBucket, DspRawdataFilters, MainTab, PeriodPreset, RuntimeFrameResult, SspMediaDemandConfig, SspMediaDemandSlot, SubTab, Workflow } from "../types";
+import type { DspDateBucket, DspRawdataFilters, MainTab, MonthlyChartsSnapshot, MonthlyP4Snapshot, PeriodPreset, RuntimeFrameResult, SspMediaDemandConfig, SspMediaDemandSlot, SubTab, Workflow } from "../types";
 import { collectDspFacetOptions, filterDspRawdataRows } from "./dspRawdataFilters";
 import { useRawdataEditingController } from "./useRawdataEditingController";
 import { getWorkflowCapability, getWorkspaceVisibilityCapability } from "./workflowCapabilities";
@@ -43,7 +43,13 @@ export function useAppShellController() {
   }, [runtimeContextKey]);
 
   useEffect(() => {
-    if (state.route.workflow !== "dsp" || state.route.mainTab !== "dsp_tab4") {
+    const shouldRefreshFrame =
+      (state.route.workflow === "dsp" && state.route.mainTab === "dsp_tab4")
+      || (
+        state.route.workflow === "monthly"
+        && (state.route.mainTab === "monthly_p4" || state.route.mainTab === "monthly_charts")
+      );
+    if (!shouldRefreshFrame) {
       return;
     }
     void refreshFrame();
@@ -61,6 +67,10 @@ export function useAppShellController() {
   const tab4TemplateDetail = frameResult?.tab4_preview_template_detail || null;
   const tab4PreviewContract = frameResult?.tab4_preview_contract || null;
   const sspMediaDemandConfig = frameResult?.ssp_media_demand as SspMediaDemandConfig | undefined;
+  const sspAdGroupMonitor = frameResult?.ssp_ad_group_monitor;
+  const monthlyP4 = frameResult?.monthly_p4 as MonthlyP4Snapshot | undefined;
+  const monthlyP4Test = frameResult?.monthly_p4_test as MonthlyP4Snapshot | undefined;
+  const monthlyCharts = frameResult?.monthly_charts as MonthlyChartsSnapshot | undefined;
   const manualFields = frameResult?.manual_fields || [];
   const workflowCapability = useMemo(() => getWorkflowCapability(state.route.workflow), [state.route.workflow]);
   const rawdataCapability = workflowCapability.rawdata;
@@ -154,6 +164,10 @@ export function useAppShellController() {
     tab4TemplateDetail,
     tab4PreviewContract,
     sspMediaDemandConfig,
+    sspAdGroupMonitor,
+    monthlyP4,
+    monthlyP4Test,
+    monthlyCharts,
     filteredRows,
     manualFields,
     mainTabOptions,
@@ -238,6 +252,53 @@ export function useAppShellController() {
     handleSspMediaSave: async (slots: SspMediaDemandSlot[]) => {
       const result = await runActionWithResult("ssp_media_save", { sspMediaSlots: slots });
       return result.status === "ok";
+    },
+    handleSspAdGroupRefresh: async (zoneGroupId: number, date: string) => {
+      const result = await runActionWithResult("fetch_ssp_ad_group_api", {
+        sspAdGroup: { zoneGroupId, date },
+      });
+      return result.status === "ok";
+    },
+    handleMonthlyP4Save: async (month: string, inputs: Record<string, number>) => {
+      const result = await runActionWithResult("monthly_p4_save", { monthlyP4: { month, inputs } });
+      if (result.status === "ok") {
+        await refreshFrame();
+      }
+      return result.status === "ok";
+    },
+    handleMonthlyP4TestSave: async (month: string, inputs: Record<string, number>) => {
+      const result = await runActionWithResult("monthly_p4_test_save", { monthlyP4: { month, inputs } });
+      if (result.status === "ok") {
+        await refreshFrame();
+      }
+      return result.status === "ok";
+    },
+    handleMonthlyP4TestTemplateUpload: async (kind: "base" | "check", file: File) => {
+      const contentBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || "");
+          resolve(result.includes(",") ? result.split(",", 2)[1] : result);
+        };
+        reader.onerror = () => reject(reader.error || new Error("檔案讀取失敗"));
+        reader.readAsDataURL(file);
+      });
+      const result = await runActionWithResult("monthly_p4_test_template_upload", {
+        monthlyP4Template: { kind, filename: file.name, contentBase64 },
+      });
+      return result.status === "ok";
+    },
+    handleMonthlyP4Close: async (month: string) => {
+      const result = await runActionWithResult("monthly_p4_close", { monthlyP4: { month, inputs: {} } });
+      const payload = result.result || {};
+      return {
+        ok: result.status === "ok" && payload.status !== "skipped",
+        message: result.status !== "ok"
+          ? "關帳失敗，請看 Result"
+          : payload.status === "skipped"
+            ? "這個月份已經關帳過"
+            : `關帳完成：mltiFORCE 實際績效 ${Number(payload.mf_total_actual || 0).toLocaleString("zh-TW")}`,
+      };
     },
     handleEdit: rawdataEditing.handleEdit,
     handleRevertCell: rawdataEditing.handleRevertCell,

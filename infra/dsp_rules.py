@@ -27,7 +27,7 @@ DEFAULT_RULES: dict[str, Any] = {
     "preroll_keywords": ["preroll", "pre-roll", "pre roll"],
     "ad_format_dooh_keywords": ["北流"],
     "ad_format_dooh_size_keywords": ["2048x2560"],
-    "ad_format_video_keywords": ["影音", "scroller"],
+    "ad_format_video_keywords": ["影音摩天"],
     "ad_format_creative_keywords": [
         "特效",
         "蓋板",
@@ -54,6 +54,7 @@ DEFAULT_RULES: dict[str, Any] = {
         "創意置底banner",
         "移動大看板(圖片)",
         "開場特效",
+        "scroller",
     ],
 }
 
@@ -62,11 +63,17 @@ MOMO_KEYWORDS = ["momo直播", "momo live", "momolive", "momo_liveshow", "momo-l
 PREROLL_KEYWORDS = DEFAULT_RULES["preroll_keywords"]
 
 RULES_PATH = Path(__file__).resolve().parents[1] / "config" / "dsp_classification_rules.json"
+AD_FORMAT_SIZE_MAP_PATH = Path(__file__).resolve().parents[1] / "config" / "dsp_ad_format_size_map.json"
 
 
 def _normalize_text_token(value: Any) -> str:
     text = str(value or "").strip().lower()
     return re.sub(r"[\s_\-]+", "", text)
+
+
+def _normalize_size_separator_token(value: Any) -> str:
+    token = _normalize_text_token(value)
+    return re.sub(r"(?<=\d)[:×](?=\d)", "x", token)
 
 
 def _coerce_text(value: Any) -> str:
@@ -94,6 +101,14 @@ def _coerce_effective_cpm(row: Mapping[str, Any]) -> float | None:
         if value is not None:
             return value
     return None
+
+
+def _extract_size_id(value: Any) -> str:
+    text = _coerce_text(value)
+    match = re.search(r"\((\d+)\)", text)
+    if match:
+        return match.group(1)
+    return text if re.fullmatch(r"\d+", text) else ""
 
 
 def _sanitize_rule_config(payload: dict[str, Any]) -> dict[str, Any]:
@@ -128,12 +143,82 @@ def load_rule_config() -> dict[str, Any]:
     return _sanitize_rule_config(raw)
 
 
+@lru_cache(maxsize=1)
+def load_ad_format_size_map() -> dict[str, Any]:
+    if not AD_FORMAT_SIZE_MAP_PATH.exists():
+        return {"by_size_id": {}, "by_material_token": []}
+    try:
+        raw = json.loads(AD_FORMAT_SIZE_MAP_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {"by_size_id": {}, "by_material_token": []}
+    rows = raw.get("rows") if isinstance(raw, dict) else []
+    by_size_id: dict[str, dict[str, str]] = {}
+    by_material_token: list[dict[str, str]] = []
+    if isinstance(rows, list):
+        for item in rows:
+            if not isinstance(item, dict):
+                continue
+            size_id = _extract_size_id(item.get("size_id"))
+            final_ad_format = _coerce_text(item.get("final_ad_format"))
+            material_format = _coerce_text(item.get("material_format"))
+            if not size_id or not final_ad_format:
+                continue
+            entry = {
+                "size_id": size_id,
+                "final_ad_format": final_ad_format,
+                "material_format": material_format,
+            }
+            by_size_id[size_id] = entry
+            material_token = _normalize_size_separator_token(material_format)
+            if material_token:
+                by_material_token.append({**entry, "material_token": material_token})
+    by_material_token.sort(key=lambda item: len(item["material_token"]), reverse=True)
+    return {"by_size_id": by_size_id, "by_material_token": by_material_token}
+
+
+def _infer_ad_format_from_size_map(*values: Any) -> tuple[str, str]:
+    mapping = load_ad_format_size_map()
+    by_size_id = mapping.get("by_size_id") if isinstance(mapping, dict) else {}
+    by_material_token = mapping.get("by_material_token") if isinstance(mapping, dict) else []
+    for value in values:
+        size_id = _extract_size_id(value)
+        if size_id and isinstance(by_size_id, dict) and size_id in by_size_id:
+            entry = by_size_id[size_id]
+            return str(entry["final_ad_format"]), f"table:size_id:{size_id}"
+    value_tokens = [_normalize_size_separator_token(value) for value in values if _normalize_size_separator_token(value)]
+    combined_value_token = _normalize_size_separator_token(" ".join(_coerce_text(value) for value in values))
+    if value_tokens and isinstance(by_material_token, list):
+        for entry in by_material_token:
+            material_token = str(entry.get("material_token") or "")
+            if not material_token:
+                continue
+            is_plain_size = bool(re.fullmatch(r"\d+x\d+", material_token))
+            if is_plain_size:
+                if not any(value_token in {material_token, f"{material_token}橫幅"} for value_token in value_tokens):
+                    continue
+            elif material_token not in combined_value_token:
+                continue
+            if material_token:
+                return str(entry["final_ad_format"]), f"table:material:{entry['size_id']}"
+    return "", ""
+
+
 def _pick_first_hit(text_token: str, keywords: list[str]) -> str:
     for kw in keywords:
         token = _normalize_text_token(kw)
         if token and token in text_token:
             return kw
     return ""
+
+
+def _is_special_video_ad_format(*values: Any) -> bool:
+    for value in values:
+        if _extract_size_id(value) == "176":
+            return True
+        token = _normalize_text_token(value)
+        if token in {"影音廣告", "16:9影音廣告", "169影音廣告"}:
+            return True
+    return False
 
 
 def _build_search_token(row: Mapping[str, Any], fields: list[str]) -> str:
@@ -162,28 +247,37 @@ def _resolve_distributor_alias(raw_distributor: str, rules: dict[str, Any]) -> t
 
 def _infer_ad_format(row: Mapping[str, Any], rules: dict[str, Any]) -> tuple[str, str]:
     """依原始欄位推回最終廣告形式。"""
-    size_token = _normalize_text_token(_coerce_text(row.get("尺寸", "") or row.get("size_id", "")))
+    size_text = _coerce_text(row.get("尺寸", "") or row.get("size_id", ""))
+    size_token = _normalize_text_token(size_text)
     raw_ad = _coerce_text(row.get("廣告形式", "") or row.get("size_id", "") or row.get("ad_format", ""))
     raw_ad_token = _normalize_text_token(raw_ad)
-    template_token = _normalize_text_token(_coerce_text(row.get("素材樣板", "") or row.get("content_type", "")))
+    template_text = _coerce_text(row.get("素材樣板", "") or row.get("content_type", ""))
+    template_token = _normalize_text_token(template_text)
     display_320x480_templates = [str(v) for v in rules.get("display_320x480_templates", [])]
+
+    if not raw_ad and not size_text and not template_text:
+        return "一般廣告", "rule:empty_size_default"
 
     display_320x480_hit = _pick_first_hit(template_token, display_320x480_templates)
     if display_320x480_hit and "320x480" in size_token:
         return "一般廣告", "rule:display_320x480_template"
 
-    if raw_ad in {"一般廣告", "創意廣告", "DOOH北流", "影音摩天", "preroll"}:
-        return raw_ad, "rule:canonical"
-
     token_fields = ["廣告形式", "訂單", "素材樣板", "尺寸", "素材"]
     token = _build_search_token(row, token_fields)
     effective_cpm = _coerce_effective_cpm(row)
-    if effective_cpm is not None and ("16:9影音廣告" in size_token or "169影音廣告" in size_token):
+    if effective_cpm is not None and _is_special_video_ad_format(raw_ad, size_text, template_text):
         if effective_cpm < 40:
             return "影音摩天", "rule:video_16_9_cpm_lt40"
         if effective_cpm <= 200:
             return "創意廣告", "rule:video_16_9_cpm_40_200"
         return "preroll", "rule:video_16_9_cpm_ge201"
+
+    mapped_ad_format, mapped_rule = _infer_ad_format_from_size_map(raw_ad, size_text, template_text)
+    if mapped_ad_format:
+        return mapped_ad_format, mapped_rule
+
+    if raw_ad in {"一般廣告", "創意廣告", "DOOH北流", "影音摩天", "preroll"}:
+        return raw_ad, "rule:canonical"
 
     preroll_hit = _pick_first_hit(token, [str(v) for v in rules.get("preroll_keywords", PREROLL_KEYWORDS)])
     if preroll_hit:

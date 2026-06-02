@@ -1,0 +1,924 @@
+{
+  "source_file": "廣告版型vs廣告形式20250815.xlsx",
+  "source_sheet": "工作表1",
+  "updated_at": "2026-06-01",
+  "rows": [
+    {
+      "size_id": 1,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "300x250",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 2,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "300x100",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 3,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "320x50",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 5,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "728x90",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 7,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "320x480",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 9,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "160x600",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 14,
+      "business_type": "影音型",
+      "ad_type": "影音型",
+      "material_format": "Pre-Roll(VAST)",
+      "final_ad_format": "preroll"
+    },
+    {
+      "size_id": 15,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "300x600",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 18,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "320x100",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 20,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "970x250",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 35,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "原生廣告",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 36,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "內文全屏",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 41,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "970x90",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 42,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "336x280",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 50,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "漂浮影音",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 55,
+      "business_type": "文中300x250",
+      "ad_type": "創意型",
+      "material_format": "磁浮廣告",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 56,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "漂浮多商品",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 57,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "卷軸特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 59,
+      "business_type": "文中300x250",
+      "ad_type": "創意型",
+      "material_format": "變形蓋版(320x480)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 66,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "旋轉特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 67,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "跑馬燈特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 73,
+      "business_type": "文中300x250",
+      "ad_type": "創意型",
+      "material_format": "磁浮廣告 2.0",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 77,
+      "business_type": "文中300x250",
+      "ad_type": "創意型",
+      "material_format": "內文跑馬燈",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 80,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "3D特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 81,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "上翻特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 83,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "旋轉立方體",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 84,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "魔術方塊",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 85,
+      "business_type": "文中300x250",
+      "ad_type": "創意型",
+      "material_format": "旋轉蓋板",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 86,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "雙喜臨門",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 88,
+      "business_type": "文中300x250",
+      "ad_type": "創意型",
+      "material_format": "旋轉方塊",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 89,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "字卡特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 90,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "風火輪特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 91,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "內文大摩天",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 92,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "直立式影音",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 93,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "玩轉特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 94,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "變身特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 95,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "圖卡特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 96,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "翻轉特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 97,
+      "business_type": "影音摩天",
+      "ad_type": "創意型",
+      "material_format": "影音摩天300x250",
+      "final_ad_format": "影音摩天"
+    },
+    {
+      "size_id": 98,
+      "business_type": "影音摩天",
+      "ad_type": "創意型",
+      "material_format": "影音摩天300x600",
+      "final_ad_format": "影音摩天"
+    },
+    {
+      "size_id": 99,
+      "business_type": "影音摩天",
+      "ad_type": "創意型",
+      "material_format": "影音摩天336x228",
+      "final_ad_format": "影音摩天"
+    },
+    {
+      "size_id": 100,
+      "business_type": "影音摩天",
+      "ad_type": "創意型",
+      "material_format": "影音摩天970x250",
+      "final_ad_format": "影音摩天"
+    },
+    {
+      "size_id": 101,
+      "business_type": "文中300x250",
+      "ad_type": "創意型",
+      "material_format": "對焦特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 102,
+      "business_type": "文中300x250",
+      "ad_type": "創意型",
+      "material_format": "拼圖特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 103,
+      "business_type": "置底 (展開)640*360+900*1600",
+      "ad_type": "創意型",
+      "material_format": "彈出特效（置底影音）",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 104,
+      "business_type": "置底 (展開)640*360+900*1600",
+      "ad_type": "創意型",
+      "material_format": "彈出特效（置底圖像）",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 105,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "置底滑動多商品（影音）",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 106,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "置底滑動多商品（圖片）",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 109,
+      "business_type": "置底 (展開)640*360+900*1600",
+      "ad_type": "創意型",
+      "material_format": "開場特效(置底單圖)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 111,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "拉霸特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 112,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "捲軸特效Plus",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 116,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "刮刮卡特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 117,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "問卷特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 119,
+      "business_type": "置底 (展開)640*360+900*1600",
+      "ad_type": "創意型",
+      "material_format": "轉盤特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 120,
+      "business_type": "置底 (展開)640*360+900*1600",
+      "ad_type": "創意型",
+      "material_format": "開場特效(置底多圖)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 121,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "幻燈片特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 123,
+      "business_type": "創意-Banner",
+      "ad_type": "創意型",
+      "material_format": "旋轉特效 (300X600)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 124,
+      "business_type": "創意-Banner",
+      "ad_type": "創意型",
+      "material_format": "旋轉特效 (970X250)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 146,
+      "business_type": "置底 (展開)640*360+900*1600",
+      "ad_type": "創意型",
+      "material_format": "拆封特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 147,
+      "business_type": "文中300x250",
+      "ad_type": "創意型",
+      "material_format": "破鏡重圓",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 148,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "影音幻燈片",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 152,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "捲簾特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 153,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "內文拉霸機",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 154,
+      "business_type": "置底 (展開)640*360+900*1600",
+      "ad_type": "創意型",
+      "material_format": "移動大看板(圖片)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 155,
+      "business_type": "置底 (展開)640*360+900*1600",
+      "ad_type": "創意型",
+      "material_format": "移動大看板(影音)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 158,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "翻頁特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 159,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "開門見山",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 160,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "置底大看板(影音)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 161,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "滾輪特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 162,
+      "business_type": "置底 (展開)640*360+900*1600",
+      "ad_type": "創意型",
+      "material_format": "輪盤特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 167,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "棋盤特效",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 168,
+      "business_type": "文中300x250",
+      "ad_type": "創意型",
+      "material_format": "蓋板PLUS",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 169,
+      "business_type": "創意-其他",
+      "ad_type": "創意型",
+      "material_format": "回饋式廣告",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 170,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "字卡特效2.0 (Mobile)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 171,
+      "business_type": "文中300x250",
+      "ad_type": "創意型",
+      "material_format": "地圖廣告 (300X250)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 172,
+      "business_type": "創意-Banner",
+      "ad_type": "創意型",
+      "material_format": "地圖廣告 (336X280)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 173,
+      "business_type": "創意-Banner",
+      "ad_type": "創意型",
+      "material_format": "地圖廣告 (300X600)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 174,
+      "business_type": "創意-Banner",
+      "ad_type": "創意型",
+      "material_format": "地圖廣告 (970X250)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 175,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "地圖廣告 (創意)",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 176,
+      "business_type": "影音型",
+      "ad_type": "影音型",
+      "material_format": "影音廣告",
+      "final_ad_format": "影音摩天"
+    },
+    {
+      "size_id": 177,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "行動底片",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 178,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "環境即時報",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 179,
+      "business_type": "影音型",
+      "ad_type": "影音型",
+      "material_format": "32:9 影音廣告",
+      "final_ad_format": "影音摩天"
+    },
+    {
+      "size_id": 180,
+      "business_type": "影音型",
+      "ad_type": "影音型",
+      "material_format": "9:16 影音廣告",
+      "final_ad_format": "影音摩天"
+    },
+    {
+      "size_id": 181,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "虛擬通知",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 183,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "全屏Scroller廣告樣式",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 184,
+      "business_type": "文中320x480",
+      "ad_type": "創意型",
+      "material_format": "影音Scroller廣告樣式",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 187,
+      "business_type": "創意-Banner",
+      "ad_type": "創意型",
+      "material_format": "BLS問卷",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 188,
+      "business_type": "創意-其他",
+      "ad_type": "創意型",
+      "material_format": "回應式廣告",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 190,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "384:576 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 191,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "1214:1080 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 192,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "1152:1080 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 193,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "3200:720 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 194,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "608:1080 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 195,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "2558:1080 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 196,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "1822:1080 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 197,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "3192:1080 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 201,
+      "business_type": "蓋板",
+      "ad_type": "創意型",
+      "material_format": "頁緣蓋版",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 203,
+      "business_type": "置底 (展開)640*360+900*1600",
+      "ad_type": "創意型",
+      "material_format": "經典畫廊",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 204,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "1080:720 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 205,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "540:540 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 206,
+      "business_type": "影音型",
+      "ad_type": "影音型",
+      "material_format": "VAST3.0",
+      "final_ad_format": "preroll"
+    },
+    {
+      "size_id": 209,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "1920:1080 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 210,
+      "business_type": "置底 (展開)640*360+900*1600",
+      "ad_type": "創意型",
+      "material_format": "摩天輪反轉蓋板",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 211,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "1280:800 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 212,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "384:352 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 213,
+      "business_type": "文中300x250",
+      "ad_type": "創意型",
+      "material_format": "旋轉方塊",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 214,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "320:636 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 215,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "480:1152 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 216,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "500:340 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 217,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "544:352 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 218,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "600:320 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 219,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "1024:768 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 220,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "1710:260 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 221,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "2880:860 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 222,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "1792:832 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 223,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "1920:576 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 224,
+      "business_type": "置底 (展開)",
+      "ad_type": "創意型",
+      "material_format": "上拉純影",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 225,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "510:420 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 226,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "1184:768 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 227,
+      "business_type": "置底 (展開)",
+      "ad_type": "創意型",
+      "material_format": "上拉純圖",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 228,
+      "business_type": "蓋板",
+      "ad_type": "創意型",
+      "material_format": "純蓋版",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 229,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "2048:1412 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 230,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "2048:1151 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 231,
+      "business_type": "DOOH",
+      "ad_type": "影音型",
+      "material_format": "2048:2560 影音廣告",
+      "final_ad_format": "DOOH北流"
+    },
+    {
+      "size_id": 236,
+      "business_type": "影音型",
+      "ad_type": "影音型",
+      "material_format": "VAST URL",
+      "final_ad_format": "preroll"
+    },
+    {
+      "size_id": 237,
+      "business_type": "置底 (非展開)640*360",
+      "ad_type": "創意型",
+      "material_format": "創意置底banner",
+      "final_ad_format": "創意廣告"
+    },
+    {
+      "size_id": 240,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "動態商品_300x250",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 241,
+      "business_type": "Banner（用不到了）",
+      "ad_type": "展示型",
+      "material_format": "Product Feed_Banner_320x480",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 242,
+      "business_type": "Banner",
+      "ad_type": "展示型",
+      "material_format": "動態商品_300x600",
+      "final_ad_format": "一般廣告"
+    },
+    {
+      "size_id": 243,
+      "business_type": "蓋板",
+      "ad_type": "創意型",
+      "material_format": "動態商品_320x480",
+      "final_ad_format": "創意廣告"
+    }
+  ]
+}

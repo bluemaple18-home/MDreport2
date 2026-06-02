@@ -16,6 +16,8 @@ from infra.ssp_api import (
     SspAuthError,
     SspApiSettings,
     SspScopeCheckAuth,
+    build_ssp_monthly_zone_campaign_size_report_condition_payload,
+    normalize_ssp_monthly_zone_campaign_size_rows,
     normalize_ssp_report_rows,
     resolve_ssp_api_settings,
 )
@@ -204,6 +206,96 @@ class SspApiTests(unittest.TestCase):
         self.assertEqual(float(row["clicks"]), 3.0)
         self.assertEqual(float(row["revenue"]), 2.08)
         self.assertEqual(float(row["dsp_amount"]), 8.32)
+
+    def test_monthly_zone_campaign_size_payload_uses_monthly_dimensions_and_pb_default(self) -> None:
+        payload = build_ssp_monthly_zone_campaign_size_report_condition_payload(
+            start_day="2026-04-01",
+            end_day="2026-04-30",
+        )
+
+        self.assertEqual(payload["reportTime"], {"id": "monthly", "name": "月報"})
+        self.assertEqual(payload["pb"], {"id": 1, "name": "不含墊檔"})
+        self.assertEqual(
+            [item["id"] for item in payload["dimension"]],
+            ["data_time", "zone_id", "campaign_id", "creative_size_id"],
+        )
+
+    def test_normalize_ssp_monthly_zone_campaign_size_rows_maps_chart_fields(self) -> None:
+        rows = normalize_ssp_monthly_zone_campaign_size_rows(
+            [
+                {
+                    "data_time": "2026-04",
+                    "zone_id": "10230",
+                    "zoneName": "DEMO LINK 專用",
+                    "campaign_id": "901",
+                    "campaignName": "Order A",
+                    "creative_size_id": "300x250",
+                    "request": "1000",
+                    "impress": "500",
+                    "click": "25",
+                    "profit": "100.5",
+                    "advertiser_mu": "200.5",
+                }
+            ],
+            source_name="ssp3_api",
+        )
+
+        self.assertEqual(len(rows), 1)
+        row = rows[0]
+        self.assertEqual(row["source"], "ssp3_api")
+        self.assertEqual(row["month"], "2026-04")
+        self.assertEqual(row["zone_id"], 10230)
+        self.assertEqual(row["zone_name"], "DEMO LINK 專用")
+        self.assertEqual(row["campaign_id"], "901")
+        self.assertEqual(row["campaign_name"], "Order A")
+        self.assertEqual(row["creative_size_id"], "300x250")
+        self.assertEqual(float(row["request"]), 1000.0)
+        self.assertEqual(float(row["impress"]), 500.0)
+        self.assertEqual(float(row["click"]), 25.0)
+        self.assertEqual(float(row["profit"]), 100.5)
+        self.assertEqual(float(row["advertiser_mu"]), 200.5)
+        self.assertAlmostEqual(float(row["ctr"]), 5.0)
+        self.assertAlmostEqual(float(row["dsp_ecpc"]), 8.02)
+        self.assertEqual(row["ad_format"], "一般廣告")
+        self.assertEqual(row["ad_format_rule"], "table:material:1")
+
+    def test_normalize_ssp_monthly_zone_campaign_size_uses_dsp_size_mapping_before_keywords(self) -> None:
+        rows = normalize_ssp_monthly_zone_campaign_size_rows(
+            [
+                {
+                    "data_time": "2026-04",
+                    "zone_id": "10230",
+                    "zoneName": "蓋板測試版位",
+                    "campaign_id": "901",
+                    "campaignName": "Creative Campaign",
+                    "creative_size_id": "(1)300 x 250 橫幅",
+                    "request": "1000",
+                    "impress": "500",
+                    "click": "25",
+                    "profit": "100.5",
+                    "advertiser_mu": "200.5",
+                },
+                {
+                    "data_time": "2026-04",
+                    "zone_id": "10231",
+                    "zoneName": "蓋板測試版位",
+                    "campaign_id": "902",
+                    "campaignName": "Creative Campaign",
+                    "creative_size_id": "",
+                    "request": "2000",
+                    "impress": "0",
+                    "click": "0",
+                    "profit": "0",
+                    "advertiser_mu": "0",
+                },
+            ],
+            source_name="ssp3_api",
+        )
+
+        self.assertEqual(rows[0]["ad_format"], "一般廣告")
+        self.assertEqual(rows[0]["ad_format_rule"], "table:size_id:1")
+        self.assertEqual(rows[1]["ad_format"], "一般廣告")
+        self.assertEqual(rows[1]["ad_format_rule"], "rule:empty_size_default")
 
     def test_fetch_report_bundle_aggregates_multi_day_range_as_daily_chunks(self) -> None:
         client = SspApiClient(SspApiSettings(email="matt@clickforce.com.tw", password="24450379"))

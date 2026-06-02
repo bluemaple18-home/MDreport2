@@ -18,7 +18,6 @@ import type {
   Workflow,
 } from "../types";
 import {
-  defaultPeriodStateByWorkflow,
   defaultMainTabByWorkflow,
   defaultDirtyState,
   defaultResultState,
@@ -230,11 +229,12 @@ function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
       {
         const nextMainTab = defaultMainTabByWorkflow(action.value);
         const nextSubTab = normalizeSubTabByMainTab(nextMainTab, state.route.subTab);
+        const nextPeriod = updatePeriodWindow(state.period, state.period.weekStart, state.period.weekEnd);
         return {
           ...state,
           ctx: { ...state.ctx, workflow: action.value },
           route: { workflow: action.value, mainTab: nextMainTab, subTab: nextSubTab },
-          period: defaultPeriodStateByWorkflow(action.value),
+          period: nextPeriod,
         };
       }
     case "set_main_tab":
@@ -365,6 +365,9 @@ export function useRuntimeStore() {
         fetchFrame(state.ctx, {
           period_week_start: state.period.weekStart,
           period_week_end: state.period.weekEnd,
+        }, {
+          main_tab: state.route.mainTab,
+          sub_tab: state.route.subTab,
         }),
       ]);
       dispatch({ type: "set_status", payload: statusPayload });
@@ -373,7 +376,7 @@ export function useRuntimeStore() {
     } finally {
       dispatch({ type: "busy", value: false });
     }
-  }, [state.ctx, state.period.weekEnd, state.period.weekStart, syncTab4DeliveryState]);
+  }, [state.ctx, state.period.weekEnd, state.period.weekStart, state.route.mainTab, state.route.subTab, syncTab4DeliveryState]);
 
   const refreshStatus = useCallback(async () => {
     dispatch({ type: "busy", value: true });
@@ -392,12 +395,15 @@ export function useRuntimeStore() {
       const payload = await fetchFrame(state.ctx, {
         period_week_start: state.period.weekStart,
         period_week_end: state.period.weekEnd,
+      }, {
+        main_tab: state.route.mainTab,
+        sub_tab: state.route.subTab,
       });
       dispatch({ type: "set_frame", payload });
     } finally {
       dispatch({ type: "busy", value: false });
     }
-  }, [state.ctx, state.period.weekEnd, state.period.weekStart]);
+  }, [state.ctx, state.period.weekEnd, state.period.weekStart, state.route.mainTab, state.route.subTab]);
 
   const runActionWithResult = useCallback(
     async (
@@ -406,6 +412,9 @@ export function useRuntimeStore() {
         rows?: Array<Record<string, unknown>>;
         updates?: Array<Record<string, unknown>>;
         sspMediaSlots?: SspMediaDemandSlot[];
+        monthlyP4?: { month: string; inputs: Record<string, number> };
+        monthlyP4Template?: { kind: "base" | "check"; filename: string; contentBase64: string };
+        sspAdGroup?: { zoneGroupId: number; date: string };
         route?: ActionRouteOverride;
         deferRefresh?: boolean;
       },
@@ -435,6 +444,26 @@ export function useRuntimeStore() {
         if (action === "ssp_media_save") {
           payload.ssp_media_slots = overrides?.sspMediaSlots ?? [];
         }
+        if (action === "monthly_p4_save") {
+          payload.month = overrides?.monthlyP4?.month || "";
+          payload.monthly_p4_inputs = overrides?.monthlyP4?.inputs || {};
+        }
+        if (action === "monthly_p4_test_save") {
+          payload.month = overrides?.monthlyP4?.month || "";
+          payload.monthly_p4_inputs = overrides?.monthlyP4?.inputs || {};
+        }
+        if (action === "monthly_p4_test_template_upload") {
+          payload.template_kind = overrides?.monthlyP4Template?.kind;
+          payload.filename = overrides?.monthlyP4Template?.filename || "";
+          payload.content_base64 = overrides?.monthlyP4Template?.contentBase64 || "";
+        }
+        if (action === "monthly_p4_close") {
+          payload.month = overrides?.monthlyP4?.month || "";
+        }
+        if (action === "fetch_ssp_ad_group_api") {
+          payload.zone_group_id = overrides?.sspAdGroup?.zoneGroupId;
+          payload.date = overrides?.sspAdGroup?.date || state.period.weekEnd;
+        }
 
         const result = await postAction(state.ctx, payload);
         if (action === "sandbox_reset" && result.status === "ok") {
@@ -453,6 +482,9 @@ export function useRuntimeStore() {
             fetchFrame(state.ctx, {
               period_week_start: state.period.weekStart,
               period_week_end: state.period.weekEnd,
+            }, {
+              main_tab: effectiveMainTab,
+              sub_tab: effectiveSubTab,
             }),
           ]);
           dispatch({ type: "set_status", payload: statusPayload });
@@ -502,6 +534,7 @@ export function useRuntimeStore() {
         rows?: Array<Record<string, unknown>>;
         updates?: Array<Record<string, unknown>>;
         sspMediaSlots?: SspMediaDemandSlot[];
+        monthlyP4?: { month: string; inputs: Record<string, number> };
         route?: ActionRouteOverride;
         deferRefresh?: boolean;
       },

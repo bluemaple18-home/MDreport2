@@ -159,6 +159,138 @@ class DspApiTests(unittest.TestCase):
         self.assertEqual(rows[4]["最終廣告形式"], "一般廣告")
         self.assertEqual(rows[4]["規則命中_廣告形式"], "rule:canonical")
 
+    def test_scroller_is_creative_and_only_audio_tower_keyword_is_video(self) -> None:
+        rows = normalize_dsp_report_rows(
+            [
+                {
+                    "data_time": "2026-05-10",
+                    "distributor_id": "外部經銷商A",
+                    "campaign_id": "(42035)Scroller 測試",
+                    "creative_id": "(314932)影音 Scroller 素材",
+                    "size_id": "影音Scroller廣告樣式",
+                    "content_type": "HTML/JS",
+                    "campaign_mu": 7,
+                    "distributor_mu": 8,
+                    "advertiser_mu": 9,
+                },
+                {
+                    "data_time": "2026-05-10",
+                    "distributor_id": "外部經銷商A",
+                    "campaign_id": "(42036)影音摩天 測試",
+                    "creative_id": "(314933)影音摩天素材",
+                    "size_id": "影音摩天300x250",
+                    "content_type": "HTML/JS",
+                    "campaign_mu": 7,
+                    "distributor_mu": 8,
+                    "advertiser_mu": 9,
+                },
+            ],
+            source_name="dsp3_api",
+        )
+
+        self.assertEqual(rows[0]["最終廣告形式"], "創意廣告")
+        self.assertEqual(rows[0]["規則命中_廣告形式"], "table:material:184")
+        self.assertEqual(rows[1]["最終廣告形式"], "影音摩天")
+        self.assertEqual(rows[1]["規則命中_廣告形式"], "table:material:97")
+
+    def test_size_176_uses_16_9_cpm_rule_but_other_video_sizes_do_not(self) -> None:
+        rows = normalize_dsp_report_rows(
+            [
+                {
+                    "data_time": "2026-05-10",
+                    "distributor_id": "外部經銷商A",
+                    "campaign_id": "(42036)影音廣告 cpm35",
+                    "creative_id": "(314933)影音廣告",
+                    "size_id": "(176)影音廣告",
+                    "content_type": "HTML/JS",
+                    "ecpm": 35,
+                    "campaign_mu": 1,
+                    "distributor_mu": 1,
+                    "advertiser_mu": 1,
+                },
+                {
+                    "data_time": "2026-05-10",
+                    "distributor_id": "外部經銷商A",
+                    "campaign_id": "(42037)影音廣告 cpm100",
+                    "creative_id": "(314934)影音廣告",
+                    "size_id": "(176)影音廣告",
+                    "content_type": "HTML/JS",
+                    "ecpm": 100,
+                    "campaign_mu": 1,
+                    "distributor_mu": 1,
+                    "advertiser_mu": 1,
+                },
+                {
+                    "data_time": "2026-05-10",
+                    "distributor_id": "外部經銷商A",
+                    "campaign_id": "(42038)影音廣告 cpm250",
+                    "creative_id": "(314935)影音廣告",
+                    "size_id": "(176)影音廣告",
+                    "content_type": "HTML/JS",
+                    "ecpm": 250,
+                    "campaign_mu": 1,
+                    "distributor_mu": 1,
+                    "advertiser_mu": 1,
+                },
+                {
+                    "data_time": "2026-05-10",
+                    "distributor_id": "外部經銷商A",
+                    "campaign_id": "(42039)32:9 影音廣告",
+                    "creative_id": "(314936)32:9 影音廣告",
+                    "size_id": "(179)32:9 影音廣告",
+                    "content_type": "HTML/JS",
+                    "ecpm": 100,
+                    "campaign_mu": 1,
+                    "distributor_mu": 1,
+                    "advertiser_mu": 1,
+                },
+            ],
+            source_name="dsp3_api",
+        )
+
+        self.assertEqual(rows[0]["最終廣告形式"], "影音摩天")
+        self.assertEqual(rows[0]["規則命中_廣告形式"], "rule:video_16_9_cpm_lt40")
+        self.assertEqual(rows[1]["最終廣告形式"], "創意廣告")
+        self.assertEqual(rows[1]["規則命中_廣告形式"], "rule:video_16_9_cpm_40_200")
+        self.assertEqual(rows[2]["最終廣告形式"], "preroll")
+        self.assertEqual(rows[2]["規則命中_廣告形式"], "rule:video_16_9_cpm_ge201")
+        self.assertEqual(rows[3]["最終廣告形式"], "影音摩天")
+        self.assertEqual(rows[3]["規則命中_廣告形式"], "table:size_id:179")
+
+    def test_no_id_dooh_beiliu_size_wins_over_generic_video_material_token(self) -> None:
+        rows = normalize_dsp_report_rows(
+            [
+                {
+                    "data_time": "2026-05-10",
+                    "distributor_id": "外部經銷商A",
+                    "campaign_id": "北流 DOOH",
+                    "creative_id": "2048 x 2560 影音廣告",
+                    "size_id": "2048 x 2560 影音廣告",
+                    "content_type": "HTML/JS",
+                    "campaign_mu": 1,
+                    "distributor_mu": 1,
+                    "advertiser_mu": 1,
+                },
+                {
+                    "data_time": "2026-05-10",
+                    "distributor_id": "外部經銷商A",
+                    "campaign_id": "北流 DOOH",
+                    "creative_id": "2048 × 2560 影音廣告",
+                    "size_id": "2048 × 2560 影音廣告",
+                    "content_type": "HTML/JS",
+                    "campaign_mu": 1,
+                    "distributor_mu": 1,
+                    "advertiser_mu": 1,
+                },
+            ],
+            source_name="dsp3_api",
+        )
+
+        self.assertEqual(rows[0]["最終廣告形式"], "DOOH北流")
+        self.assertEqual(rows[0]["規則命中_廣告形式"], "table:material:231")
+        self.assertEqual(rows[1]["最終廣告形式"], "DOOH北流")
+        self.assertEqual(rows[1]["規則命中_廣告形式"], "table:material:231")
+
     def test_playart_stays_external_promotion_even_when_live_keyword_matches(self) -> None:
         rows = normalize_dsp_report_rows(
             [

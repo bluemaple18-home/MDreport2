@@ -55,6 +55,74 @@ const RAWDATA_COLUMN_WIDTH_MAX = 960;
 const RAWDATA_COLUMN_WIDTH_DEFAULT = 168;
 const RAWDATA_COLUMN_WIDTH_FIT_MIN = 48;
 
+function canScrollVertically(element: Element, deltaY: number) {
+  const scrollableDistance = element.scrollHeight - element.clientHeight;
+  if (scrollableDistance <= 1) {
+    return false;
+  }
+
+  if (deltaY < 0) {
+    return element.scrollTop > 0;
+  }
+
+  return element.scrollTop < scrollableDistance - 1;
+}
+
+function isPageScrollElement(element: Element) {
+  return element === document.body || element === document.documentElement || element === document.scrollingElement;
+}
+
+function isEligibleScrollContainer(element: Element) {
+  const overflowY = window.getComputedStyle(element).overflowY;
+  return overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay";
+}
+
+function findVerticalScrollHandoffTarget(source: HTMLElement, deltaY: number): Element | null {
+  const pageScroller = document.scrollingElement || document.documentElement;
+  let parent = source.parentElement;
+  while (parent) {
+    if (isPageScrollElement(parent)) {
+      return canScrollVertically(pageScroller, deltaY) ? pageScroller : null;
+    }
+
+    if (isEligibleScrollContainer(parent) && canScrollVertically(parent, deltaY)) {
+      return parent;
+    }
+    parent = parent.parentElement;
+  }
+
+  return canScrollVertically(pageScroller, deltaY) ? pageScroller : null;
+}
+
+function resolveVerticalScrollHandoff(element: HTMLElement, deltaY: number) {
+  const maxScrollTop = Math.max(0, element.scrollHeight - element.clientHeight);
+  if (maxScrollTop <= 1 || deltaY === 0) {
+    return null;
+  }
+
+  const currentScrollTop = element.scrollTop;
+  if (deltaY > 0) {
+    const availableTableDelta = Math.max(0, maxScrollTop - currentScrollTop);
+    if (availableTableDelta >= deltaY) {
+      return null;
+    }
+    return {
+      tableDelta: availableTableDelta,
+      handoffDelta: deltaY - availableTableDelta,
+    };
+  }
+
+  const availableTableDelta = Math.max(0, currentScrollTop);
+  const requestedDelta = Math.abs(deltaY);
+  if (availableTableDelta >= requestedDelta) {
+    return null;
+  }
+  return {
+    tableDelta: -availableTableDelta,
+    handoffDelta: deltaY + availableTableDelta,
+  };
+}
+
 const DSP_RAWDATA_MODE_LABELS: Array<{ value: DspRawdataViewMode; label: string; testId: string }> = [
   { value: "user", label: "使用者看", testId: "dsp-rawdata-view-user" },
   { value: "verify", label: "核對用", testId: "dsp-rawdata-view-verify" },
@@ -401,6 +469,36 @@ export function RawdataWorkspace({
   ].filter(Boolean).join(" ");
   const hasFrameRows = allRows.length > 0;
   const hasFilteredRows = rows.length > 0;
+
+  useEffect(() => {
+    const element = tableWrapRef.current;
+    if (!element || typeof window === "undefined") {
+      return;
+    }
+
+    const onWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
+        return;
+      }
+
+      const handoff = resolveVerticalScrollHandoff(element, event.deltaY);
+      if (!handoff || Math.abs(handoff.handoffDelta) <= 0.5) {
+        return;
+      }
+
+      const handoffTarget = findVerticalScrollHandoffTarget(element, handoff.handoffDelta);
+      if (!handoffTarget) {
+        return;
+      }
+
+      event.preventDefault();
+      element.scrollTop += handoff.tableDelta;
+      handoffTarget.scrollTop += handoff.handoffDelta;
+    };
+
+    element.addEventListener("wheel", onWheel, { passive: false });
+    return () => element.removeEventListener("wheel", onWheel);
+  }, []);
 
   useEffect(() => {
     setColumnWidths(loadStoredColumnWidths(columnWidthStorageKey));
