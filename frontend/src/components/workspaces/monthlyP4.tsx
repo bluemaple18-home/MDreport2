@@ -540,7 +540,7 @@ export function MonthlyP4Workspace({ snapshot, busy, onSaveInputs, onUploadTestT
   };
 
   if (!snapshot) {
-    return <section className="monthly-p4-shell">月報 P4(J) 尚未載入。</section>;
+    return <section className="monthly-p4-shell">P4(J) 月報載入中...</section>;
   }
 
   if (mode === "maintenance" || mode === "test") {

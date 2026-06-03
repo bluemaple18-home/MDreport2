@@ -209,6 +209,15 @@ test("query dsp period keeps rawdata date filter on the selected week", () => {
   assert.equal(restored.dspRawdataFilters.dateBucket, "two_weeks_ago");
 });
 
+test("monthly workflow defaults to previous full month", () => {
+  installRuntimeGlobals("?workflow=monthly&main_tab=monthly_p4");
+
+  const restored = runtime.restorePersistedState();
+  assert.equal(restored.period.preset, "custom");
+  assert.equal(restored.period.weekStart, "2026-04-01");
+  assert.equal(restored.period.weekEnd, "2026-04-30");
+});
+
 test("tab4 delivery readiness locks export when delivery period differs from current period", () => {
   const readiness = runtime.resolveTab4DeliveryReadiness(
     {

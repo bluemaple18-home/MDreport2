@@ -211,9 +211,8 @@ function lastNDaysRange(days: number): { weekStart: string; weekEnd: string } {
 export function buildDefaultPeriodState(workflow: Workflow = "dsp"): PeriodState {
   if (workflow === "monthly") {
     const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = new Date(now);
-    end.setDate(now.getDate() - 1);
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const end = new Date(now.getFullYear(), now.getMonth(), 0);
     const range = {
       weekStart: toDateIso(start),
       weekEnd: toDateIso(end),

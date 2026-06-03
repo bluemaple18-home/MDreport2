@@ -3914,6 +3914,8 @@ class UiShellTests(unittest.TestCase):
                     try:
                         page.goto(f"{base_url}/?{query}", wait_until="domcontentloaded")
                         page.locator("[data-testid='main-tab-monthly-p4']").wait_for(state="visible")
+                        page.get_by_role("heading", name="P4(J) 資料維護").wait_for(state="visible")
+                        self.assertEqual(page.get_by_text("月報 P4(J) 尚未載入。").count(), 0)
                         with page.expect_response(lambda resp: resp.request.method == "GET" and "/api/frame?" in resp.url and "main_tab=monthly_charts" in resp.url) as frame_resp:
                             page.locator("[data-testid='main-tab-monthly-charts']").click()
                         frame_payload = frame_resp.value.json()
