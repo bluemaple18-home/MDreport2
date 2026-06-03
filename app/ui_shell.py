@@ -121,6 +121,24 @@ def _normalize_sandbox_id(raw: object) -> str:
     return sandbox_id
 
 
+def _filter_rows_by_date_range(
+    rows: list[dict[str, Any]],
+    *,
+    start_day: str | None,
+    end_day: str | None,
+) -> list[dict[str, Any]]:
+    start = str(start_day or "").strip()
+    end = str(end_day or "").strip()
+    if not start or not end:
+        return rows
+    filtered: list[dict[str, Any]] = []
+    for row in rows:
+        day = str(row.get("date") or row.get("日期時間") or row.get("日期") or row.get("ts") or "").strip()[:10]
+        if start <= day <= end:
+            filtered.append(row)
+    return filtered
+
+
 def _sandbox_lock_key(ctx: UiContext) -> str:
     return f"{ctx.root.resolve()}::{ctx.runtime_env}::{ctx.manifest_rel}::{ctx.sandbox_id}"
 
@@ -543,9 +561,16 @@ def collect_workflow_frame(
             columns = ["row_order", *repo.canonical_columns, "updated_at"]
             summary["field_names"] = list(repo.canonical_columns)
             summary["manual_fields"] = list(repo.modify_allowed_columns)
+        if ctx.workflow == "ssp":
+            rows = _filter_rows_by_date_range(
+                rows,
+                start_day=period_week_start,
+                end_day=period_week_end,
+            )
+        row_count = len(rows)
         summary["columns"] = columns
         summary["rows"] = rows
-        summary["row_count"] = len(rows)
+        summary["row_count"] = row_count
         summary["pivot_preview"] = [
             {"label": "row_count", "value": len(rows)},
             {"label": "workflow", "value": ctx.workflow},
