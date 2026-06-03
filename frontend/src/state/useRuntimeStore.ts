@@ -18,7 +18,6 @@ import type {
   Workflow,
 } from "../types";
 import {
-  defaultPeriodStateByWorkflow,
   defaultMainTabByWorkflow,
   defaultDirtyState,
   defaultResultState,
@@ -230,11 +229,12 @@ function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
       {
         const nextMainTab = defaultMainTabByWorkflow(action.value);
         const nextSubTab = normalizeSubTabByMainTab(nextMainTab, state.route.subTab);
+        const nextPeriod = updatePeriodWindow(state.period, state.period.weekStart, state.period.weekEnd);
         return {
           ...state,
           ctx: { ...state.ctx, workflow: action.value },
           route: { workflow: action.value, mainTab: nextMainTab, subTab: nextSubTab },
-          period: defaultPeriodStateByWorkflow(action.value),
+          period: nextPeriod,
         };
       }
     case "set_main_tab":

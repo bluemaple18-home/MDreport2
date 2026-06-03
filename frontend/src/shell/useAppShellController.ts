@@ -3,7 +3,7 @@ import type { RecentMap } from "../components/workspaces/shared";
 import { buildExportDownloadUrl } from "../api/runtimeApi";
 import { getMainTabOptions, getSubTabOptions } from "../state/runtimeContract";
 import { useRuntimeStore } from "../state/useRuntimeStore";
-import type { DspDateBucket, DspRawdataFilters, MainTab, MonthlyP4Snapshot, PeriodPreset, RuntimeFrameResult, SspMediaDemandConfig, SspMediaDemandSlot, SubTab, Workflow } from "../types";
+import type { DspDateBucket, DspRawdataFilters, MainTab, MonthlyChartsSnapshot, MonthlyP4Snapshot, PeriodPreset, RuntimeFrameResult, SspMediaDemandConfig, SspMediaDemandSlot, SubTab, Workflow } from "../types";
 import { collectDspFacetOptions, filterDspRawdataRows } from "./dspRawdataFilters";
 import { useRawdataEditingController } from "./useRawdataEditingController";
 import { getWorkflowCapability, getWorkspaceVisibilityCapability } from "./workflowCapabilities";
@@ -43,7 +43,13 @@ export function useAppShellController() {
   }, [runtimeContextKey]);
 
   useEffect(() => {
-    if (state.route.workflow !== "dsp" || state.route.mainTab !== "dsp_tab4") {
+    const shouldRefreshFrame =
+      (state.route.workflow === "dsp" && state.route.mainTab === "dsp_tab4")
+      || (
+        state.route.workflow === "monthly"
+        && (state.route.mainTab === "monthly_p4" || state.route.mainTab === "monthly_charts")
+      );
+    if (!shouldRefreshFrame) {
       return;
     }
     void refreshFrame();
@@ -64,6 +70,7 @@ export function useAppShellController() {
   const sspAdGroupMonitor = frameResult?.ssp_ad_group_monitor;
   const monthlyP4 = frameResult?.monthly_p4 as MonthlyP4Snapshot | undefined;
   const monthlyP4Test = frameResult?.monthly_p4_test as MonthlyP4Snapshot | undefined;
+  const monthlyCharts = frameResult?.monthly_charts as MonthlyChartsSnapshot | undefined;
   const manualFields = frameResult?.manual_fields || [];
   const workflowCapability = useMemo(() => getWorkflowCapability(state.route.workflow), [state.route.workflow]);
   const rawdataCapability = workflowCapability.rawdata;
@@ -160,6 +167,7 @@ export function useAppShellController() {
     sspAdGroupMonitor,
     monthlyP4,
     monthlyP4Test,
+    monthlyCharts,
     filteredRows,
     manualFields,
     mainTabOptions,
@@ -253,10 +261,16 @@ export function useAppShellController() {
     },
     handleMonthlyP4Save: async (month: string, inputs: Record<string, number>) => {
       const result = await runActionWithResult("monthly_p4_save", { monthlyP4: { month, inputs } });
+      if (result.status === "ok") {
+        await refreshFrame();
+      }
       return result.status === "ok";
     },
     handleMonthlyP4TestSave: async (month: string, inputs: Record<string, number>) => {
       const result = await runActionWithResult("monthly_p4_test_save", { monthlyP4: { month, inputs } });
+      if (result.status === "ok") {
+        await refreshFrame();
+      }
       return result.status === "ok";
     },
     handleMonthlyP4TestTemplateUpload: async (kind: "base" | "check", file: File) => {
@@ -283,7 +297,7 @@ export function useAppShellController() {
           ? "關帳失敗，請看 Result"
           : payload.status === "skipped"
             ? "這個月份已經關帳過"
-            : `關帳完成：${payload.source_row_count || 0} 筆 raw 壓成 ${payload.archive_row_count || 0} 筆`,
+            : `關帳完成：mltiFORCE 實際績效 ${Number(payload.mf_total_actual || 0).toLocaleString("zh-TW")}`,
       };
     },
     handleEdit: rawdataEditing.handleEdit,

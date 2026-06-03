@@ -52,6 +52,7 @@ export const ACCEPTANCE_SELECTORS = {
   mainTabSspMediaDemand: "main-tab-ssp-media-demand",
   mainTabSspAdGroup: "main-tab-ssp-ad-group",
   mainTabMonthlyP4: "main-tab-monthly-p4",
+  mainTabMonthlyCharts: "main-tab-monthly-charts",
   subTabs: "sub-tabs",
   subTabOverview: "sub-tab-overview",
   subTabRawdata: "sub-tab-rawdata",
@@ -261,6 +262,7 @@ function parseMainTab(raw: string | null): MainTab | null {
     || raw === "ssp_media_demand"
     || raw === "ssp_ad_group"
     || raw === "monthly_p4"
+    || raw === "monthly_charts"
   ) {
     return raw;
   }
@@ -383,6 +385,7 @@ export function getMainTabOptions(workflow: Workflow): Array<{ value: MainTab; l
   if (workflow === "monthly") {
     return [
       { value: "monthly_p4", label: "P4(J) 月報" },
+      { value: "monthly_charts", label: "簡報素材" },
     ];
   }
   if (workflow === "ssp") {
@@ -406,6 +409,9 @@ export function getSubTabOptions(mainTab: MainTab): Array<{ value: SubTab; label
       { value: "pivot", label: "測試" },
     ];
   }
+  if (mainTab === "monthly_charts") {
+    return [];
+  }
   if (mainTab === "ssp_anomaly" || mainTab === "ssp_media_demand" || mainTab === "ssp_ad_group") {
     return [];
   }
@@ -425,7 +431,7 @@ export function getSubTabOptions(mainTab: MainTab): Array<{ value: SubTab; label
 
 export function defaultMainTabByWorkflow(workflow: Workflow): MainTab {
   if (workflow === "monthly") {
-    return "monthly_p4";
+    return "monthly_charts";
   }
   return workflow === "ssp" ? "ssp_anomaly" : "dsp_tab3";
 }

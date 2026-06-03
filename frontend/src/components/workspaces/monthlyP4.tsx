@@ -17,7 +17,7 @@ const P4_ROW_GROUPS = [
     rows: [
       { key: "mf_marketing", label: "內經銷商-營銷處" },
       { key: "mf_strategy", label: "內經銷商-策略部" },
-      { key: "external_total", label: "外_經銷商\n(自操+IO)" },
+      { key: "external_total", label: "外_經銷商\n(自操)" },
       { key: "hb_revenue", label: "串接收入 (HB)" },
       { key: "external_beiliu_io", label: "外部經銷商\n北流委刊IO" },
     ],
@@ -35,12 +35,13 @@ const P4_ITEM_LABELS: Record<string, string> = {
   product_total: "產品處 廣告總營收",
   mf_marketing: "內經銷商-營銷處",
   mf_strategy: "內經銷商-策略部",
-  external_total: "外_經銷商(自操+IO)",
+  external_total: "外_經銷商(自操)",
   hb_revenue: "串接收入 (HB)",
   external_beiliu_io: "外部經銷商 北流委刊IO",
   data_fee: "數據費",
   remaining_traffic_revenue: "剩餘流量變現",
   mf_total: "mltiFORCE",
+  other_total: "其他營收",
 };
 
 const P4_METRIC_LABELS: Record<string, string> = {
@@ -57,6 +58,14 @@ const P4_DIFF_REASON_LABELS: Record<string, string> = {
 
 function fmtAmount(value: number): string {
   return Math.round(value || 0).toLocaleString("en-US");
+}
+
+function fmtDelta(value: number): string {
+  const rounded = Math.round(value || 0);
+  if (rounded < 0) {
+    return `(${Math.abs(rounded).toLocaleString("en-US")})`;
+  }
+  return rounded.toLocaleString("en-US");
 }
 
 function fmtBytes(value: number): string {
@@ -83,6 +92,34 @@ function monthLabel(month: string): string {
 
 function valueFor(month: MonthlyP4MonthPayload, kind: "targets" | "actuals", key: string): number {
   return Number(month[kind]?.[key] || 0);
+}
+
+function monthNumber(month: string): number {
+  const parsed = month.split("-");
+  return parsed.length === 2 ? Number(parsed[1]) : 0;
+}
+
+function quarterOf(month: string): number {
+  const number = monthNumber(month);
+  return number > 0 ? Math.floor((number - 1) / 3) + 1 : 0;
+}
+
+function quarterGroups(months: MonthlyP4MonthPayload[]) {
+  const groups: Array<{ quarter: number; months: MonthlyP4MonthPayload[] }> = [];
+  for (const month of months) {
+    const quarter = quarterOf(month.month);
+    const last = groups[groups.length - 1];
+    if (last && last.quarter === quarter) {
+      last.months.push(month);
+    } else {
+      groups.push({ quarter, months: [month] });
+    }
+  }
+  return groups;
+}
+
+function sumFor(months: MonthlyP4MonthPayload[], kind: "targets" | "actuals", key: string): number {
+  return months.reduce((total, month) => total + valueFor(month, kind, key), 0);
 }
 
 function buildInputState(snapshot?: MonthlyP4Snapshot): Record<string, number> {
@@ -117,15 +154,56 @@ function escapeHtml(value: string): string {
 }
 
 function P4Table({ months }: { months: MonthlyP4MonthPayload[] }) {
+  const productQuarterGroups = quarterGroups(months);
+  const renderSectionHeader = (key: string) => (
+    <tr className="monthly-p4-section-header" key={key}>
+      <th colSpan={3}>產品處 2026 營收績效</th>
+      {months.map((month) => <th key={month.month}>{monthLabel(month.month)}</th>)}
+    </tr>
+  );
+  const renderGroup = (group: (typeof P4_ROW_GROUPS)[number]) => (
+    group.rows.flatMap((row, idx) => {
+      const targetRow = (
+        <tr key={`${row.key}-target`}>
+          {idx === 0 ? <th className="monthly-p4-section" rowSpan={group.rows.length * 3}>{group.section}</th> : null}
+          <th className="monthly-p4-label" rowSpan={3}>{row.label}</th>
+          <th>目標</th>
+          {months.map((month) => <td key={month.month}>{fmtAmount(valueFor(month, "targets", row.key))}</td>)}
+        </tr>
+      );
+      const actualRow = (
+        <tr key={`${row.key}-actual`}>
+          <th>實績</th>
+          {months.map((month) => <td key={month.month}>{fmtAmount(valueFor(month, "actuals", row.key))}</td>)}
+        </tr>
+      );
+      const rateRow = (
+        <tr key={`${row.key}-rate`}>
+          <th>達成率</th>
+          {months.map((month) => <td key={month.month}>{fmtRate(valueFor(month, "actuals", row.key), valueFor(month, "targets", row.key))}</td>)}
+        </tr>
+      );
+      return [targetRow, actualRow, rateRow];
+    })
+  );
+
   return (
     <table className="monthly-p4-table">
       <thead>
+        <tr className="monthly-p4-quarter-row">
+          <th colSpan={3}>季總目標</th>
+          {productQuarterGroups.map((group) => (
+            <td key={group.quarter} colSpan={group.months.length}>
+              {fmtAmount(sumFor(group.months, "targets", "product_total"))}
+            </td>
+          ))}
+        </tr>
         <tr>
           <th colSpan={3}>產品處 2026績效 (不含電商)</th>
           {months.map((month) => <th key={month.month}>{monthLabel(month.month)}</th>)}
         </tr>
         <tr>
-          <th className="monthly-p4-side" rowSpan={4}>產品處<br />廣告總營收<br />(未稅)</th>
+          <th className="monthly-p4-side" rowSpan={5}>產品處<br />廣告總營收<br />(未稅)</th>
           <th>目標</th>
           <th>產品處 廣告總營收</th>
           {months.map((month) => <td key={month.month}>{fmtAmount(valueFor(month, "targets", "product_total"))}</td>)}
@@ -140,33 +218,27 @@ function P4Table({ months }: { months: MonthlyP4MonthPayload[] }) {
           <th />
           {months.map((month) => <td key={month.month} className="monthly-p4-red">{fmtRate(valueFor(month, "actuals", "product_total"), valueFor(month, "targets", "product_total"))}</td>)}
         </tr>
+        <tr>
+          <th>季 達成率</th>
+          <th />
+          {productQuarterGroups.map((group) => (
+            <td key={group.quarter} colSpan={group.months.length}>
+              {fmtRate(sumFor(group.months, "actuals", "product_total"), sumFor(group.months, "targets", "product_total"))}
+            </td>
+          ))}
+        </tr>
+        <tr className="monthly-p4-delta-row">
+          <th />
+          <th />
+          {months.map((month) => {
+            const delta = valueFor(month, "actuals", "product_total") - valueFor(month, "targets", "product_total");
+            return <td key={month.month} className={delta < 0 ? "monthly-p4-red" : ""}>{fmtDelta(delta)}</td>;
+          })}
+        </tr>
       </thead>
       <tbody>
-        {P4_ROW_GROUPS.map((group) => (
-          group.rows.flatMap((row, idx) => {
-            const targetRow = (
-              <tr key={`${row.key}-target`}>
-                {idx === 0 ? <th className="monthly-p4-section" rowSpan={group.rows.length * 3}>{group.section}</th> : null}
-                <th className="monthly-p4-label" rowSpan={3}>{row.label}</th>
-                <th>目標</th>
-                {months.map((month) => <td key={month.month}>{fmtAmount(valueFor(month, "targets", row.key))}</td>)}
-              </tr>
-            );
-            const actualRow = (
-              <tr key={`${row.key}-actual`}>
-                <th>實績</th>
-                {months.map((month) => <td key={month.month}>{fmtAmount(valueFor(month, "actuals", row.key))}</td>)}
-              </tr>
-            );
-            const rateRow = (
-              <tr key={`${row.key}-rate`}>
-                <th>達成率</th>
-                {months.map((month) => <td key={month.month}>{fmtRate(valueFor(month, "actuals", row.key), valueFor(month, "targets", row.key))}</td>)}
-              </tr>
-            );
-            return [targetRow, actualRow, rateRow];
-          })
-        ))}
+        {renderSectionHeader("mf-section-header")}
+        {renderGroup(P4_ROW_GROUPS[0])}
         <tr className="monthly-p4-total">
           <th colSpan={3}>mltiFORCE 總目標</th>
           {months.map((month) => <td key={month.month}>{fmtAmount(valueFor(month, "targets", "mf_total"))}</td>)}
@@ -178,6 +250,24 @@ function P4Table({ months }: { months: MonthlyP4MonthPayload[] }) {
         <tr>
           <th colSpan={3}>mltiFORCE 達成率</th>
           {months.map((month) => <td key={month.month} className="monthly-p4-red">{fmtRate(valueFor(month, "actuals", "mf_total"), valueFor(month, "targets", "mf_total"))}</td>)}
+        </tr>
+        {renderSectionHeader("other-section-header")}
+        {renderGroup(P4_ROW_GROUPS[1])}
+        <tr className="monthly-p4-blank-row">
+          <th colSpan={3} />
+          {months.map((month) => <td key={month.month} />)}
+        </tr>
+        <tr className="monthly-p4-other-total">
+          <th colSpan={3}>其他 營收總目標</th>
+          {months.map((month) => <td key={month.month}>{fmtAmount(valueFor(month, "targets", "other_total"))}</td>)}
+        </tr>
+        <tr>
+          <th colSpan={3}>實際績效</th>
+          {months.map((month) => <td key={month.month}>{fmtAmount(valueFor(month, "actuals", "other_total"))}</td>)}
+        </tr>
+        <tr>
+          <th colSpan={3}>達成率</th>
+          {months.map((month) => <td key={month.month}>{fmtRate(valueFor(month, "actuals", "other_total"), valueFor(month, "targets", "other_total"))}</td>)}
         </tr>
       </tbody>
     </table>
@@ -315,9 +405,11 @@ export function MonthlyP4Workspace({ snapshot, busy, onSaveInputs, onUploadTestT
         return month;
       }
       const externalSelf = Number(month.computed.external_self_operated || 0);
+      const marketingIo = Number(inputs.external_io_momo || 0) + Number(month.computed.external_io_live_auto || 0);
       const actuals: Record<string, number> = {
         ...month.actuals,
-        external_total: externalSelf + Number(inputs.external_io_momo || 0) + Number(inputs.external_io_live || 0),
+        mf_marketing: Number(month.computed.mf_marketing || 0) + marketingIo,
+        external_total: externalSelf,
         hb_revenue: Number(inputs.hb_revenue || 0),
         external_beiliu_io: Number(inputs.external_beiliu_io || 0),
         remaining_traffic_revenue: Number(inputs.remaining_traffic_revenue || 0),
@@ -388,7 +480,7 @@ export function MonthlyP4Workspace({ snapshot, busy, onSaveInputs, onUploadTestT
     if (!closeMonth) {
       return;
     }
-    const okToClose = window.confirm(`確定關帳 ${monthLabel(closeMonth)}？系統會把該月 raw data 壓縮成月彙總資料。`);
+    const okToClose = window.confirm(`確定關帳 ${monthLabel(closeMonth)}？系統會把 P4 月報的 mltiFORCE 實際績效寫成簡報素材快照。`);
     if (!okToClose) {
       return;
     }

@@ -205,6 +205,22 @@ CREATE INDEX IF NOT EXISTS idx_monthly_p4_manual_inputs_month
 ON monthly_p4_manual_inputs(month);
 """
 
+MONTHLY_P4_CLOSED_METRIC_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS monthly_p4_closed_metrics (
+  month TEXT NOT NULL DEFAULT '',
+  metric_key TEXT NOT NULL DEFAULT '',
+  metric_value REAL NOT NULL DEFAULT 0.0,
+  source TEXT NOT NULL DEFAULT '',
+  source_file TEXT NOT NULL DEFAULT '',
+  source_cell TEXT NOT NULL DEFAULT '',
+  source_payload_json TEXT NOT NULL DEFAULT '{}',
+  closed_at TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY(month, metric_key)
+);
+CREATE INDEX IF NOT EXISTS idx_monthly_p4_closed_metrics_month
+ON monthly_p4_closed_metrics(month);
+"""
+
 MONTHLY_P4_TEST_INPUT_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS monthly_p4_test_inputs (
   test_id TEXT NOT NULL DEFAULT 'default',
@@ -252,6 +268,133 @@ CREATE INDEX IF NOT EXISTS idx_monthly_dsp_archives_workflow
 ON monthly_dsp_archives(workflow, month);
 """
 
+MONTHLY_REPORT_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS monthly_report_runs (
+  run_id TEXT PRIMARY KEY,
+  source TEXT NOT NULL DEFAULT '',
+  report_kind TEXT NOT NULL DEFAULT '',
+  start_day TEXT NOT NULL DEFAULT '',
+  end_day TEXT NOT NULL DEFAULT '',
+  report_id INTEGER NOT NULL DEFAULT 0,
+  records_total INTEGER NOT NULL DEFAULT 0,
+  row_count INTEGER NOT NULL DEFAULT 0,
+  pb INTEGER NOT NULL DEFAULT 1,
+  request_payload_json TEXT NOT NULL DEFAULT '{}',
+  response_payload_json TEXT NOT NULL DEFAULT '{}',
+  sum_row_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_monthly_report_runs_kind_range
+ON monthly_report_runs(report_kind, start_day, end_day);
+
+CREATE TABLE IF NOT EXISTS monthly_report_rows (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  run_id TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL DEFAULT '',
+  month TEXT NOT NULL DEFAULT '',
+  data_time TEXT NOT NULL DEFAULT '',
+  zone_id INTEGER NOT NULL DEFAULT 0,
+  zone_name TEXT NOT NULL DEFAULT '',
+  campaign_id TEXT NOT NULL DEFAULT '',
+  campaign_name TEXT NOT NULL DEFAULT '',
+  creative_size_id TEXT NOT NULL DEFAULT '',
+  ad_format TEXT NOT NULL DEFAULT '',
+  ad_format_rule TEXT NOT NULL DEFAULT '',
+  request REAL NOT NULL DEFAULT 0.0,
+  request_including_padding REAL NOT NULL DEFAULT 0.0,
+  request_excluding_padding REAL NOT NULL DEFAULT 0.0,
+  impress REAL NOT NULL DEFAULT 0.0,
+  active_view REAL NOT NULL DEFAULT 0.0,
+  active_view_rate REAL NOT NULL DEFAULT 0.0,
+  click REAL NOT NULL DEFAULT 0.0,
+  ctr REAL NOT NULL DEFAULT 0.0,
+  ecpm REAL NOT NULL DEFAULT 0.0,
+  ecpc REAL NOT NULL DEFAULT 0.0,
+  invalid_impress REAL NOT NULL DEFAULT 0.0,
+  invalid_click REAL NOT NULL DEFAULT 0.0,
+  profit REAL NOT NULL DEFAULT 0.0,
+  site_mu REAL NOT NULL DEFAULT 0.0,
+  advertiser_mu REAL NOT NULL DEFAULT 0.0,
+  dsp_ecpm REAL NOT NULL DEFAULT 0.0,
+  dsp_ecpc REAL NOT NULL DEFAULT 0.0,
+  updated_at TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_monthly_report_rows_month
+ON monthly_report_rows(month);
+CREATE INDEX IF NOT EXISTS idx_monthly_report_rows_zone
+ON monthly_report_rows(month, zone_id);
+
+CREATE TABLE IF NOT EXISTS monthly_country_rows (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  run_id TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL DEFAULT '',
+  month TEXT NOT NULL DEFAULT '',
+  data_time TEXT NOT NULL DEFAULT '',
+  country TEXT NOT NULL DEFAULT '',
+  country_scope TEXT NOT NULL DEFAULT 'total',
+  zone_group_id INTEGER NOT NULL DEFAULT 0,
+  request REAL NOT NULL DEFAULT 0.0,
+  impress REAL NOT NULL DEFAULT 0.0,
+  updated_at TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_monthly_country_rows_month_country
+ON monthly_country_rows(month, country);
+
+CREATE TABLE IF NOT EXISTS monthly_chart_snapshots (
+  snapshot_id TEXT PRIMARY KEY,
+  chart_key TEXT NOT NULL DEFAULT '',
+  month TEXT NOT NULL DEFAULT '',
+  start_day TEXT NOT NULL DEFAULT '',
+  end_day TEXT NOT NULL DEFAULT '',
+  source_run_id TEXT NOT NULL DEFAULT '',
+  payload_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_monthly_chart_snapshots_key_month
+ON monthly_chart_snapshots(chart_key, month, created_at);
+
+CREATE TABLE IF NOT EXISTS monthly_zone_groups (
+  group_id INTEGER NOT NULL DEFAULT 0,
+  group_name TEXT NOT NULL DEFAULT '',
+  zone_id INTEGER NOT NULL DEFAULT 0,
+  zone_name TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY(group_id, zone_id)
+);
+"""
+
+MONTHLY_REPORT_ROW_COLUMNS = [
+    "source",
+    "month",
+    "data_time",
+    "zone_id",
+    "zone_name",
+    "campaign_id",
+    "campaign_name",
+    "creative_size_id",
+    "ad_format",
+    "ad_format_rule",
+    "request",
+    "request_including_padding",
+    "request_excluding_padding",
+    "impress",
+    "impress_including_padding",
+    "impress_excluding_padding",
+    "active_view",
+    "active_view_rate",
+    "click",
+    "ctr",
+    "ecpm",
+    "ecpc",
+    "invalid_impress",
+    "invalid_click",
+    "profit",
+    "site_mu",
+    "advertiser_mu",
+    "dsp_ecpm",
+    "dsp_ecpc",
+]
+
 MONTHLY_P4_DEFAULT_TARGETS: list[dict[str, object]] = [
     {
         "item_key": "mf_marketing",
@@ -267,7 +410,7 @@ MONTHLY_P4_DEFAULT_TARGETS: list[dict[str, object]] = [
     },
     {
         "item_key": "external_total",
-        "label": "外_經銷商(自操+IO)",
+        "label": "外_經銷商(自操)",
         "sort_order": 30,
         "values": [1175000, 1175000, 1345000, 1350000, 1295000, 1455000, 1300000, 1355000, 1640000, 1285000, 1385000, 1445000],
     },
@@ -312,6 +455,19 @@ class SQLiteRepository:
         if not self.db_path.exists():
             raise FileNotFoundError(f"DB 不存在: {self.db_path}")
         conn = sqlite3.connect(str(self.db_path), timeout=30.0)
+        conn.execute("PRAGMA foreign_keys=ON;")
+        return conn
+
+    @property
+    def monthly_report_db_path(self) -> Path:
+        if self.project_root is not None:
+            return (self.project_root / "data" / "monthly_report.sqlite").resolve()
+        return (self.db_path.parent / "monthly_report.sqlite").resolve()
+
+    def connect_monthly_report(self) -> sqlite3.Connection:
+        db_path = self.monthly_report_db_path
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(str(db_path), timeout=30.0)
         conn.execute("PRAGMA foreign_keys=ON;")
         return conn
 
@@ -394,6 +550,7 @@ class SQLiteRepository:
     def _ensure_monthly_p4_tables(self, conn: sqlite3.Connection) -> None:
         conn.executescript(MONTHLY_P4_TARGET_TABLE_SQL)
         conn.executescript(MONTHLY_P4_MANUAL_INPUT_TABLE_SQL)
+        conn.executescript(MONTHLY_P4_CLOSED_METRIC_TABLE_SQL)
         existing = conn.execute("SELECT COUNT(1) FROM monthly_p4_targets").fetchone()
         if existing and int(existing[0] or 0) > 0:
             return
@@ -431,6 +588,43 @@ class SQLiteRepository:
 
     def _ensure_monthly_dsp_archive_table(self, conn: sqlite3.Connection) -> None:
         conn.executescript(MONTHLY_DSP_ARCHIVE_TABLE_SQL)
+
+    def _ensure_monthly_report_tables(self, conn: sqlite3.Connection) -> None:
+        conn.executescript(MONTHLY_REPORT_TABLE_SQL)
+        existing_columns = {
+            str(row[1] or "")
+            for row in conn.execute("PRAGMA table_info(monthly_report_rows)").fetchall()
+            if row
+        }
+        required_columns = {
+            "ad_format": "TEXT NOT NULL DEFAULT ''",
+            "ad_format_rule": "TEXT NOT NULL DEFAULT ''",
+            "request_including_padding": "REAL NOT NULL DEFAULT 0.0",
+            "request_excluding_padding": "REAL NOT NULL DEFAULT 0.0",
+            "impress_including_padding": "REAL NOT NULL DEFAULT 0.0",
+            "impress_excluding_padding": "REAL NOT NULL DEFAULT 0.0",
+        }
+        for column_name, column_sql in required_columns.items():
+            if column_name not in existing_columns:
+                conn.execute(f"ALTER TABLE monthly_report_rows ADD COLUMN {column_name} {column_sql}")
+        country_columns = {
+            str(row[1] or "")
+            for row in conn.execute("PRAGMA table_info(monthly_country_rows)").fetchall()
+            if row
+        }
+        country_required_columns = {
+            "country_scope": "TEXT NOT NULL DEFAULT 'total'",
+            "zone_group_id": "INTEGER NOT NULL DEFAULT 0",
+        }
+        for column_name, column_sql in country_required_columns.items():
+            if column_name not in country_columns:
+                conn.execute(f"ALTER TABLE monthly_country_rows ADD COLUMN {column_name} {column_sql}")
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_monthly_country_rows_month_scope
+            ON monthly_country_rows(month, country_scope, zone_group_id)
+            """
+        )
 
     def save_canonical_rows(self, conn: sqlite3.Connection, workflow: str, rows: list[dict]) -> int:
         self._ensure_tables(conn)
@@ -555,7 +749,11 @@ class SQLiteRepository:
                         normalized.append(0)
                 elif col in {
                     "request",
+                    "request_including_padding",
+                    "request_excluding_padding",
                     "impress",
+                    "impress_including_padding",
+                    "impress_excluding_padding",
                     "active_view",
                     "active_view_rate",
                     "click",
@@ -583,6 +781,339 @@ class SQLiteRepository:
                 (run_id, *normalized, now),
             )
         return len(rows)
+
+    def save_monthly_report_rows(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        run_id: str,
+        report_kind: str,
+        start_day: str,
+        end_day: str,
+        report_id: int,
+        records_total: int,
+        source: str,
+        pb: int,
+        request_payload: dict,
+        response_payload: dict,
+        sum_row: dict,
+        rows: list[dict],
+    ) -> int:
+        self._ensure_monthly_report_tables(conn)
+        now = _now()
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO monthly_report_runs(
+              run_id, source, report_kind, start_day, end_day, report_id, records_total,
+              row_count, pb, request_payload_json, response_payload_json, sum_row_json, created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                run_id,
+                str(source or ""),
+                str(report_kind or ""),
+                str(start_day),
+                str(end_day),
+                int(report_id),
+                int(records_total),
+                len(rows),
+                int(pb),
+                json.dumps(request_payload, ensure_ascii=False, sort_keys=True, default=str),
+                json.dumps(response_payload, ensure_ascii=False, sort_keys=True, default=str),
+                json.dumps(sum_row, ensure_ascii=False, sort_keys=True, default=str),
+                now,
+            ),
+        )
+        months = sorted({str(row.get("month") or "") for row in rows if str(row.get("month") or "").strip()})
+        for month in months:
+            conn.execute("DELETE FROM monthly_report_rows WHERE month = ?", (month,))
+            conn.execute("DELETE FROM monthly_chart_snapshots WHERE month = ?", (month,))
+        for row in rows:
+            normalized: list[object] = []
+            for col in MONTHLY_REPORT_ROW_COLUMNS:
+                value = row.get(col, "")
+                if col == "zone_id":
+                    try:
+                        normalized.append(int(value or 0))
+                    except Exception:
+                        normalized.append(0)
+                elif col in {
+                    "request",
+                    "request_including_padding",
+                    "request_excluding_padding",
+                    "impress",
+                    "impress_including_padding",
+                    "impress_excluding_padding",
+                    "active_view",
+                    "active_view_rate",
+                    "click",
+                    "ctr",
+                    "ecpm",
+                    "ecpc",
+                    "invalid_impress",
+                    "invalid_click",
+                    "profit",
+                    "site_mu",
+                    "advertiser_mu",
+                    "dsp_ecpm",
+                    "dsp_ecpc",
+                }:
+                    try:
+                        normalized.append(float(value or 0.0))
+                    except Exception:
+                        normalized.append(0.0)
+                else:
+                    normalized.append(str(value or ""))
+            columns_sql = ", ".join(["run_id", *MONTHLY_REPORT_ROW_COLUMNS, "updated_at"])
+            placeholders = ", ".join("?" for _ in range(len(MONTHLY_REPORT_ROW_COLUMNS) + 2))
+            conn.execute(
+                f"INSERT INTO monthly_report_rows({columns_sql}) VALUES ({placeholders})",
+                (run_id, *normalized, now),
+            )
+        return len(rows)
+
+    def read_monthly_report_rows(self, *, month: str) -> list[dict[str, object]]:
+        with self.connect_monthly_report() as conn:
+            self._ensure_monthly_report_tables(conn)
+            cur = conn.execute(
+                """
+                SELECT id, run_id, source, month, data_time, zone_id, zone_name, campaign_id,
+                  campaign_name, creative_size_id, ad_format, ad_format_rule, request,
+                  request_including_padding, request_excluding_padding, impress,
+                  impress_including_padding, impress_excluding_padding, active_view, active_view_rate,
+                  click, ctr, ecpm, ecpc, invalid_impress, invalid_click, profit, site_mu,
+                  advertiser_mu, dsp_ecpm, dsp_ecpc, updated_at
+                FROM monthly_report_rows
+                WHERE month = ?
+                ORDER BY zone_id ASC, campaign_id ASC, creative_size_id ASC, id ASC
+                """,
+                (str(month),),
+            )
+            keys = [
+                "id",
+                "run_id",
+                "source",
+                "month",
+                "data_time",
+                "zone_id",
+                "zone_name",
+                "campaign_id",
+                "campaign_name",
+                "creative_size_id",
+                "ad_format",
+                "ad_format_rule",
+                "request",
+                "request_including_padding",
+                "request_excluding_padding",
+                "impress",
+                "impress_including_padding",
+                "impress_excluding_padding",
+                "active_view",
+                "active_view_rate",
+                "click",
+                "ctr",
+                "ecpm",
+                "ecpc",
+                "invalid_impress",
+                "invalid_click",
+                "profit",
+                "site_mu",
+                "advertiser_mu",
+                "dsp_ecpm",
+                "dsp_ecpc",
+                "updated_at",
+            ]
+            return [dict(zip(keys, raw)) for raw in cur.fetchall()]
+
+    def save_monthly_country_rows(self, conn: sqlite3.Connection, *, run_id: str, rows: list[dict]) -> int:
+        self._ensure_monthly_report_tables(conn)
+        months = sorted({str(row.get("month") or "") for row in rows if str(row.get("month") or "").strip()})
+        for month in months:
+            conn.execute("DELETE FROM monthly_country_rows WHERE month = ?", (month,))
+            conn.execute("DELETE FROM monthly_chart_snapshots WHERE month = ?", (month,))
+        now = _now()
+        for row in rows:
+            conn.execute(
+                """
+                INSERT INTO monthly_country_rows(
+                  run_id, source, month, data_time, country, country_scope, zone_group_id, request, impress, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(run_id),
+                    str(row.get("source") or ""),
+                    str(row.get("month") or ""),
+                    str(row.get("data_time") or ""),
+                    str(row.get("country") or ""),
+                    str(row.get("country_scope") or "total"),
+                    int(row.get("zone_group_id") or 0),
+                    float(row.get("request") or 0.0),
+                    float(row.get("impress") or 0.0),
+                    now,
+                ),
+            )
+        return len(rows)
+
+    def read_monthly_country_rows(self, *, month: str) -> list[dict[str, object]]:
+        with self.connect_monthly_report() as conn:
+            self._ensure_monthly_report_tables(conn)
+            cur = conn.execute(
+                """
+                SELECT id, run_id, source, month, data_time, country, country_scope, zone_group_id, request, impress, updated_at
+                FROM monthly_country_rows
+                WHERE month = ?
+                ORDER BY data_time ASC, country ASC, id ASC
+                """,
+                (str(month),),
+            )
+            keys = [
+                "id",
+                "run_id",
+                "source",
+                "month",
+                "data_time",
+                "country",
+                "country_scope",
+                "zone_group_id",
+                "request",
+                "impress",
+                "updated_at",
+            ]
+            return [dict(zip(keys, raw)) for raw in cur.fetchall()]
+
+    def read_latest_monthly_report_run(self, *, report_kind: str, month: str) -> dict[str, object] | None:
+        with self.connect_monthly_report() as conn:
+            self._ensure_monthly_report_tables(conn)
+            raw = conn.execute(
+                """
+                SELECT run_id, source, report_kind, start_day, end_day, report_id, records_total, row_count, pb, created_at
+                FROM monthly_report_runs
+                WHERE report_kind = ? AND substr(start_day, 1, 7) <= ? AND substr(end_day, 1, 7) >= ?
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (str(report_kind), str(month), str(month)),
+            ).fetchone()
+        if not raw:
+            return None
+        return {
+            "run_id": str(raw[0] or ""),
+            "source": str(raw[1] or ""),
+            "report_kind": str(raw[2] or ""),
+            "start_day": str(raw[3] or ""),
+            "end_day": str(raw[4] or ""),
+            "report_id": int(raw[5] or 0),
+            "records_total": int(raw[6] or 0),
+            "row_count": int(raw[7] or 0),
+            "pb": int(raw[8] or 0),
+            "created_at": str(raw[9] or ""),
+        }
+
+    def replace_monthly_zone_group(self, *, group_id: int, group_name: str, zone_ids: list[int]) -> dict[str, object]:
+        normalized_ids = sorted({int(zone_id) for zone_id in zone_ids if int(zone_id) > 0})
+        now = _now()
+        with self.connect_monthly_report() as conn:
+            self._ensure_monthly_report_tables(conn)
+            conn.execute("DELETE FROM monthly_zone_groups WHERE group_id = ?", (int(group_id),))
+            matched_zone_count = 0
+            for zone_id in normalized_ids:
+                raw = conn.execute(
+                    """
+                    SELECT zone_name
+                    FROM monthly_report_rows
+                    WHERE zone_id = ? AND zone_name != ''
+                    ORDER BY month DESC, id DESC
+                    LIMIT 1
+                    """,
+                    (zone_id,),
+                ).fetchone()
+                zone_name = str(raw[0] or "") if raw else ""
+                if zone_name:
+                    matched_zone_count += 1
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO monthly_zone_groups(group_id, group_name, zone_id, zone_name, updated_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (int(group_id), str(group_name or ""), zone_id, zone_name, now),
+                )
+            conn.commit()
+        return {
+            "group_id": int(group_id),
+            "group_name": str(group_name or ""),
+            "zone_count": len(normalized_ids),
+            "matched_zone_count": matched_zone_count,
+            "updated_at": now,
+        }
+
+    def read_monthly_zone_group(self, *, group_id: int) -> dict[str, object]:
+        with self.connect_monthly_report() as conn:
+            self._ensure_monthly_report_tables(conn)
+            rows = conn.execute(
+                """
+                SELECT group_id, group_name, zone_id, zone_name, updated_at
+                FROM monthly_zone_groups
+                WHERE group_id = ?
+                ORDER BY zone_id ASC
+                """,
+                (int(group_id),),
+            ).fetchall()
+        if not rows:
+            return {
+                "group_id": int(group_id),
+                "group_name": "",
+                "zone_ids": set(),
+                "zones": [],
+                "updated_at": "",
+            }
+        zones = [
+            {
+                "zone_id": int(row[2] or 0),
+                "zone_name": str(row[3] or ""),
+            }
+            for row in rows
+        ]
+        return {
+            "group_id": int(rows[0][0] or group_id),
+            "group_name": str(rows[0][1] or ""),
+            "zone_ids": {int(row["zone_id"]) for row in zones},
+            "zones": zones,
+            "updated_at": str(rows[0][4] or ""),
+        }
+
+    def save_monthly_chart_snapshot(
+        self,
+        *,
+        snapshot_id: str,
+        chart_key: str,
+        month: str,
+        start_day: str,
+        end_day: str,
+        source_run_id: str,
+        payload: dict[str, object],
+    ) -> None:
+        with self.connect_monthly_report() as conn:
+            self._ensure_monthly_report_tables(conn)
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO monthly_chart_snapshots(
+                  snapshot_id, chart_key, month, start_day, end_day, source_run_id, payload_json, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    snapshot_id,
+                    chart_key,
+                    month,
+                    start_day,
+                    end_day,
+                    source_run_id,
+                    json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str),
+                    _now(),
+                ),
+            )
+            conn.commit()
 
     def read_ssp_ad_group_metrics(
         self,
@@ -1209,6 +1740,105 @@ class SQLiteRepository:
                 DO UPDATE SET input_value=excluded.input_value, updated_at=excluded.updated_at
                 """,
                 (month, key_text, number, now),
+            )
+            written += 1
+        return written
+
+    def read_monthly_p4_closed_metrics_in_tx(
+        self,
+        conn: sqlite3.Connection,
+        months: list[str],
+        metric_keys: list[str] | None = None,
+    ) -> dict[str, dict[str, dict[str, object]]]:
+        self._ensure_monthly_p4_tables(conn)
+        month_keys = [str(month or "").strip() for month in months if str(month or "").strip()]
+        if not month_keys:
+            return {}
+        month_placeholders = ", ".join("?" for _ in month_keys)
+        params: list[object] = list(month_keys)
+        metric_filter = ""
+        if metric_keys:
+            clean_metric_keys = [str(key or "").strip() for key in metric_keys if str(key or "").strip()]
+            if clean_metric_keys:
+                metric_placeholders = ", ".join("?" for _ in clean_metric_keys)
+                metric_filter = f" AND metric_key IN ({metric_placeholders})"
+                params.extend(clean_metric_keys)
+        out: dict[str, dict[str, dict[str, object]]] = {month: {} for month in month_keys}
+        for row in conn.execute(
+            f"""
+            SELECT month, metric_key, metric_value, source, source_file, source_cell, source_payload_json, closed_at
+            FROM monthly_p4_closed_metrics
+            WHERE month IN ({month_placeholders}){metric_filter}
+            ORDER BY month ASC, metric_key ASC
+            """,
+            tuple(params),
+        ).fetchall():
+            month = str(row[0] or "")
+            metric_key = str(row[1] or "")
+            payload: dict[str, object] = {}
+            try:
+                parsed = json.loads(str(row[6] or "{}"))
+                if isinstance(parsed, dict):
+                    payload = parsed
+            except Exception:
+                payload = {}
+            out.setdefault(month, {})[metric_key] = {
+                "month": month,
+                "metricKey": metric_key,
+                "value": float(row[2] or 0.0),
+                "source": str(row[3] or ""),
+                "sourceFile": str(row[4] or ""),
+                "sourceCell": str(row[5] or ""),
+                "payload": payload,
+                "closedAt": str(row[7] or ""),
+            }
+        return out
+
+    def replace_monthly_p4_closed_metrics_in_tx(
+        self,
+        conn: sqlite3.Connection,
+        month: str,
+        metrics: dict[str, dict[str, object]],
+    ) -> int:
+        self._ensure_monthly_p4_tables(conn)
+        month_text = str(month or "").strip()
+        now = _now()
+        written = 0
+        for metric_key, metric in metrics.items():
+            key_text = str(metric_key or "").strip()
+            if not month_text or not key_text:
+                continue
+            try:
+                number = float(metric.get("value") or 0.0)
+            except Exception:
+                number = 0.0
+            payload = metric.get("payload")
+            payload_json = json.dumps(payload if isinstance(payload, dict) else {}, ensure_ascii=False, sort_keys=True)
+            conn.execute(
+                """
+                INSERT INTO monthly_p4_closed_metrics(
+                  month, metric_key, metric_value, source, source_file, source_cell, source_payload_json, closed_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(month, metric_key)
+                DO UPDATE SET
+                  metric_value=excluded.metric_value,
+                  source=excluded.source,
+                  source_file=excluded.source_file,
+                  source_cell=excluded.source_cell,
+                  source_payload_json=excluded.source_payload_json,
+                  closed_at=excluded.closed_at
+                """,
+                (
+                    month_text,
+                    key_text,
+                    number,
+                    str(metric.get("source") or ""),
+                    str(metric.get("sourceFile") or metric.get("source_file") or ""),
+                    str(metric.get("sourceCell") or metric.get("source_cell") or ""),
+                    payload_json,
+                    now,
+                ),
             )
             written += 1
         return written

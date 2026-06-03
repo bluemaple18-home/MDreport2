@@ -77,7 +77,55 @@ class MonthlyP4Tests(unittest.TestCase):
             svc = CanonicalService(repo)
             svc.save(
                 workflow="dsp",
-                rows=[self._row()],
+                rows=[
+                    self._row(
+                        經銷商="[台灣]域動行銷股份有限公司",
+                        最終經銷商="[台灣]域動行銷股份有限公司",
+                        分類層級B="內部經銷商",
+                        分類層級C="營銷事業處",
+                        分類層級D="營銷事業處",
+                        執行金額=500.0,
+                    ),
+                    self._row(
+                        經銷商="域動行銷-MD",
+                        訂單="直播 IO 專案",
+                        素材="直播素材",
+                        最終經銷商="IO委刊",
+                        分類層級B="外部經銷商",
+                        分類層級C="IO委刊",
+                        分類層級D="直播IO",
+                        執行金額=6000.0,
+                    ),
+                    self._row(
+                        經銷商="域動行銷-MD",
+                        訂單="momo直播 專案",
+                        素材="momo素材",
+                        最終經銷商="IO委刊",
+                        分類層級B="外部經銷商",
+                        分類層級C="IO委刊",
+                        分類層級D="momo",
+                        執行金額=7000.0,
+                    ),
+                    self._row(
+                        經銷商="玩藝國際股份有限公司",
+                        訂單="直播 專案",
+                        素材="直播素材",
+                        最終經銷商="外部經銷商",
+                        分類層級B="外部經銷商",
+                        分類層級C="經銷推廣",
+                        分類層級D="玩藝國際股份有限公司",
+                        執行金額=8000.0,
+                    ),
+                    self._row(
+                        經銷商="QA經銷商",
+                        訂單="測試訂單",
+                        最終經銷商="QA經銷商",
+                        分類層級B="內部經銷商",
+                        分類層級C="營銷事業處",
+                        分類層級D="QA經銷商",
+                        執行金額=9000.0,
+                    ),
+                ],
                 template_version="v1",
                 rule_version="v1",
             )
@@ -92,7 +140,6 @@ class MonthlyP4Tests(unittest.TestCase):
                 month="2026-04",
                 inputs={
                     "external_io_momo": 135000,
-                    "external_io_live": 6000,
                     "hb_revenue": 84728,
                     "remaining_traffic_revenue": 141009,
                     "data_monetization_adjustment": 72000,
@@ -103,7 +150,10 @@ class MonthlyP4Tests(unittest.TestCase):
             after = svc.build_monthly_p4_snapshot(week_start="2026-04-01", week_end="2026-04-30")
             april_after = next(item for item in after["monthPayloads"] if item["month"] == "2026-04")
             self.assertEqual(float(april_after["manualInputs"]["external_io_momo"]), 135000.0)
-            self.assertGreater(float(april_after["actuals"]["external_total"]), 141000.0)
+            self.assertEqual(float(april_after["actuals"]["external_total"]), 8000.0)
+            self.assertEqual(float(april_after["actuals"]["mf_marketing"]), 141500.0)
+            self.assertEqual(float(april_after["computed"]["mf_marketing"]), 500.0)
+            self.assertEqual(float(april_after["computed"]["external_io_live_auto"]), 6000.0)
             self.assertGreater(float(april_after["actuals"]["data_fee"]), 72000.0)
 
     def test_monthly_p4_snapshot_keeps_same_month_different_years_separate(self) -> None:
@@ -232,25 +282,25 @@ class MonthlyP4Tests(unittest.TestCase):
             svc = CanonicalService(repo, monthly_test_repo=test_repo)
             wb = Workbook()
             try:
-                wb.active.title = "P4J"
+                wb.active.title = "績效追蹤 p4 5 (j)"
                 ws = wb.active
                 ws["A1"] = "產品處 2026績效 (不含電商)"
-                ws["D1"] = "Jan"
-                ws["E1"] = "Feb"
-                ws["F1"] = "Mar"
+                ws["F3"] = "Jan"
+                ws["G3"] = "Feb"
+                ws["H3"] = "Mar"
                 ws["A2"] = "產品處 廣告總營收"
                 ws["B2"] = "目標"
-                ws["D2"] = 8847250
-                ws["E2"] = 6927250
-                ws["F2"] = 6546750
+                ws["F4"] = 8847250
+                ws["G4"] = 6927250
+                ws["H4"] = 6546750
                 ws["B3"] = "實績"
-                ws["D3"] = 123
-                ws["E3"] = 456
-                ws["F3"] = 789
+                ws["F5"] = 123
+                ws["G5"] = 456
+                ws["H5"] = 789
                 ws["B4"] = "月 達成率"
-                ws["D4"] = "1%"
-                ws["E4"] = "2%"
-                ws["F4"] = "3%"
+                ws["F6"] = "1%"
+                ws["G6"] = "2%"
+                ws["H6"] = "3%"
                 wb.create_sheet("檢核")
                 buffer = BytesIO()
                 wb.save(buffer)
@@ -282,13 +332,241 @@ class MonthlyP4Tests(unittest.TestCase):
             self.assertEqual(check_result["template_kind"], "check")
             self.assertEqual(snapshot["testTemplates"]["base"]["filename"], "月報_基礎模板.xlsx")
             self.assertEqual(snapshot["testTemplates"]["check"]["filename"], "月報_檢核模板.xlsx")
-            self.assertEqual(snapshot["testTemplates"]["base"]["sheetNames"], ["P4J", "檢核"])
+            self.assertEqual(snapshot["testTemplates"]["base"]["sheetNames"], ["績效追蹤 p4 5 (j)", "檢核"])
             self.assertGreater(snapshot["testTemplates"]["check"]["snapshot"]["entryCount"], 0)
             self.assertEqual(snapshot["diff"]["status"], "mismatch")
             self.assertGreater(snapshot["diff"]["diffCount"], 0)
             self.assertTrue(
                 any(item["reason"] == "missing_in_check_template" for item in snapshot["diff"]["diffs"])
             )
+
+    def test_monthly_p4_template_parser_prefers_p4_tracking_sheet(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = self._setup_project(Path(td))
+            svc = CanonicalService(repo)
+            wb = Workbook()
+            try:
+                target_ws = wb.active
+                target_ws.title = "2026各營收目標明細"
+                target_ws["F5"] = "Jan"
+                target_ws["G5"] = "Feb"
+                target_ws["A6"] = "產品處 廣告總營收"
+                target_ws["E6"] = "目標"
+                target_ws["F6"] = 1
+                target_ws["G6"] = 2
+
+                p4_ws = wb.create_sheet("績效追蹤 p4 5 (j)")
+                p4_ws["F3"] = "Jan"
+                p4_ws["G3"] = "Feb"
+                p4_ws["B4"] = "產品處 廣告總營收"
+                p4_ws["D4"] = "目標"
+                p4_ws["F4"] = 100
+                p4_ws["G4"] = 200
+                p4_ws["D5"] = "實績"
+                p4_ws["F5"] = 11
+                p4_ws["G5"] = 22
+                p4_ws["D6"] = "月 達成率"
+                p4_ws["F6"] = "11%"
+                p4_ws["G6"] = "22%"
+                p4_ws["D26"] = "mltiFORCE 總目標"
+                p4_ws["F26"] = 8628000
+                p4_ws["G26"] = 6708000
+                p4_ws["D37"] = "其他 營收總目標"
+                p4_ws["F37"] = 219250
+                p4_ws["G37"] = 219250
+
+                buffer = BytesIO()
+                wb.save(buffer)
+            finally:
+                wb.close()
+
+            snapshot = svc._parse_monthly_p4_workbook_snapshot(
+                buffer.getvalue(),
+                filename="月報.xlsx",
+            )
+
+            self.assertEqual(snapshot["sheet"], "績效追蹤 p4 5 (j)")
+            self.assertGreater(snapshot["entryCount"], 0)
+            self.assertEqual(snapshot["entries"]["product_total.actual.2026-02"]["value"], 22.0)
+            self.assertEqual(snapshot["entries"]["mf_total.target.2026-02"]["value"], 6708000.0)
+            self.assertEqual(snapshot["entries"]["other_total.target.2026-02"]["value"], 219250.0)
+
+    def test_monthly_p4_closed_workbook_feeds_media_cost_investment(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = self._setup_project(root)
+            svc = CanonicalService(repo)
+            workbook_path = root / "closed.xlsx"
+            wb = Workbook()
+            try:
+                ws = wb.active
+                ws.title = "績效追蹤 p4 5 (j)"
+                ws["F3"] = "Jan"
+                ws["G3"] = "Feb"
+                ws["H3"] = "Mar"
+                ws["I3"] = "Apr"
+                ws["F27"] = 5869138
+                ws["G27"] = 4376941
+                ws["H27"] = 4102932.4999999986
+                ws["I27"] = 3696097
+                wb.save(workbook_path)
+            finally:
+                wb.close()
+
+            with repo.connect_monthly_report() as conn:
+                repo.save_monthly_report_rows(
+                    conn,
+                    run_id="run-2026-04",
+                    report_kind="ssp_regular_monthly_zone_campaign_size",
+                    start_day="2026-04-01",
+                    end_day="2026-04-30",
+                    report_id=1,
+                    records_total=1,
+                    source="test",
+                    pb=0,
+                    request_payload={},
+                    response_payload={},
+                    sum_row={},
+                    rows=[
+                        {
+                            "month": "2026-04",
+                            "date": "2026-04",
+                            "zone_id": 1,
+                            "zone_name": "測試版位",
+                            "profit": 1943968,
+                            "advertiser_mu": 999,
+                        }
+                    ],
+                )
+
+            out = svc.import_monthly_p4_closed_workbook(
+                workbook_path=workbook_path,
+                through_month="2026-04",
+                template_version="v1",
+                rule_version="v1",
+            )
+            self.assertEqual(out["metric_count"], 4)
+            self.assertEqual(out["metrics"][2]["value"], 4102933.0)
+
+            snapshot = svc.build_monthly_media_cost_analysis(month="2026-04")
+            self.assertEqual(snapshot["metrics"]["totalInvestment"], 3696097.0)
+            self.assertEqual(snapshot["metrics"]["p4MfActual"], 3696097.0)
+            self.assertAlmostEqual(float(snapshot["metrics"]["mediaCostRate"]), 52.595166, places=4)
+
+    def test_monthly_charts_use_runtime_p4_before_close_and_closed_after_close(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = self._setup_project(root)
+            svc = CanonicalService(repo)
+            svc.save(
+                workflow="dsp",
+                rows=[self._row(日期時間="2026-04-01", 執行金額=100.0)],
+                template_version="v1",
+                rule_version="v1",
+            )
+            svc.save_monthly_p4_manual_inputs(
+                month="2026-04",
+                inputs={
+                    "external_io_momo": 0,
+                    "hb_revenue": 0,
+                    "external_beiliu_io": 0,
+                    "remaining_traffic_revenue": 0,
+                    "data_monetization_adjustment": 0,
+                },
+                template_version="v1",
+                rule_version="v1",
+            )
+            with repo.connect_monthly_report() as conn:
+                repo.save_monthly_report_rows(
+                    conn,
+                    run_id="run-2026-04",
+                    report_kind="ssp_regular_monthly_zone_campaign_size",
+                    start_day="2026-04-01",
+                    end_day="2026-04-30",
+                    report_id=1,
+                    records_total=1,
+                    source="test",
+                    pb=0,
+                    request_payload={},
+                    response_payload={},
+                    sum_row={},
+                    rows=[
+                        {
+                            "month": "2026-04",
+                            "date": "2026-04",
+                            "zone_id": 1,
+                            "zone_name": "測試版位",
+                            "profit": 10,
+                            "advertiser_mu": 999,
+                        }
+                    ],
+                )
+
+            runtime = svc.build_monthly_p4_snapshot(week_start="2026-04-01", week_end="2026-04-30")
+            april_runtime = next(item for item in runtime["monthPayloads"] if item["month"] == "2026-04")
+            self.assertEqual(float(april_runtime["actuals"]["mf_total"]), 100.0)
+
+            charts = svc.build_monthly_charts_snapshot(months=["2026-04"])
+            april = charts["monthly"][0]
+            self.assertEqual(april["p4MfActual"], 100.0)
+            self.assertEqual(april["mediaCostInvestment"], 100.0)
+            self.assertFalse(april["p4Closed"])
+            self.assertEqual(april["p4InvestmentSource"], "monthly_p4_runtime")
+
+            media_cost = svc.build_monthly_media_cost_analysis(month="2026-04")
+            self.assertEqual(media_cost["metrics"]["totalInvestment"], 100.0)
+            self.assertEqual(media_cost["metrics"]["p4MfActual"], 100.0)
+            self.assertFalse(media_cost["p4Closed"])
+            self.assertEqual(media_cost["p4InvestmentSource"], "monthly_p4_runtime")
+
+            svc.close_monthly_p4_month(month="2026-04", template_version="v1", rule_version="v1")
+            closed_charts = svc.build_monthly_charts_snapshot(months=["2026-04"])
+            closed_april = closed_charts["monthly"][0]
+            self.assertEqual(closed_april["p4MfActual"], 100.0)
+            self.assertEqual(closed_april["mediaCostInvestment"], 100.0)
+            self.assertTrue(closed_april["p4Closed"])
+            self.assertEqual(closed_april["p4InvestmentSource"], "monthly_p4_closed_metrics")
+
+    def test_monthly_p4_close_rejects_missing_manual_inputs(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = self._setup_project(Path(td))
+            svc = CanonicalService(repo)
+            svc.save(
+                workflow="dsp",
+                rows=[self._row(日期時間="2026-04-01", 執行金額=100.0)],
+                template_version="v1",
+                rule_version="v1",
+            )
+            svc.save_monthly_p4_manual_inputs(
+                month="2026-04",
+                inputs={
+                    "external_io_momo": 0,
+                    "hb_revenue": 0,
+                    "remaining_traffic_revenue": 0,
+                    "data_monetization_adjustment": 0,
+                },
+                template_version="v1",
+                rule_version="v1",
+            )
+
+            with self.assertRaisesRegex(ValueError, "external_beiliu_io"):
+                svc.close_monthly_p4_month(month="2026-04", template_version="v1", rule_version="v1")
+
+            svc.save_monthly_p4_manual_inputs(
+                month="2026-04",
+                inputs={
+                    "external_io_momo": 0,
+                    "hb_revenue": 0,
+                    "external_beiliu_io": 0,
+                    "remaining_traffic_revenue": 0,
+                    "data_monetization_adjustment": 0,
+                },
+                template_version="v1",
+                rule_version="v1",
+            )
+            closed = svc.close_monthly_p4_month(month="2026-04", template_version="v1", rule_version="v1")
+            self.assertEqual(closed["status"], "ok")
+            self.assertEqual(closed["mf_total_actual"], 100.0)
 
     def test_monthly_p4_diff_uses_union_and_statuses_are_semantic(self) -> None:
         with tempfile.TemporaryDirectory() as td:

@@ -18,6 +18,8 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from infra.dsp_rules import classify_dsp_row
+
 
 DEFAULT_SCOPE_CHECK_URL = "https://cua3.holmesmind.com/api/login/scope-check"
 DEFAULT_SSP_API_BASE_URL = "https://ssp3-api.holmesmind.com/api"
@@ -55,6 +57,24 @@ SSP_AD_GROUP_REPORT_DIMENSIONS = [
     {"id": "zone_id", "name": "版位"},
 ]
 
+SSP_MONTHLY_ZONE_CAMPAIGN_SIZE_DIMENSIONS = [
+    {"id": "data_time", "name": "時間"},
+    {"id": "zone_id", "name": "版位"},
+    {"id": "campaign_id", "name": "訂單"},
+    {"id": "creative_size_id", "name": "素材尺寸"},
+]
+
+SSP_MONTHLY_ZONE_SIZE_DIMENSIONS = [
+    {"id": "data_time", "name": "時間"},
+    {"id": "zone_id", "name": "版位"},
+    {"id": "creative_size_id", "name": "素材尺寸"},
+]
+
+SSP_MONTHLY_COUNTRY_DIMENSIONS = [
+    {"id": "data_time", "name": "時間"},
+    {"id": "country", "name": "國家"},
+]
+
 SSP_REPORT_POINTERS = [
     {"id": "request", "name": "請求數"},
     {"id": "impress", "name": "曝光數"},
@@ -71,6 +91,11 @@ SSP_REPORT_POINTERS = [
     {"id": "advertiser_mu", "name": "DSP-執行金額"},
     {"id": "dsp_ecpm", "name": "DSP-eCPM"},
     {"id": "dsp_ecpc", "name": "DSP-eCPC"},
+]
+
+SSP_MONTHLY_COUNTRY_POINTERS = [
+    {"id": "request", "name": "請求數"},
+    {"id": "impress", "name": "曝光數"},
 ]
 
 
@@ -278,8 +303,10 @@ def build_ssp_report_condition_payload(
     pb: int = 0,
     filters: list[dict[str, object]] | None = None,
     dimensions: list[dict[str, object]] | None = None,
+    pointers: list[dict[str, object]] | None = None,
 ) -> dict[str, object]:
-    report_time_name = "日報" if report_time == "daily" else "時報"
+    report_time_names = {"hourly": "時報", "daily": "日報", "monthly": "月報"}
+    report_time_name = report_time_names.get(report_time, str(report_time))
     return {
         "reportTime": {"id": report_time, "name": report_time_name},
         "reportType": {"id": "regular", "name": "一般報表"},
@@ -295,7 +322,7 @@ def build_ssp_report_condition_payload(
         "endDay": end_day,
         "filter": list(filters or []),
         "dimension": list(dimensions or SSP_REPORT_DIMENSIONS),
-        "pointer": list(SSP_REPORT_POINTERS),
+        "pointer": list(pointers or SSP_REPORT_POINTERS),
         "media_country": {"id": "ALL", "name": "所有媒體"},
         "campaign_country": {"id": "ALL", "name": "所有經銷商"},
     }
@@ -320,6 +347,43 @@ def build_ssp_ad_group_report_condition_payload(
             }
         ],
         dimensions=SSP_AD_GROUP_REPORT_DIMENSIONS,
+    )
+
+
+def build_ssp_monthly_zone_campaign_size_report_condition_payload(
+    *,
+    start_day: str,
+    end_day: str,
+    pb: int = 1,
+    dimensions: list[dict[str, object]] | None = None,
+) -> dict[str, object]:
+    return build_ssp_report_condition_payload(
+        start_day=start_day,
+        end_day=end_day,
+        report_time="monthly",
+        pb=pb,
+        dimensions=dimensions or SSP_MONTHLY_ZONE_CAMPAIGN_SIZE_DIMENSIONS,
+    )
+
+
+def build_ssp_monthly_country_report_condition_payload(
+    *,
+    start_day: str,
+    end_day: str,
+    pb: int = 0,
+    zone_group_id: int | None = None,
+) -> dict[str, object]:
+    filters: list[dict[str, object]] = []
+    if zone_group_id is not None and int(zone_group_id) > 0:
+        filters.append({"name": "zone_group", "value": [{"id": int(zone_group_id), "name": str(int(zone_group_id))}]})
+    return build_ssp_report_condition_payload(
+        start_day=start_day,
+        end_day=end_day,
+        report_time="daily",
+        pb=pb,
+        filters=filters,
+        dimensions=SSP_MONTHLY_COUNTRY_DIMENSIONS,
+        pointers=SSP_MONTHLY_COUNTRY_POINTERS,
     )
 
 
@@ -632,6 +696,103 @@ class SspApiClient:
             "chunk_days": (end_dt - start_dt).days + 1,
         }
 
+    def fetch_monthly_zone_campaign_size_bundle(
+        self,
+        *,
+        start_day: str,
+        end_day: str,
+        pb: int = 1,
+        dimensions: list[dict[str, object]] | None = None,
+    ) -> dict[str, object]:
+        auth = self._auth.authenticate()
+        token = _strip_text(auth.get("token"))
+        login_info = self.get_login_info(token)
+        start_dt = _parse_iso_date(start_day)
+        end_dt = _parse_iso_date(end_day)
+        if start_dt > end_dt:
+            raise SspApiError("start_day cannot be after end_day")
+
+        report_condition = self.create_monthly_zone_campaign_size_report_condition(
+            token,
+            start_day=start_day,
+            end_day=end_day,
+            pb=pb,
+            dimensions=dimensions,
+        )
+        report_id = _coerce_int((report_condition.get("data") or {}).get("id"))
+        if report_id <= 0:
+            raise SspApiError(f"report-conditions 未回傳有效 id: {report_condition}")
+        report_result = self.get_report_result(token, report_id=report_id)
+        data = report_result.get("data")
+        if not isinstance(data, dict):
+            raise SspApiError("report result 缺少 data object")
+        rows = data.get("data")
+        if not isinstance(rows, list):
+            raise SspApiError("report result 缺少 data rows")
+        return {
+            "auth": auth,
+            "login": login_info,
+            "report_condition": report_condition,
+            "report_id": report_id,
+            "report_ids": [report_id],
+            "report_result": report_result,
+            "rows": [row for row in rows if isinstance(row, dict)],
+            "records_total": _coerce_int(data.get("recordsTotal")),
+            "sum_row": data.get("sumRow") if isinstance(data.get("sumRow"), dict) else {},
+            "pb": int(pb),
+            "chunk_mode": "single",
+            "chunk_days": (end_dt - start_dt).days + 1,
+        }
+
+    def fetch_monthly_country_bundle(
+        self,
+        *,
+        start_day: str,
+        end_day: str,
+        pb: int = 0,
+        zone_group_id: int | None = None,
+    ) -> dict[str, object]:
+        auth = self._auth.authenticate()
+        token = _strip_text(auth.get("token"))
+        login_info = self.get_login_info(token)
+        start_dt = _parse_iso_date(start_day)
+        end_dt = _parse_iso_date(end_day)
+        if start_dt > end_dt:
+            raise SspApiError("start_day cannot be after end_day")
+
+        report_condition = self.create_monthly_country_report_condition(
+            token,
+            start_day=start_day,
+            end_day=end_day,
+            pb=pb,
+            zone_group_id=zone_group_id,
+        )
+        report_id = _coerce_int((report_condition.get("data") or {}).get("id"))
+        if report_id <= 0:
+            raise SspApiError(f"report-conditions 未回傳有效 id: {report_condition}")
+        report_result = self.get_report_result(token, report_id=report_id)
+        data = report_result.get("data")
+        if not isinstance(data, dict):
+            raise SspApiError("report result 缺少 data object")
+        rows = data.get("data")
+        if not isinstance(rows, list):
+            raise SspApiError("report result 缺少 data rows")
+        return {
+            "auth": auth,
+            "login": login_info,
+            "report_condition": report_condition,
+            "report_id": report_id,
+            "report_ids": [report_id],
+            "report_result": report_result,
+            "rows": [row for row in rows if isinstance(row, dict)],
+            "records_total": _coerce_int(data.get("recordsTotal")),
+            "sum_row": data.get("sumRow") if isinstance(data.get("sumRow"), dict) else {},
+            "pb": int(pb),
+            "zone_group_id": int(zone_group_id or 0),
+            "chunk_mode": "single",
+            "chunk_days": (end_dt - start_dt).days + 1,
+        }
+
     def get_login_info(self, token: str) -> dict[str, object]:
         payload = _request_json(
             self.settings.get_login_url,
@@ -673,6 +834,56 @@ class SspApiClient:
                 end_day=end_day,
                 zone_group_id=zone_group_id,
                 zone_group_name=zone_group_name,
+            ),
+            timeout_seconds=self.settings.timeout_seconds,
+        )
+        if _strip_text(payload.get("code")) != "200":
+            raise SspApiError(f"report-conditions failed: {payload}")
+        return payload
+
+    def create_monthly_zone_campaign_size_report_condition(
+        self,
+        token: str,
+        *,
+        start_day: str,
+        end_day: str,
+        pb: int = 1,
+        dimensions: list[dict[str, object]] | None = None,
+    ) -> dict[str, object]:
+        payload = _request_json(
+            self.settings.report_conditions_url,
+            method="POST",
+            headers={"Authorization": f"Bearer {token}"},
+            json_body=build_ssp_monthly_zone_campaign_size_report_condition_payload(
+                start_day=start_day,
+                end_day=end_day,
+                pb=pb,
+                dimensions=dimensions,
+            ),
+            timeout_seconds=self.settings.timeout_seconds,
+        )
+        if _strip_text(payload.get("code")) != "200":
+            raise SspApiError(f"report-conditions failed: {payload}")
+        return payload
+
+    def create_monthly_country_report_condition(
+        self,
+        token: str,
+        *,
+        start_day: str,
+        end_day: str,
+        pb: int = 0,
+        zone_group_id: int | None = None,
+    ) -> dict[str, object]:
+        payload = _request_json(
+            self.settings.report_conditions_url,
+            method="POST",
+            headers={"Authorization": f"Bearer {token}"},
+            json_body=build_ssp_monthly_country_report_condition_payload(
+                start_day=start_day,
+                end_day=end_day,
+                pb=pb,
+                zone_group_id=zone_group_id,
             ),
             timeout_seconds=self.settings.timeout_seconds,
         )
@@ -760,6 +971,87 @@ def normalize_ssp_ad_group_report_rows(
                 "advertiser_mu": advertiser_mu,
                 "dsp_ecpm": _coerce_float(row.get("dsp_ecpm")) or _safe_rate(advertiser_mu, impress, scale=1000.0),
                 "dsp_ecpc": _coerce_float(row.get("dsp_ecpc")) or _safe_rate(advertiser_mu, click, scale=1.0),
+            }
+        )
+    return normalized
+
+
+def normalize_ssp_monthly_zone_campaign_size_rows(
+    rows: list[dict[str, object]],
+    *,
+    source_name: str = DEFAULT_SOURCE_NAME,
+) -> list[dict[str, object]]:
+    normalized: list[dict[str, object]] = []
+    for row in rows:
+        month_text = _strip_text(row.get("data_time"))[:7]
+        request = _coerce_float(row.get("request"))
+        impress = _coerce_float(row.get("impress"))
+        click = _coerce_float(row.get("click"))
+        profit = _coerce_float(row.get("profit"))
+        advertiser_mu = _coerce_float(row.get("advertiser_mu"))
+        normalized.append(
+            {
+                "source": source_name,
+                "month": month_text,
+                "data_time": _strip_text(row.get("data_time")),
+                "zone_id": _coerce_int(row.get("zone_id")),
+                "zone_name": _strip_text(row.get("zoneName")),
+                "campaign_id": _strip_text(row.get("campaign_id")),
+                "campaign_name": _strip_text(row.get("campaignName")),
+                "creative_size_id": _strip_text(row.get("creative_size_id")),
+                "request": request,
+                "impress": impress,
+                "active_view": _coerce_float(row.get("active_view")),
+                "active_view_rate": _coerce_float(row.get("active_view_rate")),
+                "click": click,
+                "ctr": _coerce_float(row.get("ctr")) or _safe_rate(click, impress, scale=100.0),
+                "ecpm": _coerce_float(row.get("ecpm")) or _safe_rate(profit, impress, scale=1000.0),
+                "ecpc": _coerce_float(row.get("ecpc")) or _safe_rate(profit, click, scale=1.0),
+                "invalid_impress": _coerce_float(row.get("invalid_impress")),
+                "invalid_click": _coerce_float(row.get("invalid_click")),
+                "profit": profit,
+                "site_mu": _coerce_float(row.get("site_mu")),
+                "advertiser_mu": advertiser_mu,
+                "dsp_ecpm": _coerce_float(row.get("dsp_ecpm")) or _safe_rate(advertiser_mu, impress, scale=1000.0),
+                "dsp_ecpc": _coerce_float(row.get("dsp_ecpc")) or _safe_rate(advertiser_mu, click, scale=1.0),
+            }
+        )
+        normalized_row = normalized[-1]
+        classification = classify_dsp_row(
+            {
+                "訂單": normalized_row["campaign_name"] or normalized_row["campaign_id"],
+                "素材": f"{normalized_row['zone_name']} {normalized_row['campaign_name']}",
+                "廣告形式": normalized_row["creative_size_id"],
+                "尺寸": normalized_row["creative_size_id"],
+                "素材樣板": normalized_row["creative_size_id"],
+                "cpm": normalized_row["dsp_ecpm"],
+            }
+        )
+        normalized_row["ad_format"] = classification["最終廣告形式"]
+        normalized_row["ad_format_rule"] = classification["規則命中_廣告形式"]
+    return normalized
+
+
+def normalize_ssp_monthly_country_rows(
+    rows: list[dict[str, object]],
+    *,
+    source_name: str = DEFAULT_SOURCE_NAME,
+    country_scope: str = "total",
+    zone_group_id: int = 0,
+) -> list[dict[str, object]]:
+    normalized: list[dict[str, object]] = []
+    for row in rows:
+        data_time = _strip_text(row.get("data_time"))
+        normalized.append(
+            {
+                "source": source_name,
+                "month": data_time[:7],
+                "data_time": data_time,
+                "country": _strip_text(row.get("country")),
+                "country_scope": str(country_scope or "total"),
+                "zone_group_id": int(zone_group_id or 0),
+                "request": _coerce_float(row.get("request")),
+                "impress": _coerce_float(row.get("impress")),
             }
         )
     return normalized

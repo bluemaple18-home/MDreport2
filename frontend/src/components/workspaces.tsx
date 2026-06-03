@@ -4,6 +4,7 @@ export {
   RawdataWorkspace,
   ResultWorkspace,
   MonthlyP4Workspace,
+  MonthlyChartsWorkspace,
   SspAdGroupMonitorWorkspace,
   SspMediaDemandWorkspace,
   SspParityWorkspace,

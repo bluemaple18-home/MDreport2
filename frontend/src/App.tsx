@@ -72,6 +72,7 @@ export default function App() {
             sspAdGroupMonitor: controller.sspAdGroupMonitor,
             monthlyP4: controller.monthlyP4,
             monthlyP4Test: controller.monthlyP4Test,
+            monthlyCharts: controller.monthlyCharts,
             runtimeContext: controller.state.ctx,
           }}
           actions={{

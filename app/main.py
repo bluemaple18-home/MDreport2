@@ -186,6 +186,40 @@ def _build_parser() -> argparse.ArgumentParser:
     fetch_ssp_ad_group_p.add_argument("--service-id", type=int, default=None)
     fetch_ssp_ad_group_p.add_argument("--source-name", default=None)
     fetch_ssp_ad_group_p.add_argument("--timeout-seconds", type=int, default=None)
+    fetch_monthly_ssp_p = sub.add_parser(
+        "fetch-monthly-ssp-api",
+        help="Fetch SSP monthly report rows into data/monthly_report.sqlite",
+    )
+    fetch_monthly_ssp_p.add_argument("--date", default=None, help="Single fetch date (YYYY-MM-DD)")
+    fetch_monthly_ssp_p.add_argument("--start-day", default=None, help="Fetch range start date (YYYY-MM-DD)")
+    fetch_monthly_ssp_p.add_argument("--end-day", default=None, help="Fetch range end date (YYYY-MM-DD)")
+    fetch_monthly_ssp_p.add_argument("--pb", type=int, default=1)
+    fetch_monthly_ssp_p.add_argument("--email", default=None)
+    fetch_monthly_ssp_p.add_argument("--password", default=None)
+    fetch_monthly_ssp_p.add_argument("--scope-check-url", default=None)
+    fetch_monthly_ssp_p.add_argument("--api-base-url", default=None)
+    fetch_monthly_ssp_p.add_argument("--auth-decrypt-key", default=None)
+    fetch_monthly_ssp_p.add_argument("--service-id", type=int, default=None)
+    fetch_monthly_ssp_p.add_argument("--source-name", default=None)
+    fetch_monthly_ssp_p.add_argument("--timeout-seconds", type=int, default=None)
+    monthly_media_cost_p = sub.add_parser(
+        "monthly-media-cost-analysis",
+        help="Build media cost analysis snapshot from data/monthly_report.sqlite",
+    )
+    monthly_media_cost_p.add_argument("--month", required=True, help="Target month (YYYY-MM)")
+    monthly_dimension_p = sub.add_parser(
+        "monthly-dimension-summary",
+        help="Build zone, campaign, and ad format summary from data/monthly_report.sqlite",
+    )
+    monthly_dimension_p.add_argument("--month", required=True, help="Target month (YYYY-MM)")
+    monthly_dimension_p.add_argument("--limit", type=int, default=20)
+    monthly_zone_group_p = sub.add_parser(
+        "import-monthly-zone-group",
+        help="Import monthly zone group IDs from CSV into data/monthly_report.sqlite",
+    )
+    monthly_zone_group_p.add_argument("--csv", required=True, help="CSV path; first column must be zone_id")
+    monthly_zone_group_p.add_argument("--group-id", type=int, required=True)
+    monthly_zone_group_p.add_argument("--group-name", required=True)
     fetch_dsp_p = sub.add_parser("fetch-dsp-api", help="Fetch DSP data from the regular HolmesMind API flow")
     fetch_dsp_p.add_argument("--date", default=None, help="Single fetch date (YYYY-MM-DD)")
     fetch_dsp_p.add_argument("--start-day", default=None, help="Fetch range start date (YYYY-MM-DD)")
@@ -359,6 +393,47 @@ def run_cli(argv: list[str] | None = None) -> int:
                     }
                 )
             return _ok(svc.fetch_all_ssp_ad_group_api(**common_kwargs))
+        if args.command == "fetch-monthly-ssp-api":
+            bootstrap_init(root, manifest_rel, args.env)
+            svc = _service(root, manifest_rel, args.env)
+            start_day, end_day = _resolve_fetch_range(
+                single_date=args.date,
+                start_day=args.start_day,
+                end_day=args.end_day,
+            )
+            return _ok(
+                svc.fetch_monthly_report_ssp_regular_api(
+                    start_day=start_day,
+                    end_day=end_day,
+                    pb=args.pb,
+                    email=args.email,
+                    password=args.password,
+                    scope_check_url=args.scope_check_url,
+                    api_base_url=args.api_base_url,
+                    auth_decrypt_key=args.auth_decrypt_key,
+                    service_id=args.service_id,
+                    source_name=args.source_name,
+                    timeout_seconds=args.timeout_seconds,
+                )
+            )
+        if args.command == "monthly-media-cost-analysis":
+            bootstrap_init(root, manifest_rel, args.env)
+            svc = _service(root, manifest_rel, args.env)
+            return _ok(svc.build_monthly_media_cost_analysis(month=args.month))
+        if args.command == "monthly-dimension-summary":
+            bootstrap_init(root, manifest_rel, args.env)
+            svc = _service(root, manifest_rel, args.env)
+            return _ok(svc.build_monthly_dimension_summary(month=args.month, limit=args.limit))
+        if args.command == "import-monthly-zone-group":
+            bootstrap_init(root, manifest_rel, args.env)
+            svc = _service(root, manifest_rel, args.env)
+            return _ok(
+                svc.import_monthly_zone_group_csv(
+                    csv_path=args.csv,
+                    group_id=args.group_id,
+                    group_name=args.group_name,
+                )
+            )
         if args.command == "fetch-dsp-api":
             bootstrap_init(root, manifest_rel, args.env)
             svc = _service(root, manifest_rel, args.env)

@@ -22,7 +22,7 @@
   "preroll_keywords": ["preroll", "pre-roll", "pre roll"],
   "ad_format_dooh_keywords": ["北流"],
   "ad_format_dooh_size_keywords": ["2048x2560"],
-  "ad_format_video_keywords": ["影音", "scroller"],
+  "ad_format_video_keywords": ["影音摩天"],
   "ad_format_creative_keywords": [
     "特效",
     "蓋板",
@@ -48,6 +48,7 @@
     "上拉純圖",
     "創意置底banner",
     "移動大看板(圖片)",
-    "開場特效"
+    "開場特效",
+    "scroller"
   ]
 }

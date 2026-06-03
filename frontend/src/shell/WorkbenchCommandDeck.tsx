@@ -248,6 +248,7 @@ export function WorkbenchCommandDeck({
 }: WorkbenchCommandDeckProps) {
   const isSspWorkflow = workflow === "ssp";
   const isMonthlyWorkflow = workflow === "monthly";
+  const isMonthlyChartsTab = workflow === "monthly" && mainTab === "monthly_charts";
   const hasSubTabs = subTabOptions.length > 0;
   const periodPresetOptions = isSspWorkflow || isMonthlyWorkflow
     ? [
@@ -256,7 +257,7 @@ export function WorkbenchCommandDeck({
     ]
     : buildDspDateOptions();
   const periodSubtitle = isMonthlyWorkflow
-    ? "月報以日期區間的結束月份作為最新月，顯示近三個月。"
+    ? "月報素材依日期區間換算月份範圍，可自由控制要顯示的月份。"
     : isSspWorkflow
     ? "SSP 預設本月，可自由拉取日期區間"
     : "DSP 週期篩選（以完整週為單位）";
@@ -310,6 +311,7 @@ export function WorkbenchCommandDeck({
                   if (tab.value === "ssp_media_demand") testId = ACCEPTANCE_SELECTORS.mainTabSspMediaDemand;
                   if (tab.value === "ssp_ad_group") testId = ACCEPTANCE_SELECTORS.mainTabSspAdGroup;
                   if (tab.value === "monthly_p4") testId = ACCEPTANCE_SELECTORS.mainTabMonthlyP4;
+                  if (tab.value === "monthly_charts") testId = ACCEPTANCE_SELECTORS.mainTabMonthlyCharts;
                   return (
                     <ActionButton
                       key={tab.value}
@@ -359,6 +361,7 @@ export function WorkbenchCommandDeck({
             </div>
           ) : null}
 
+          {!isMonthlyChartsTab ? (
           <div className="command-cell command-cell-wide">
             <Panel
               title="Period Contract"
@@ -388,7 +391,7 @@ export function WorkbenchCommandDeck({
                           />
                         </div>
                       )}
-                      <span className="period-mode-note">{isMonthlyWorkflow ? "近三個月比較" : sspPeriodModeText}</span>
+                      <span className="period-mode-note">{isMonthlyWorkflow ? "自訂月份區間" : sspPeriodModeText}</span>
                     </div>
                   </Field>
                 ) : (
@@ -418,6 +421,7 @@ export function WorkbenchCommandDeck({
               </div>
             </Panel>
           </div>
+          ) : null}
         </div>
       </div>
     </section>

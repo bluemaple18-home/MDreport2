@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from openpyxl import Workbook, load_workbook
 
-from domain.services import CanonicalService
+from domain.services import CanonicalService, _monthly_report_row_ad_format
 from infra.sqlite.bootstrap import bootstrap_init
 from infra.sqlite.repository import SQLiteRepository
 from infra.ssp_api import SspApiSettings
@@ -1432,6 +1432,270 @@ class Phase2ServicesTests(unittest.TestCase):
             detail = json.loads(str(detail_json))
             self.assertEqual(detail["daily"], out["daily"])
             self.assertEqual(detail["chunk_days"], 2)
+
+    def test_fetch_monthly_report_ssp_regular_api_writes_dedicated_monthly_db_and_media_cost_snapshot(self) -> None:
+        class _FakeSspApiClient:
+            def __init__(self, settings: SspApiSettings) -> None:
+                self.settings = settings
+
+            def fetch_monthly_zone_campaign_size_bundle(
+                self,
+                *,
+                start_day: str,
+                end_day: str,
+                pb: int = 1,
+                dimensions: list[dict[str, object]] | None = None,
+            ) -> dict[str, object]:
+                if start_day != "2026-04-01" or end_day != "2026-04-30":
+                    raise AssertionError("monthly SSP fetch range should be preserved")
+                if pb not in {0, 1}:
+                    raise AssertionError("monthly SSP fetch should use pb=1 delivery and pb=0 request")
+                rows = [
+                    {
+                        "data_time": "2026-04",
+                        "zone_id": "1001",
+                        "zoneName": "Slot A",
+                        "campaign_id": "C1" if pb == 1 else "",
+                        "campaignName": "Campaign A" if pb == 1 else "",
+                        "creative_size_id": "純蓋板 300x250" if pb == 1 else "",
+                        "request": "10" if pb == 1 else "12",
+                        "impress": "100" if pb == 1 else "120",
+                        "click": "5" if pb == 1 else "0",
+                        "profit": "100.25" if pb == 1 else "0",
+                        "advertiser_mu": "200.50" if pb == 1 else "0",
+                    },
+                    {
+                        "data_time": "2026-04",
+                        "zone_id": "1002",
+                        "zoneName": "Slot B",
+                        "campaign_id": "C2" if pb == 1 else "",
+                        "campaignName": "Campaign B" if pb == 1 else "",
+                        "creative_size_id": "320x480",
+                        "request": "20" if pb == 1 else "25",
+                        "impress": "200" if pb == 1 else "250",
+                        "click": "10" if pb == 1 else "0",
+                        "profit": "300.75" if pb == 1 else "0",
+                        "advertiser_mu": "500.50" if pb == 1 else "0",
+                    },
+                ]
+                return {
+                    "auth": {
+                        "service_id": self.settings.service_id,
+                        "user": {"id": 2072, "email": "ssp@example.com"},
+                    },
+                    "login": {"id": 2072, "email": "ssp@example.com"},
+                    "report_condition": {"code": "200", "data": {"id": 175981 + pb}},
+                    "report_result": {"code": "200", "data": {"recordsTotal": 2}},
+                    "report_id": 175981 + pb,
+                    "report_ids": [175981 + pb],
+                    "records_total": 2,
+                    "chunk_mode": "single",
+                    "chunk_days": 30,
+                    "sum_row": {"profit": "1943967.71", "advertiser_mu": "3615513.91"},
+                    "rows": rows,
+                }
+
+            def fetch_monthly_country_bundle(
+                self,
+                *,
+                start_day: str,
+                end_day: str,
+                pb: int = 0,
+                zone_group_id: int | None = None,
+            ) -> dict[str, object]:
+                if start_day != "2026-04-01" or end_day != "2026-04-30":
+                    raise AssertionError("monthly country fetch range should be preserved")
+                if pb != 0:
+                    raise AssertionError("monthly country fetch should use pb=0")
+                is_child = int(zone_group_id or 0) == 117
+                rows = [
+                    {
+                        "data_time": "2026-04",
+                        "country": "Taiwan",
+                        "request": "90" if is_child else "300",
+                        "impress": "9" if is_child else "30",
+                    },
+                    {
+                        "data_time": "2026-04",
+                        "country": "Japan",
+                        "request": "20" if is_child else "70",
+                        "impress": "2" if is_child else "7",
+                    },
+                ]
+                return {
+                    "auth": {
+                        "service_id": self.settings.service_id,
+                        "user": {"id": 2072, "email": "ssp@example.com"},
+                    },
+                    "login": {"id": 2072, "email": "ssp@example.com"},
+                    "report_condition": {"code": "200", "data": {"id": 175990 + int(zone_group_id or 0)}},
+                    "report_result": {"code": "200", "data": {"recordsTotal": 2}},
+                    "report_id": 175990 + int(zone_group_id or 0),
+                    "report_ids": [175990 + int(zone_group_id or 0)],
+                    "records_total": 2,
+                    "chunk_mode": "single",
+                    "chunk_days": 30,
+                    "sum_row": {},
+                    "rows": rows,
+                }
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            repo = self._setup_project(root)
+            svc = CanonicalService(repo)
+
+            with patch("domain.services.SspApiClient", _FakeSspApiClient):
+                out = svc.fetch_monthly_report_ssp_regular_api(
+                    start_day="2026-04-01",
+                    end_day="2026-04-30",
+                    email="ssp@example.com",
+                    password="secret",
+                )
+
+            self.assertEqual(out["status"], "ok")
+            self.assertEqual(out["workflow"], "monthly")
+            self.assertEqual(out["report_kind"], "ssp_regular_monthly_zone_campaign_size")
+            self.assertEqual(out["row_count"], 4)
+            self.assertEqual(out["records_total"], 8)
+            self.assertEqual(out["report_id"], 175982)
+            self.assertEqual(out["delivery_row_count"], 2)
+            self.assertEqual(out["request_row_count"], 2)
+            self.assertEqual(out["country_row_count"], 2)
+            self.assertEqual(out["child_country_row_count"], 2)
+            self.assertEqual(Path(out["monthly_report_db_path"]).resolve(), (root / "data" / "monthly_report.sqlite").resolve())
+
+            rows = repo.read_monthly_report_rows(month="2026-04")
+            self.assertEqual(len(rows), 4)
+            self.assertEqual(sum(float(row["profit"] or 0.0) for row in rows), 401.0)
+            self.assertEqual(sum(float(row["advertiser_mu"] or 0.0) for row in rows), 701.0)
+            self.assertEqual(sum(float(row["request"] or 0.0) for row in rows), 37.0)
+            self.assertEqual(sum(float(row["request_including_padding"] or 0.0) for row in rows), 37.0)
+            self.assertEqual(sum(float(row["request_excluding_padding"] or 0.0) for row in rows), 30.0)
+            self.assertEqual(sum(float(row["impress"] or 0.0) for row in rows), 300.0)
+            self.assertEqual(sum(float(row["impress_including_padding"] or 0.0) for row in rows), 370.0)
+            self.assertEqual(sum(float(row["impress_excluding_padding"] or 0.0) for row in rows), 300.0)
+            c1_delivery_row = next(row for row in rows if str(row.get("campaign_id") or "") == "C1")
+            self.assertEqual(str(c1_delivery_row["ad_format"]), "創意廣告")
+
+            snapshot = svc.build_monthly_media_cost_analysis(month="2026-04")
+            self.assertEqual(snapshot["status"], "ok")
+            self.assertEqual(snapshot["chartKey"], "media_cost_analysis")
+            self.assertEqual(snapshot["rowCount"], 4)
+            self.assertEqual(snapshot["sourceRunId"], out["run_id"])
+            self.assertEqual(snapshot["metrics"]["mediaCost"], 401.0)
+            self.assertEqual(snapshot["metrics"]["totalInvestment"], 0.0)
+            self.assertEqual(snapshot["metrics"]["fallbackInvestment"], 701.0)
+            self.assertEqual(snapshot["metrics"]["grossProfit"], 0.0)
+            self.assertEqual(snapshot["metrics"]["mediaCostRate"], 0.0)
+
+            dimension_snapshot = svc.build_monthly_dimension_summary(month="2026-04", limit=1)
+            self.assertEqual(dimension_snapshot["status"], "ok")
+            self.assertEqual(dimension_snapshot["chartKey"], "monthly_dimension_summary")
+            self.assertEqual(dimension_snapshot["rowCount"], 4)
+            self.assertEqual(len(dimension_snapshot["topZones"]), 1)
+            self.assertEqual(len(dimension_snapshot["topCampaigns"]), 1)
+            self.assertEqual(dimension_snapshot["topCampaigns"][0]["campaign_id"], "C2")
+            self.assertEqual(dimension_snapshot["topCampaigns"][0]["request"], 0.0)
+            self.assertEqual(dimension_snapshot["adFormats"][0]["ad_format"], "一般廣告")
+            self.assertEqual(dimension_snapshot["adFormats"][1]["ad_format"], "創意廣告")
+
+            north_flow_size = {
+                "creative_size_id": "(231)2048 x 2560 橫幅",
+                "zone_name": "一般版位",
+                "campaign_name": "一般訂單",
+                "dsp_ecpm": 6000,
+            }
+            north_flow_keyword_only = {
+                "creative_size_id": "",
+                "zone_name": "北流1+2樓",
+                "campaign_name": "北流DOOH",
+                "dsp_ecpm": 6000,
+            }
+            ssp_material_video = {
+                "creative_size_id": "影音廣告",
+                "ad_format": "影音摩天",
+                "ad_format_rule": "table:material:176",
+                "dsp_ecpm": 6000,
+            }
+            ssp_material_video_creative_cpm = {
+                "creative_size_id": "影音廣告",
+                "ad_format": "影音摩天",
+                "ad_format_rule": "table:material:176",
+                "dsp_ecpm": 100,
+            }
+            ssp_material_video_preroll_raw = {
+                "creative_size_id": "VAST3.0",
+                "ad_format": "preroll",
+                "ad_format_rule": "table:material:206",
+                "dsp_ecpm": 6000,
+            }
+            ssp_weird_ratio_video = {
+                "creative_size_id": "(179)32:9 影音廣告",
+                "ad_format": "影音摩天",
+                "ad_format_rule": "table:material:179",
+                "dsp_ecpm": 10,
+            }
+            ssp_keyword_only_video = {
+                "creative_size_id": "",
+                "ad_format": "影音摩天",
+                "ad_format_rule": "rule:video_keyword",
+                "dsp_ecpm": 6000,
+            }
+            self.assertEqual(_monthly_report_row_ad_format(north_flow_size), "DOOH北流")
+            self.assertEqual(_monthly_report_row_ad_format(north_flow_keyword_only), "一般廣告")
+            self.assertEqual(_monthly_report_row_ad_format(ssp_material_video), "影音摩天")
+            self.assertEqual(_monthly_report_row_ad_format(ssp_material_video_creative_cpm), "創意廣告")
+            self.assertEqual(_monthly_report_row_ad_format(ssp_material_video_preroll_raw), "影音摩天")
+            self.assertEqual(_monthly_report_row_ad_format(ssp_weird_ratio_video), "DOOH北流")
+            self.assertEqual(_monthly_report_row_ad_format(ssp_keyword_only_video), "一般廣告")
+
+            zone_group_csv = root / "child_zones.csv"
+            zone_group_csv.write_text("1001\n1001\n9999\n", encoding="utf-8")
+            zone_group = svc.import_monthly_zone_group_csv(
+                csv_path=zone_group_csv,
+                group_id=117,
+                group_name="子聯播網",
+            )
+            self.assertEqual(zone_group["status"], "ok")
+            self.assertEqual(zone_group["input_row_count"], 3)
+            self.assertEqual(zone_group["duplicate_count"], 1)
+            self.assertEqual(zone_group["zone_count"], 2)
+            self.assertEqual(zone_group["matched_zone_count"], 1)
+
+            charts_snapshot = svc.build_monthly_charts_snapshot(months=["2026-04"], limit=1)
+            self.assertEqual(charts_snapshot["networkGroup"]["zoneCount"], 2)
+            self.assertEqual(charts_snapshot["monthly"][0]["impress"], 370.0)
+            self.assertAlmostEqual(float(charts_snapshot["monthly"][0]["dailyImpress"]), 12.33, places=2)
+            self.assertEqual(len(charts_snapshot["networkUsage"]), 1)
+            network_usage = charts_snapshot["networkUsage"][0]
+            self.assertEqual(network_usage["child"]["request"], 90.0)
+            self.assertEqual(network_usage["main"]["request"], 210.0)
+            self.assertAlmostEqual(float(network_usage["childRequestShare"]), 30.0, places=4)
+            traffic_creative = charts_snapshot["trafficDaily"]["creative"][0]
+            self.assertEqual(traffic_creative["request"], 0.0)
+            self.assertEqual(traffic_creative["dailyRequest"], 0.0)
+            self.assertLessEqual(traffic_creative["dailyRequest"], charts_snapshot["monthly"][0]["dailyRequest"])
+            top_campaign = charts_snapshot["topCampaignsByMonth"]["2026-04"][0]
+            self.assertEqual(top_campaign["campaignId"], "C2")
+            self.assertEqual(top_campaign["request"], 0.0)
+            self.assertTrue(network_usage["countrySource"])
+            self.assertEqual(network_usage["tw"]["request"], 300.0)
+            self.assertEqual(network_usage["tw"]["impress"], 30.0)
+            self.assertEqual(network_usage["tw"]["dailyRequest"], 10.0)
+            self.assertEqual(network_usage["tw"]["dailyImpress"], 1.0)
+            self.assertEqual(network_usage["child"]["dailyRequest"], 3.0)
+            self.assertEqual(network_usage["main"]["dailyRequest"], 7.0)
+
+            conn = sqlite3.connect(str(repo.monthly_report_db_path))
+            try:
+                run_count = conn.execute("SELECT COUNT(1) FROM monthly_report_runs").fetchone()[0]
+                snapshot_count = conn.execute("SELECT COUNT(1) FROM monthly_chart_snapshots").fetchone()[0]
+                zone_group_count = conn.execute("SELECT COUNT(1) FROM monthly_zone_groups WHERE group_id = 117").fetchone()[0]
+            finally:
+                conn.close()
+            self.assertEqual(run_count, 1)
+            self.assertEqual(snapshot_count, 2)
+            self.assertEqual(zone_group_count, 2)
 
 
 if __name__ == "__main__":

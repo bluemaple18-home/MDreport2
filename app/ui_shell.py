@@ -595,6 +595,8 @@ def collect_workflow_frame(
                 week_end=period_week_end,
                 manual_source="test",
             )
+            if main_tab == "monthly_charts":
+                summary["monthly_charts"] = service.build_monthly_charts_snapshot()
     except Exception as exc:
         summary["frame_error"] = str(exc)
     return summary
@@ -880,7 +882,11 @@ def _dispatch_mutating_action(
         )
     if action == "monthly_p4_close":
         month = str(payload.get("month") or "").strip()
-        return service.archive_dsp_month(month=month)
+        return service.close_monthly_p4_month(
+            month=month,
+            template_version=template_version,
+            rule_version=rule_version,
+        )
     if action == "save":
         rows = payload.get("rows")
         if not isinstance(rows, list):

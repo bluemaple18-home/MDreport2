@@ -3,6 +3,7 @@ import {
   PivotWorkspace,
   RawdataWorkspace,
   ResultWorkspace,
+  MonthlyChartsWorkspace,
   MonthlyP4Workspace,
   SspMediaDemandWorkspace,
   SspAdGroupMonitorWorkspace,
@@ -21,6 +22,7 @@ import type {
   SspMediaDemandConfig,
   SspAdGroupMonitorSnapshot,
   SspMediaDemandSlot,
+  MonthlyChartsSnapshot,
   MonthlyP4Snapshot,
 } from "../types";
 import type { DspRawdataFilters } from "../types";
@@ -71,6 +73,7 @@ type MainWorkspaceRendererProps = {
     sspAdGroupMonitor?: SspAdGroupMonitorSnapshot;
     monthlyP4?: MonthlyP4Snapshot;
     monthlyP4Test?: MonthlyP4Snapshot;
+    monthlyCharts?: MonthlyChartsSnapshot;
     runtimeContext: RuntimeContext;
   };
   actions: {
@@ -113,7 +116,8 @@ export function MainWorkspaceRenderer(props: MainWorkspaceRendererProps) {
   const showSspMediaDemandWorkspace = route.workflow === "ssp" && route.mainTab === "ssp_media_demand";
   const showSspAdGroupWorkspace = route.workflow === "ssp" && route.mainTab === "ssp_ad_group";
   const showMonthlyP4Workspace = route.workflow === "monthly" && route.mainTab === "monthly_p4";
-  const hideDefaultWorkspace = showSspAnomalyWorkspace || showSspMediaDemandWorkspace || showSspAdGroupWorkspace || showMonthlyP4Workspace;
+  const showMonthlyChartsWorkspace = route.workflow === "monthly" && route.mainTab === "monthly_charts";
+  const hideDefaultWorkspace = showSspAnomalyWorkspace || showSspMediaDemandWorkspace || showSspAdGroupWorkspace || showMonthlyP4Workspace || showMonthlyChartsWorkspace;
   const mainWorkspace = route.subTab === "overview" ? (
     <OverviewWorkspace
       workflow={route.workflow}
@@ -237,6 +241,12 @@ export function MainWorkspaceRenderer(props: MainWorkspaceRendererProps) {
             onUploadTestTemplate={actions.handleMonthlyP4TestTemplateUpload}
             onCloseMonth={actions.handleMonthlyP4Close}
             mode={route.subTab === "rawdata" ? "maintenance" : route.subTab === "pivot" ? "test" : "output"}
+          />
+        ) : null}
+        {showMonthlyChartsWorkspace ? (
+          <MonthlyChartsWorkspace
+            snapshot={data.monthlyCharts}
+            busy={data.busy}
           />
         ) : null}
         {!hideDefaultWorkspace && !view.showTab4Workspace ? mainWorkspace : null}

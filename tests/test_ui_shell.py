@@ -3578,7 +3578,16 @@ class UiShellTests(unittest.TestCase):
                     ],
                 },
             )
-            delivery = dispatch_action(ctx, {"action": "tab4_delivery", "main_tab": "dsp_tab3", "sub_tab": "pivot"})
+            delivery = dispatch_action(
+                ctx,
+                {
+                    "action": "tab4_delivery",
+                    "main_tab": "dsp_tab3",
+                    "sub_tab": "pivot",
+                    "period_week_start": "2026-05-04",
+                    "period_week_end": "2026-05-10",
+                },
+            )
             self.assertTrue(bool(delivery.get("ready")))
 
             try:
@@ -3753,6 +3762,205 @@ class UiShellTests(unittest.TestCase):
                             self.assertIn("dirty_rows: 1", rawdata_workspace.inner_text())
                         finally:
                             browser.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2.0)
+
+    def _seed_monthly_chart_rows(self, root: Path) -> None:
+        cfg = build_config(root, "bootstrap.manifest.json", "prod")
+        repo = SQLiteRepository(cfg.db_path, project_root=root)
+        with repo.connect_monthly_report() as conn:
+            repo.save_monthly_report_rows(
+                conn,
+                run_id="run-2026-04",
+                report_kind="ssp_regular_monthly_zone_campaign_size",
+                start_day="2026-04-01",
+                end_day="2026-04-30",
+                report_id=1,
+                records_total=2,
+                source="test",
+                pb=0,
+                request_payload={},
+                response_payload={},
+                sum_row={},
+                rows=[
+                    {
+                        "month": "2026-04",
+                        "date": "2026-04-01",
+                        "zone_id": 1,
+                        "zone_name": "測試版位",
+                        "campaign_id": 10,
+                        "campaign_name": "測試訂單",
+                        "creative_size_id": "300x250",
+                        "ad_format": "Banner",
+                        "request": 1000,
+                        "impress": 800,
+                        "click": 40,
+                        "profit": 100,
+                        "advertiser_mu": 200,
+                    },
+                    {
+                        "month": "2026-04",
+                        "date": "2026-04-02",
+                        "zone_id": 1,
+                        "zone_name": "測試版位",
+                        "campaign_id": 10,
+                        "campaign_name": "測試訂單",
+                        "creative_size_id": "320x480",
+                        "ad_format": "Video",
+                        "request": 1200,
+                        "impress": 900,
+                        "click": 45,
+                        "profit": 150,
+                        "advertiser_mu": 260,
+                    },
+                ],
+            )
+
+    def test_ui_browser_monthly_charts_tab_refreshes_frame(self) -> None:
+        frontend_index = ui_shell_module.FRONTEND_DIST_DIR / "index.html"
+        if not frontend_index.exists():
+            self.skipTest("frontend dist 不存在，無法做 monthly charts browser smoke（請先 pnpm build）")
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="monthly")
+            dispatch_action(ctx, {"action": "bootstrap"})
+            self._seed_monthly_chart_rows(root)
+
+            try:
+                server = ThreadingHTTPServer(("127.0.0.1", 0), UiRequestHandler)
+            except PermissionError:
+                self.skipTest("sandbox 禁止本地 socket bind，略過 monthly charts browser smoke")
+
+            try:
+                from playwright.sync_api import Error as PlaywrightError
+                from playwright.sync_api import sync_playwright
+            except Exception:
+                self.skipTest("缺少 playwright 依賴，請先安裝 playwright 並執行 playwright install chromium")
+
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                host, port = server.server_address
+                base_url = f"http://{host}:{port}"
+                query = urlencode(
+                    {
+                        "root": str(root),
+                        "manifest": "bootstrap.manifest.json",
+                        "workflow": "monthly",
+                        "template_version": "v1",
+                        "rule_version": "v1",
+                        "artifact_root": "artifacts",
+                        "main_tab": "monthly_p4",
+                    }
+                )
+                with sync_playwright() as p:
+                    try:
+                        browser = p.chromium.launch(headless=True)
+                    except PlaywrightError as exc:
+                        self.skipTest(f"playwright browser context 無法啟動，請先 playwright install chromium: {exc}")
+                    context = browser.new_context(viewport={"width": 1440, "height": 1000})
+                    page = context.new_page()
+                    try:
+                        page.goto(f"{base_url}/?{query}", wait_until="domcontentloaded")
+                        page.locator("[data-testid='main-tab-monthly-p4']").wait_for(state="visible")
+                        with page.expect_response(lambda resp: resp.request.method == "GET" and "/api/frame?" in resp.url and "main_tab=monthly_charts" in resp.url) as frame_resp:
+                            page.locator("[data-testid='main-tab-monthly-charts']").click()
+                        frame_payload = frame_resp.value.json()
+                        self.assertEqual(frame_payload.get("status"), "ok")
+                        self.assertIn("monthly_charts", frame_payload.get("result") or {})
+                        page.get_by_role("heading", name="月報簡報素材").wait_for(state="visible")
+                        self.assertGreater(page.locator(".monthly-copy-button").count(), 0)
+                        self.assertEqual(page.locator(".state-block.empty").count(), 0)
+                    finally:
+                        context.close()
+                        browser.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2.0)
+
+    def test_ui_browser_monthly_charts_copy_failure_does_not_claim_image_success(self) -> None:
+        frontend_index = ui_shell_module.FRONTEND_DIST_DIR / "index.html"
+        if not frontend_index.exists():
+            self.skipTest("frontend dist 不存在，無法做 monthly charts copy smoke（請先 pnpm build）")
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="monthly")
+            dispatch_action(ctx, {"action": "bootstrap"})
+            self._seed_monthly_chart_rows(root)
+
+            try:
+                server = ThreadingHTTPServer(("127.0.0.1", 0), UiRequestHandler)
+            except PermissionError:
+                self.skipTest("sandbox 禁止本地 socket bind，略過 monthly charts copy smoke")
+
+            try:
+                from playwright.sync_api import Error as PlaywrightError
+                from playwright.sync_api import sync_playwright
+            except Exception:
+                self.skipTest("缺少 playwright 依賴，請先安裝 playwright 並執行 playwright install chromium")
+
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                host, port = server.server_address
+                base_url = f"http://{host}:{port}"
+                query = urlencode(
+                    {
+                        "root": str(root),
+                        "manifest": "bootstrap.manifest.json",
+                        "workflow": "monthly",
+                        "template_version": "v1",
+                        "rule_version": "v1",
+                        "artifact_root": "artifacts",
+                        "main_tab": "monthly_charts",
+                    }
+                )
+                with sync_playwright() as p:
+                    try:
+                        browser = p.chromium.launch(headless=True)
+                    except PlaywrightError as exc:
+                        self.skipTest(f"playwright browser context 無法啟動，請先 playwright install chromium: {exc}")
+                    context = browser.new_context(viewport={"width": 1440, "height": 1000})
+                    page = context.new_page()
+                    page.add_init_script(
+                        """
+                        Object.defineProperty(navigator, 'clipboard', {
+                          configurable: true,
+                          value: {
+                            write: async (items) => {
+                              const item = items && items[0];
+                              const payload = item && (item.items || item);
+                              if (payload && payload['image/png']) {
+                                throw new Error('simulated image clipboard failure');
+                              }
+                              window.__monthlyClipboardWrite = true;
+                            },
+                            writeText: async (text) => { window.__monthlyClipboardText = String(text || ''); },
+                          },
+                        });
+                        Object.defineProperty(window, 'ClipboardItem', {
+                          configurable: true,
+                          value: function ClipboardItem(items) { this.items = items; },
+                        });
+                        """
+                    )
+                    try:
+                        page.goto(f"{base_url}/?{query}", wait_until="domcontentloaded")
+                        page.get_by_role("heading", name="月報簡報素材").wait_for(state="visible")
+                        page.locator(".monthly-copy-button").first.click()
+                        page.get_by_text("圖片複製失敗，已改複製文字/HTML。").wait_for(state="visible")
+                        self.assertEqual(page.get_by_text("已複製圖片").count(), 0)
+                        self.assertTrue(page.evaluate("() => Boolean(window.__monthlyClipboardWrite || window.__monthlyClipboardText)"))
+                    finally:
+                        context.close()
+                        browser.close()
             finally:
                 server.shutdown()
                 server.server_close()

@@ -1,5 +1,5 @@
 export type Workflow = "dsp" | "ssp" | "monthly";
-export type MainTab = "dsp_tab3" | "dsp_tab4" | "ssp_anomaly" | "ssp_media_demand" | "ssp_ad_group" | "monthly_p4";
+export type MainTab = "dsp_tab3" | "dsp_tab4" | "ssp_anomaly" | "ssp_media_demand" | "ssp_ad_group" | "monthly_p4" | "monthly_charts";
 export type SubTab = "overview" | "rawdata" | "pivot" | "result";
 export type SubView = "status" | "frame" | "result";
 export type PeriodPreset =
@@ -150,6 +150,7 @@ export type RuntimeFrameResult = {
   ssp_ad_group_monitor?: SspAdGroupMonitorSnapshot;
   monthly_p4?: MonthlyP4Snapshot;
   monthly_p4_test?: MonthlyP4Snapshot;
+  monthly_charts?: MonthlyChartsSnapshot;
   frame_error?: string;
 };
 
@@ -205,6 +206,74 @@ export type MonthlyP4Snapshot = {
   testDbPath?: string;
   testTemplates?: Record<string, MonthlyP4TestTemplateMeta>;
   note: string;
+};
+
+export type MonthlyChartMetricRow = {
+  month: string;
+  startDay?: string;
+  endDay?: string;
+  days?: number;
+  request: number;
+  impress: number;
+  click: number;
+  profit: number;
+  advertiser_mu: number;
+  mediaCostInvestment?: number;
+  p4MfActual?: number;
+  p4Closed?: boolean;
+  p4InvestmentSource?: string;
+  grossProfit: number;
+  mediaCostRate: number;
+  ctr: number;
+  dspEcpm: number;
+  dspEcpc: number;
+  dailyInvestment: number;
+  dailyRequest: number;
+  dailyImpress: number;
+  dailyClick: number;
+  adFormat?: string;
+  zoneId?: number;
+  zoneName?: string;
+  campaignId?: string;
+  campaignName?: string;
+};
+
+export type MonthlyNetworkUsageRow = {
+  month: string;
+  groupId: number;
+  groupName: string;
+  total: MonthlyChartMetricRow;
+  child: MonthlyChartMetricRow;
+  main: MonthlyChartMetricRow;
+  tw?: MonthlyChartMetricRow;
+  countrySource?: boolean;
+  childRequestShare: number;
+  childImpressShare: number;
+  childInvestmentShare: number;
+};
+
+export type MonthlyChartsSnapshot = {
+  source: string;
+  months: string[];
+  monthly: MonthlyChartMetricRow[];
+  adFormats: {
+    names: string[];
+    byMonth: Record<string, MonthlyChartMetricRow[]>;
+  };
+  creativeDaily: MonthlyChartMetricRow[];
+  trafficDaily?: {
+    creative?: MonthlyChartMetricRow[];
+  };
+  networkUsage: MonthlyNetworkUsageRow[];
+  networkGroup?: {
+    groupId: number;
+    groupName: string;
+    zoneCount: number;
+    updatedAt: string;
+  };
+  topZonesByMonth: Record<string, MonthlyChartMetricRow[]>;
+  topCampaignsByMonth: Record<string, MonthlyChartMetricRow[]>;
+  notes: string[];
 };
 
 export type SspMediaDemandSlot = {
