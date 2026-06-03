@@ -2086,6 +2086,53 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual((frame.get("rows") or [{}])[0].get("經銷商"), "SSP_FRAME")
             self.assertEqual((frame.get("rows") or [{}])[0].get("最終經銷商"), "SSP_FRAME_CANONICAL")
 
+    def test_ssp_frame_empty_selected_period_falls_back_to_latest_day(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="ssp")
+            dispatch_action(ctx, {"action": "bootstrap"})
+
+            cfg = build_config(root, "bootstrap.manifest.json", "prod")
+            repo = SQLiteRepository(cfg.db_path, project_root=root)
+            repo.replace_ssp_raw_rows(
+                [
+                    {
+                        "source": "ssp3_api",
+                        "ts": "2026-05-09 10:00:00",
+                        "date": "2026-05-09",
+                        "hour": 10,
+                        "supplier_name": "舊資料",
+                        "request": 100,
+                        "impression": 50,
+                    },
+                    {
+                        "source": "ssp3_api",
+                        "ts": "2026-05-10 11:00:00",
+                        "date": "2026-05-10",
+                        "hour": 11,
+                        "supplier_name": "最新資料",
+                        "request": 200,
+                        "impression": 80,
+                    },
+                ]
+            )
+
+            frame = collect_workflow_frame(
+                ctx,
+                main_tab="ssp_anomaly",
+                period_week_start="2026-06-01",
+                period_week_end="2026-06-02",
+            )
+
+            self.assertEqual(frame.get("source_table"), "ssp_raw")
+            self.assertEqual(frame.get("row_count"), 1)
+            self.assertEqual((frame.get("rows") or [{}])[0].get("date"), "2026-05-10")
+            fallback = frame.get("period_fallback") or {}
+            self.assertEqual(fallback.get("reason"), "selected_period_has_no_rows")
+            self.assertEqual(fallback.get("requested_start"), "2026-06-01")
+            self.assertEqual(fallback.get("fallback_start"), "2026-05-10")
+
     def test_ssp_media_demand_config_loads_defaults_and_saves_per_env(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

@@ -139,6 +139,17 @@ def _filter_rows_by_date_range(
     return filtered
 
 
+def _row_day_text(row: dict[str, Any]) -> str:
+    return str(row.get("date") or row.get("日期時間") or row.get("日期") or row.get("ts") or "").strip()[:10]
+
+
+def _latest_day_rows(rows: list[dict[str, Any]]) -> tuple[str, list[dict[str, Any]]]:
+    latest_day = max((_row_day_text(row) for row in rows if _row_day_text(row)), default="")
+    if not latest_day:
+        return "", rows
+    return latest_day, [row for row in rows if _row_day_text(row) == latest_day]
+
+
 def _sandbox_lock_key(ctx: UiContext) -> str:
     return f"{ctx.root.resolve()}::{ctx.runtime_env}::{ctx.manifest_rel}::{ctx.sandbox_id}"
 
@@ -562,11 +573,24 @@ def collect_workflow_frame(
             summary["field_names"] = list(repo.canonical_columns)
             summary["manual_fields"] = list(repo.modify_allowed_columns)
         if ctx.workflow == "ssp":
+            original_rows = rows
             rows = _filter_rows_by_date_range(
                 rows,
                 start_day=period_week_start,
                 end_day=period_week_end,
             )
+            if not rows and original_rows and period_week_start and period_week_end:
+                fallback_day, fallback_rows = _latest_day_rows(original_rows)
+                rows = fallback_rows
+                summary["period_fallback"] = {
+                    "workflow": "ssp",
+                    "reason": "selected_period_has_no_rows",
+                    "requested_start": period_week_start,
+                    "requested_end": period_week_end,
+                    "fallback_start": fallback_day,
+                    "fallback_end": fallback_day,
+                    "row_count": len(rows),
+                }
         row_count = len(rows)
         summary["columns"] = columns
         summary["rows"] = rows
