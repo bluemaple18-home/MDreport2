@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23161b22'/%3E%3Cpath d='M8 9h16v4H8zm0 7h11v4H8zm0 7h16v4H8z' fill='%23f6f8fa'/%3E%3C/svg%3E" />
+    <title>multiFORCE 廣告格式展示</title>
+    <style>
+      :root {
+        --ink: #172932;
+        --muted: #637985;
+        --line: #cbd9df;
+        --surface: #f6faf8;
+        --panel: #ffffff;
+        --accent: #0f766e;
+        --accent-dark: #0d544f;
+        --amber: #9a5b12;
+        --shadow: #10233414;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(900px 520px at 85% -10%, #ffe6c7 0%, transparent 58%),
+          radial-gradient(900px 520px at -15% 110%, #d8ece8 0%, transparent 60%),
+          var(--surface);
+        color: var(--ink);
+        font-family: "Avenir Next", "IBM Plex Sans", "Segoe UI", "Noto Sans TC", sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .page {
+        width: min(100%, 1720px);
+        margin: 0 auto;
+        padding: 22px 18px 42px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+        align-items: end;
+        gap: 18px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: linear-gradient(135deg, #fbfdfc 0%, #edf7f4 58%, #fff8ed 100%);
+        padding: 24px;
+      }
+
+      .kicker {
+        margin: 0 0 7px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.12;
+        letter-spacing: 0;
+      }
+
+      .hero p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .period {
+        display: inline-block;
+        margin-left: 8px;
+        color: #425966;
+        font-weight: 850;
+      }
+
+      .search label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .search input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--ink);
+        padding: 10px 12px;
+        outline: none;
+      }
+
+      .search input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px #0f766e1c;
+      }
+
+      .typebar-wrap {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .typebar {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 18px 0 14px;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+      }
+
+      .typebar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .typebar button {
+        flex: 0 0 auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: #273b46;
+        padding: 9px 13px;
+        font-size: 14px;
+        font-weight: 850;
+        cursor: pointer;
+        scroll-snap-align: start;
+      }
+
+      .typebar button span {
+        margin-left: 8px;
+        color: #72858e;
+        font-weight: 800;
+      }
+
+      .typebar button.active {
+        border-color: var(--accent);
+        background: #e7f5f2;
+        color: var(--accent-dark);
+      }
+
+      @keyframes typebar-peek {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+
+        45% {
+          transform: translateX(-18px);
+        }
+      }
+
+      .section {
+        margin-top: 18px;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        border-bottom: 1px solid #d5e1e6;
+        padding: 0 0 10px;
+        margin-bottom: 12px;
+      }
+
+      .section-head h2 {
+        margin: 0;
+        font-size: 20px;
+      }
+
+      .section-head span {
+        color: #6b7f89;
+        font-size: 13px;
+        font-weight: 850;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        display: grid;
+        grid-template-columns: 150px minmax(0, 1fr);
+        min-height: 248px;
+        border: 1px solid #d2dde3;
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 9px 20px var(--shadow);
+        overflow: hidden;
+      }
+
+      .media {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 248px;
+        background: #17252d;
+        padding: 12px;
+      }
+
+      .media img {
+        display: block;
+        width: min(100%, 112px);
+        max-height: 224px;
+        object-fit: contain;
+        border-radius: 6px;
+      }
+
+      .media.desktop img {
+        width: min(100%, 132px);
+      }
+
+      .body {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 9px;
+        padding: 14px;
+      }
+
+      .title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .title-row h3 {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.25;
+      }
+
+      .copy {
+        margin: 0;
+        color: #405763;
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      .performance {
+        display: grid;
+        gap: 8px;
+        border-top: 1px solid #dce6ea;
+        padding-top: 10px;
+      }
+
+      .metric-row {
+        display: grid;
+        gap: 8px;
+      }
+
+      .metric-row.compact {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .metric {
+        border: 1px solid #d8e4e8;
+        border-radius: 8px;
+        background: #f8fbfc;
+        padding: 8px;
+      }
+
+      .metric-label {
+        display: block;
+        color: #6b7f89;
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .metric-value {
+        display: block;
+        margin-top: 3px;
+        color: #172932;
+        font-size: 16px;
+        font-weight: 950;
+        line-height: 1.15;
+      }
+
+      .demo-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .demo-actions a {
+        flex: 0 0 auto;
+        border: 1px solid #b7d0dd;
+        border-radius: 8px;
+        background: #f7fcff;
+        color: #07546a;
+        padding: 9px 13px;
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1;
+        text-decoration: none;
+      }
+
+      .demo-actions a:hover {
+        border-color: var(--accent);
+        color: var(--accent-dark);
+      }
+
+      .empty {
+        border: 1px dashed var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--muted);
+        padding: 24px;
+        text-align: center;
+      }
+
+      @media (max-width: 1180px) {
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .card {
+          grid-template-columns: 138px minmax(0, 1fr);
+        }
+      }
+
+      @media (max-width: 820px) {
+        .page {
+          padding: 14px 10px 28px;
+        }
+
+        .hero {
+          grid-template-columns: 1fr;
+          padding: 18px;
+        }
+
+        h1 {
+          font-size: 30px;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .typebar-wrap {
+          position: sticky;
+          top: 0;
+          z-index: 20;
+          margin: 0 -10px 12px;
+          background: color-mix(in srgb, var(--surface) 94%, #ffffff 6%);
+          box-shadow: 0 8px 20px #10233412;
+        }
+
+        .typebar-wrap::before,
+        .typebar-wrap::after {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 48px;
+          z-index: 2;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.16s ease;
+          content: "";
+        }
+
+        .typebar-wrap::before {
+          left: 0;
+          background: linear-gradient(90deg, var(--surface) 20%, #f6faf800 100%);
+        }
+
+        .typebar-wrap::after {
+          right: 0;
+          background: linear-gradient(90deg, #f6faf800 0%, var(--surface) 72%);
+        }
+
+        .typebar-wrap.can-left::before,
+        .typebar-wrap.can-right::after {
+          opacity: 1;
+        }
+
+        .typebar {
+          gap: 14px;
+          padding: 18px 52px 14px 0;
+        }
+
+        .typebar.hint-peek {
+          animation: typebar-peek 1.15s ease-out 0.45s 2;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .typebar.hint-peek {
+            animation: none;
+          }
+        }
+
+        .typebar button {
+          padding: 12px 16px;
+          font-size: 18px;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .card {
+          grid-template-columns: 1fr;
+          min-height: 0;
+        }
+
+        .media {
+          min-height: 260px;
+        }
+
+        .media img,
+        .media.desktop img {
+          width: min(100%, 168px);
+          max-height: 248px;
+        }
+
+        .body {
+          padding: 13px;
+        }
+
+        .title-row h3 {
+          font-size: 17px;
+        }
+
+        .copy {
+          font-size: 13px;
+          line-height: 1.65;
+        }
+
+        .demo-actions {
+          gap: 6px;
+        }
+
+        .demo-actions a {
+          padding: 8px 10px;
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <div>
+          <p class="kicker">multiFORCE GIF Catalog</p>
+          <h1>廣告格式展示</h1>
+          <p>
+            本月有成效 <span id="format-count">0</span> 種格式 / <span id="gif-count">0</span> 個 GIF<span class="period" id="period-label"></span>
+            <span class="period" id="total-label"></span>
+          </p>
+        </div>
+        <div class="search">
+          <label for="format-search">搜尋</label>
+          <input id="format-search" name="format-search" type="search" placeholder="格式或 Excel 文案" autocomplete="off" />
+        </div>
+      </header>
+
+      <div class="typebar-wrap">
+        <nav class="typebar" id="typebar" aria-label="廣告格式分類"></nav>
+      </div>
+      <div id="content" class="content"><div class="empty">載入中</div></div>
+    </main>
+
+    <script src="../multiforce-data/standalone-data.js"></script>
+    <script>
+      const TYPE_ORDER = [
+        "Banner",
+        "文中300x250",
+        "文中320x480",
+        "創意-其他",
+        "創意-蓋版",
+        "置底-非展開",
+        "置底-展開",
+        "桌機置底-展開",
+        "影音摩天",
+        "影音型",
+        "DOOH 與其他",
+        "其他",
+      ];
+      const DEVICE_LABELS = { mobile: "Mobile", desktop: "Desktop" };
+      let catalog = [];
+      let categoryMap = {};
+      let excelCopyMap = { bySizeId: {}, byTitle: {} };
+      let performanceMap = { byNid: {}, startDay: "", endDay: "" };
+      let activeType = "全部";
+      let query = "";
+      let typebarHintDismissed = false;
+
+      function normalizeType(value) {
+        return String(value || "").trim() || "其他";
+      }
+
+      function typeSortKey(value) {
+        const index = TYPE_ORDER.indexOf(normalizeType(value));
+        return index >= 0 ? index : TYPE_ORDER.length;
+      }
+
+      function displayCategory(value) {
+        return String(value || "").replace(/-/g, " - ");
+      }
+
+      function categoryForItem(item) {
+        const candidates = (item.sizeIds || [])
+          .map((sizeId) => categoryMap[String(sizeId)]?.siteCostCategory)
+          .filter((value) => value && String(value).trim());
+        if (!candidates.length) return normalizeType(item.typeTitle);
+        return [...candidates].sort((a, b) => typeSortKey(a) - typeSortKey(b) || a.localeCompare(b, "zh-Hant"))[0];
+      }
+
+      function mappedDetailsForItem(item) {
+        const seen = new Set();
+        const details = [];
+        for (const sizeId of item.sizeIds || []) {
+          const detail = categoryMap[String(sizeId)];
+          if (!detail || seen.has(String(sizeId))) continue;
+          seen.add(String(sizeId));
+          details.push(detail);
+        }
+        return details;
+      }
+
+      function normalizeCopyKey(value) {
+        return String(value || "").replace(/\s+/g, "").toLowerCase();
+      }
+
+      function excelCopyForItem(item) {
+        for (const sizeId of item.sizeIds || []) {
+          const copy = excelCopyMap.bySizeId?.[String(sizeId)]?.featureCopy;
+          if (copy) return copy;
+        }
+        return excelCopyMap.byTitle?.[normalizeCopyKey(item.title)]?.featureCopy || "";
+      }
+
+      function performanceForItem(item) {
+        return performanceMap.byNid?.[String(item.nid)] || null;
+      }
+
+      function compareItemsByPerformance(a, b) {
+        const aPerformance = performanceForItem(a) || {};
+        const bPerformance = performanceForItem(b) || {};
+        const impressionsDiff = Number(bPerformance.impressions || 0) - Number(aPerformance.impressions || 0);
+        if (impressionsDiff) return impressionsDiff;
+        const cpcDiff = Number(aPerformance.cpc || 0) - Number(bPerformance.cpc || 0);
+        if (cpcDiff) return cpcDiff;
+        return Number(a.nid || 0) - Number(b.nid || 0);
+      }
+
+      function groupSortMetric(items) {
+        const sorted = [...items].sort(compareItemsByPerformance);
+        const topItem = sorted[0] || {};
+        const performance = performanceForItem(topItem) || {};
+        return {
+          impressions: Number(performance.impressions || 0),
+          cpc: Number(performance.cpc || 0),
+        };
+      }
+
+      function compareGroupsByPerformance(a, b) {
+        const aMetric = groupSortMetric(a.items);
+        const bMetric = groupSortMetric(b.items);
+        const impressionsDiff = bMetric.impressions - aMetric.impressions;
+        if (impressionsDiff) return impressionsDiff;
+        const cpcDiff = aMetric.cpc - bMetric.cpc;
+        if (cpcDiff) return cpcDiff;
+        return a.type.localeCompare(b.type, "zh-Hant");
+      }
+
+      function formatInteger(value) {
+        return Math.round(Number(value || 0)).toLocaleString("zh-Hant");
+      }
+
+      function formatCurrency(value) {
+        return Number(value || 0).toLocaleString("zh-Hant", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+      }
+
+      function formatPercent(value) {
+        return `${Number(value || 0).toFixed(2)}%`;
+      }
+
+      function localAssetPath(path) {
+        const value = String(path || "");
+        if (!value || /^https?:\/\//i.test(value) || value.startsWith("data:")) return value;
+        if (location.protocol !== "file:") return value;
+        if (value.startsWith("/multiforce-data/")) return `../multiforce-data/${value.slice("/multiforce-data/".length)}`;
+        if (value.startsWith("/multiforce-gifs/")) return `../multiforce-gifs/${value.slice("/multiforce-gifs/".length)}`;
+        return value;
+      }
+
+      function buildDemoHref(item, carousel) {
+        if (carousel.demoLink) return carousel.demoLink;
+        const device = carousel.device === "desktop" ? "pc" : "mobile";
+        return `https://demopage.multiforce.com.tw/demo/${item.nid}?device=${device}`;
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function getTypeCounts() {
+        const counts = new Map();
+        for (const item of catalog.filter((entry) => Boolean(performanceForItem(entry)))) {
+          const type = categoryForItem(item);
+          counts.set(type, (counts.get(type) || 0) + 1);
+        }
+        return Array.from(counts.entries())
+          .map(([type, count]) => ({ type, count }))
+          .sort((a, b) => typeSortKey(a.type) - typeSortKey(b.type) || a.type.localeCompare(b.type, "zh-Hant"));
+      }
+
+      function getVisibleItems() {
+        const token = query.trim().toLowerCase();
+        return catalog
+          .filter((item) => activeType === "全部" || categoryForItem(item) === activeType)
+          .filter((item) => Boolean(performanceForItem(item)))
+          .filter((item) => {
+            if (!token) return true;
+            const mappedDetails = mappedDetailsForItem(item);
+            return [
+              item.title,
+              item.typeTitle,
+              (item.sizeIds || []).join(" "),
+              categoryForItem(item),
+              excelCopyForItem(item),
+              performanceForItem(item)?.matchedSizeIds?.join(" ") || "",
+              mappedDetails.map((detail) => `${detail.material} ${detail.siteCostCategory} ${detail.detailDefinition}`).join(" "),
+            ].join(" ").toLowerCase().includes(token);
+          })
+          .sort(compareItemsByPerformance);
+      }
+
+      function renderTypebar() {
+        const typebar = document.getElementById("typebar");
+        const counts = getTypeCounts();
+        const options = [{ type: "全部", count: catalog.filter((item) => Boolean(performanceForItem(item))).length }, ...counts];
+        typebar.innerHTML = options.map(({ type, count }) => `
+          <button type="button" class="${type === activeType ? "active" : ""}" data-type="${escapeHtml(type)}">
+            ${escapeHtml(displayCategory(type))}<span>${count}</span>
+          </button>
+        `).join("");
+        requestAnimationFrame(() => {
+          updateTypebarHint();
+          startTypebarPeekHint();
+        });
+      }
+
+      function updateTypebarHint() {
+        const typebar = document.getElementById("typebar");
+        const wrap = typebar.closest(".typebar-wrap");
+        const maxScroll = typebar.scrollWidth - typebar.clientWidth;
+        wrap.classList.toggle("can-left", typebar.scrollLeft > 4);
+        wrap.classList.toggle("can-right", maxScroll > 4 && typebar.scrollLeft < maxScroll - 4);
+      }
+
+      function startTypebarPeekHint() {
+        const typebar = document.getElementById("typebar");
+        if (typebarHintDismissed || typebar.scrollWidth <= typebar.clientWidth) return;
+        typebar.classList.add("hint-peek");
+        window.setTimeout(() => typebar.classList.remove("hint-peek"), 2900);
+      }
+
+      function dismissTypebarPeekHint() {
+        typebarHintDismissed = true;
+        document.getElementById("typebar").classList.remove("hint-peek");
+      }
+
+      function renderContent() {
+        const content = document.getElementById("content");
+        const visibleItems = getVisibleItems();
+        let grouped = [];
+        if (activeType === "全部") {
+          grouped = [{ type: "全部", items: visibleItems }];
+        } else {
+          const groups = new Map();
+          for (const item of visibleItems) {
+            const type = categoryForItem(item);
+            groups.set(type, [...(groups.get(type) || []), item]);
+          }
+          grouped = Array.from(groups.entries())
+            .map(([type, items]) => ({ type, items: [...items].sort(compareItemsByPerformance) }))
+            .sort(compareGroupsByPerformance);
+        }
+        if (!grouped.length) {
+          content.innerHTML = `<div class="empty">沒有符合條件的廣告格式</div>`;
+          return;
+        }
+        content.innerHTML = grouped.map(({ type, items }) => `
+          <section class="section">
+            <header class="section-head">
+              <h2>${escapeHtml(displayCategory(type))}</h2>
+              <span>${items.length} 項</span>
+            </header>
+            <div class="grid">
+              ${items.map(renderCard).join("")}
+            </div>
+          </section>
+        `).join("");
+      }
+
+      function renderCard(item) {
+        const carousel = (item.carousels || [])[0];
+        const excelCopy = excelCopyForItem(item);
+        const performance = performanceForItem(item);
+        const mediaClass = carousel?.device === "desktop" ? "media desktop" : "media";
+        const demoActions = (item.carousels || []).map((entry) => `
+          <a href="${escapeHtml(buildDemoHref(item, entry))}" target="_blank" rel="noreferrer">
+            ${escapeHtml(DEVICE_LABELS[entry.device] || entry.device || "Demo")}
+          </a>
+        `).join("");
+        return `
+          <article class="card">
+            <div class="${mediaClass}">
+              <img src="${escapeHtml(localAssetPath(carousel?.localGif || ""))}" alt="${escapeHtml(item.title)}" loading="lazy" />
+            </div>
+            <div class="body">
+              <div class="title-row">
+                <div>
+                  <h3>${escapeHtml(item.title)}</h3>
+                </div>
+                <div class="demo-actions" aria-label="Live Demo">${demoActions}</div>
+              </div>
+              ${excelCopy ? `<p class="copy">${escapeHtml(excelCopy)}</p>` : ""}
+              ${performance ? `
+                <div class="performance" aria-label="月報成效">
+                  <div class="metric-row">
+                    <div class="metric">
+                      <span class="metric-label">曝光</span>
+                      <span class="metric-value">${escapeHtml(formatInteger(performance.impressions))}</span>
+                    </div>
+                  </div>
+                  <div class="metric-row compact">
+                    <div class="metric">
+                      <span class="metric-label">CPM</span>
+                      <span class="metric-value">$${escapeHtml(formatCurrency(performance.cpm))}</span>
+                    </div>
+                    <div class="metric">
+                      <span class="metric-label">CTR</span>
+                      <span class="metric-value">${escapeHtml(formatPercent(performance.ctr))}</span>
+                    </div>
+                    <div class="metric">
+                      <span class="metric-label">CPC</span>
+                      <span class="metric-value">$${escapeHtml(formatCurrency(performance.cpc))}</span>
+                    </div>
+                  </div>
+                </div>
+              ` : ""}
+            </div>
+          </article>
+        `;
+      }
+
+      function render() {
+        const performanceItems = catalog.filter((item) => Boolean(performanceForItem(item)));
+        document.getElementById("format-count").textContent = performanceItems.length;
+        document.getElementById("gif-count").textContent = performanceItems.reduce((sum, item) => sum + (item.carousels || []).length, 0);
+        const startMonth = String(performanceMap.startDay || "").slice(0, 7);
+        document.getElementById("period-label").textContent = startMonth ? ` · ${startMonth}` : "";
+        document.getElementById("total-label").textContent = ` · 全部 ${catalog.length} 種格式 / ${catalog.reduce((sum, item) => sum + (item.carousels || []).length, 0)} 個 GIF`;
+        renderTypebar();
+        renderContent();
+      }
+
+      function scrollToContentTop() {
+        const content = document.getElementById("content");
+        const typebarWrap = document.querySelector(".typebar-wrap");
+        const stickyOffset = getComputedStyle(typebarWrap).position === "sticky" ? typebarWrap.offsetHeight : 0;
+        const targetTop = window.scrollY + content.getBoundingClientRect().top - stickyOffset - 8;
+        window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+      }
+
+      async function init() {
+        try {
+          if (window.MULTIFORCE_STANDALONE_DATA) {
+            const data = window.MULTIFORCE_STANDALONE_DATA;
+            catalog = (data.catalog || []).filter((item) => item.hasGif);
+            categoryMap = data.categoryMap || {};
+            excelCopyMap = data.excelCopyMap || { bySizeId: {}, byTitle: {} };
+            performanceMap = data.performanceMap || { byNid: {}, startDay: "", endDay: "" };
+            render();
+            return;
+          }
+          const [catalogResp, mapResp, copyResp, performanceResp] = await Promise.all([
+            fetch(localAssetPath("/multiforce-data/multiforce-catalog.json"), { cache: "no-store" }),
+            fetch(localAssetPath("/multiforce-data/format-category-map.json"), { cache: "no-store" }),
+            fetch(localAssetPath("/multiforce-data/excel-format-copy.json"), { cache: "no-store" }),
+            fetch(localAssetPath("/multiforce-data/monthly-performance.json"), { cache: "no-store" }),
+          ]);
+          if (!catalogResp.ok || !mapResp.ok || !copyResp.ok || !performanceResp.ok) throw new Error(`HTTP ${catalogResp.status}/${mapResp.status}/${copyResp.status}/${performanceResp.status}`);
+          catalog = (await catalogResp.json()).filter((item) => item.hasGif);
+          categoryMap = await mapResp.json();
+          excelCopyMap = await copyResp.json();
+          performanceMap = await performanceResp.json();
+          render();
+        } catch (error) {
+          document.getElementById("content").innerHTML = `<div class="empty">GIF catalog 讀取失敗</div>`;
+        }
+      }
+
+      document.getElementById("format-search").addEventListener("input", (event) => {
+        query = event.target.value;
+        renderContent();
+      });
+      document.getElementById("typebar").addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-type]");
+        if (!button) return;
+        activeType = button.dataset.type;
+        render();
+        requestAnimationFrame(scrollToContentTop);
+      });
+      document.getElementById("typebar").addEventListener("scroll", () => {
+        updateTypebarHint();
+      }, { passive: true });
+      document.getElementById("typebar").addEventListener("pointerdown", dismissTypebarPeekHint, { passive: true });
+      document.getElementById("typebar").addEventListener("touchstart", dismissTypebarPeekHint, { passive: true });
+      window.addEventListener("resize", () => {
+        updateTypebarHint();
+        startTypebarPeekHint();
+      });
+      init();
+    </script>
+  </body>
+</html>

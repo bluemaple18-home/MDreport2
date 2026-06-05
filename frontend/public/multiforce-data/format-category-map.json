@@ -1,0 +1,1050 @@
+{
+  "1": {
+    "sizeId": 1,
+    "material": "300x250",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "展示型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】300*250"
+  },
+  "2": {
+    "sizeId": 2,
+    "material": "300x100",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "展示型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】300*100"
+  },
+  "3": {
+    "sizeId": 3,
+    "material": "320x50",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "展示型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】320*50"
+  },
+  "5": {
+    "sizeId": 5,
+    "material": "728x90",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "展示型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】728*90"
+  },
+  "7": {
+    "sizeId": 7,
+    "material": "320x480",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "展示型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】320*480"
+  },
+  "9": {
+    "sizeId": 9,
+    "material": "160x600",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "展示型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】160*600"
+  },
+  "14": {
+    "sizeId": 14,
+    "material": "Pre-Roll(VAST)",
+    "siteCostCategory": "影音型",
+    "revenueCostCategory": "影音型",
+    "definition": "【影音型】純影 Pre-Roll (含- 影音摩天純影/不含 DOOH)",
+    "detailDefinition": ""
+  },
+  "15": {
+    "sizeId": 15,
+    "material": "300x600",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "展示型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】300*600"
+  },
+  "18": {
+    "sizeId": 18,
+    "material": "320x100",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "展示型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】320*100"
+  },
+  "20": {
+    "sizeId": 20,
+    "material": "970x250",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "展示型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】970*250"
+  },
+  "35": {
+    "sizeId": 35,
+    "material": "原生廣告",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "展示型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】300*250"
+  },
+  "36": {
+    "sizeId": 36,
+    "material": "內文全屏",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "41": {
+    "sizeId": 41,
+    "material": "970x90",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "展示型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】970*90"
+  },
+  "42": {
+    "sizeId": 42,
+    "material": "336x280",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "展示型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】336*280"
+  },
+  "50": {
+    "sizeId": 50,
+    "material": "漂浮影音",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "55": {
+    "sizeId": 55,
+    "material": "磁浮廣告",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "56": {
+    "sizeId": 56,
+    "material": "漂浮多商品",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "57": {
+    "sizeId": 57,
+    "material": "卷軸特效",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "59": {
+    "sizeId": 59,
+    "material": "變形蓋版(320x480)",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "66": {
+    "sizeId": 66,
+    "material": "旋轉特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "67": {
+    "sizeId": 67,
+    "material": "跑馬燈特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "73": {
+    "sizeId": 73,
+    "material": "磁浮廣告 2.0",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "77": {
+    "sizeId": 77,
+    "material": "內文跑馬燈",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "80": {
+    "sizeId": 80,
+    "material": "3D特效",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "81": {
+    "sizeId": 81,
+    "material": "上翻特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "83": {
+    "sizeId": 83,
+    "material": "旋轉立方體",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "84": {
+    "sizeId": 84,
+    "material": "魔術方塊",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "85": {
+    "sizeId": 85,
+    "material": "旋轉蓋板",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "86": {
+    "sizeId": 86,
+    "material": "雙喜臨門",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "88": {
+    "sizeId": 88,
+    "material": "旋轉方塊",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "89": {
+    "sizeId": 89,
+    "material": "字卡特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "90": {
+    "sizeId": 90,
+    "material": "風火輪特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "91": {
+    "sizeId": 91,
+    "material": "內文大摩天",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "92": {
+    "sizeId": 92,
+    "material": "直立式影音",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "93": {
+    "sizeId": 93,
+    "material": "玩轉特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "94": {
+    "sizeId": 94,
+    "material": "變身特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "95": {
+    "sizeId": 95,
+    "material": "圖卡特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "96": {
+    "sizeId": 96,
+    "material": "翻轉特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "97": {
+    "sizeId": 97,
+    "material": "影音摩天300x250",
+    "siteCostCategory": "影音摩天",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】影音摩天(影+圖) 4個尺寸 (不含- 影音摩天純影)",
+    "detailDefinition": ""
+  },
+  "98": {
+    "sizeId": 98,
+    "material": "影音摩天300x600",
+    "siteCostCategory": "影音摩天",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】影音摩天(影+圖) 4個尺寸 (不含- 影音摩天純影)",
+    "detailDefinition": ""
+  },
+  "99": {
+    "sizeId": 99,
+    "material": "影音摩天336x228",
+    "siteCostCategory": "影音摩天",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】影音摩天(影+圖) 4個尺寸 (不含- 影音摩天純影)",
+    "detailDefinition": ""
+  },
+  "100": {
+    "sizeId": 100,
+    "material": "影音摩天970x250",
+    "siteCostCategory": "影音摩天",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】影音摩天(影+圖) 4個尺寸 (不含- 影音摩天純影)",
+    "detailDefinition": ""
+  },
+  "101": {
+    "sizeId": 101,
+    "material": "對焦特效",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "102": {
+    "sizeId": 102,
+    "material": "拼圖特效",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "103": {
+    "sizeId": 103,
+    "material": "彈出特效（置底影音）",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "104": {
+    "sizeId": 104,
+    "material": "彈出特效（置底圖像）",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "105": {
+    "sizeId": 105,
+    "material": "置底滑動多商品（影音）",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "106": {
+    "sizeId": 106,
+    "material": "置底滑動多商品（圖片）",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "109": {
+    "sizeId": 109,
+    "material": "開場特效(置底單圖)",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "111": {
+    "sizeId": 111,
+    "material": "拉霸特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "112": {
+    "sizeId": 112,
+    "material": "捲軸特效Plus",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "116": {
+    "sizeId": 116,
+    "material": "刮刮卡特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "117": {
+    "sizeId": 117,
+    "material": "問卷特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "119": {
+    "sizeId": 119,
+    "material": "轉盤特效",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "120": {
+    "sizeId": 120,
+    "material": "開場特效(置底多圖)",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "121": {
+    "sizeId": 121,
+    "material": "幻燈片特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "123": {
+    "sizeId": 123,
+    "material": "旋轉特效 (300X600)",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】banner"
+  },
+  "124": {
+    "sizeId": 124,
+    "material": "旋轉特效 (970X250)",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】banner"
+  },
+  "146": {
+    "sizeId": 146,
+    "material": "拆封特效",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "147": {
+    "sizeId": 147,
+    "material": "破鏡重圓",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "148": {
+    "sizeId": 148,
+    "material": "影音幻燈片",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "152": {
+    "sizeId": 152,
+    "material": "捲簾特效",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "153": {
+    "sizeId": 153,
+    "material": "內文拉霸機",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "154": {
+    "sizeId": 154,
+    "material": "移動大看板(圖片)",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "155": {
+    "sizeId": 155,
+    "material": "移動大看板(影音)",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "158": {
+    "sizeId": 158,
+    "material": "翻頁特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "159": {
+    "sizeId": 159,
+    "material": "開門見山",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "160": {
+    "sizeId": 160,
+    "material": "置底大看板(影音)",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "161": {
+    "sizeId": 161,
+    "material": "滾輪特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "162": {
+    "sizeId": 162,
+    "material": "輪盤特效",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "167": {
+    "sizeId": 167,
+    "material": "棋盤特效",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "168": {
+    "sizeId": 168,
+    "material": "蓋板PLUS",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "169": {
+    "sizeId": 169,
+    "material": "回饋式廣告",
+    "siteCostCategory": "創意-其他",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】banner"
+  },
+  "170": {
+    "sizeId": 170,
+    "material": "字卡特效2.0 (Mobile)",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "171": {
+    "sizeId": 171,
+    "material": "地圖廣告 (300X250)",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "172": {
+    "sizeId": 172,
+    "material": "地圖廣告 (336X280)",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】banner"
+  },
+  "173": {
+    "sizeId": 173,
+    "material": "地圖廣告 (300X600)",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】banner"
+  },
+  "174": {
+    "sizeId": 174,
+    "material": "地圖廣告 (970X250)",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】banner"
+  },
+  "175": {
+    "sizeId": 175,
+    "material": "地圖廣告 (創意)",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "176": {
+    "sizeId": 176,
+    "material": "影音廣告",
+    "siteCostCategory": "影音型",
+    "revenueCostCategory": "影音型",
+    "definition": "【影音型】純影 Pre-Roll (不含- 影音摩天純影/ DOOH)",
+    "detailDefinition": ""
+  },
+  "177": {
+    "sizeId": 177,
+    "material": "行動底片",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "178": {
+    "sizeId": 178,
+    "material": "環境即時報",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "179": {
+    "sizeId": 179,
+    "material": "32:9 影音廣告",
+    "siteCostCategory": "影音型",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "180": {
+    "sizeId": 180,
+    "material": "9:16 影音廣告",
+    "siteCostCategory": "影音型",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "181": {
+    "sizeId": 181,
+    "material": "虛擬通知",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "183": {
+    "sizeId": 183,
+    "material": "全屏Scroller廣告樣式",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "184": {
+    "sizeId": 184,
+    "material": "影音Scroller廣告樣式",
+    "siteCostCategory": "文中320x480",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 320*480"
+  },
+  "187": {
+    "sizeId": 187,
+    "material": "BLS問卷",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "188": {
+    "sizeId": 188,
+    "material": "回應式廣告",
+    "siteCostCategory": "創意-其他",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】banner"
+  },
+  "190": {
+    "sizeId": 190,
+    "material": "384:576 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "191": {
+    "sizeId": 191,
+    "material": "1214:1080 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "192": {
+    "sizeId": 192,
+    "material": "1152:1080 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "193": {
+    "sizeId": 193,
+    "material": "3200:720 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "194": {
+    "sizeId": 194,
+    "material": "608:1080 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "195": {
+    "sizeId": 195,
+    "material": "2558:1080 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "196": {
+    "sizeId": 196,
+    "material": "1822:1080 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "197": {
+    "sizeId": 197,
+    "material": "3192:1080 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "201": {
+    "sizeId": 201,
+    "material": "頁緣蓋版",
+    "siteCostCategory": "創意-蓋版",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】banner"
+  },
+  "203": {
+    "sizeId": 203,
+    "material": "經典畫廊",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "204": {
+    "sizeId": 204,
+    "material": "1080:720 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "205": {
+    "sizeId": 205,
+    "material": "540:540 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "206": {
+    "sizeId": 206,
+    "material": "VAST3.0",
+    "siteCostCategory": "影音型",
+    "revenueCostCategory": "影音型",
+    "definition": "【影音型】純影 Pre-Roll (不含- 影音摩天純影/ DOOH)",
+    "detailDefinition": ""
+  },
+  "209": {
+    "sizeId": 209,
+    "material": "1920:1080 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "210": {
+    "sizeId": 210,
+    "material": "摩天輪反轉蓋板",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "211": {
+    "sizeId": 211,
+    "material": "1280:800 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "212": {
+    "sizeId": 212,
+    "material": "384:352 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "213": {
+    "sizeId": 213,
+    "material": "旋轉方塊",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】文中 - 300*250"
+  },
+  "214": {
+    "sizeId": 214,
+    "material": "320:636 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "215": {
+    "sizeId": 215,
+    "material": "480:1152 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "216": {
+    "sizeId": 216,
+    "material": "500:340 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "217": {
+    "sizeId": 217,
+    "material": "544:352 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "218": {
+    "sizeId": 218,
+    "material": "600:320 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "219": {
+    "sizeId": 219,
+    "material": "1024:768 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "220": {
+    "sizeId": 220,
+    "material": "1710:260 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "221": {
+    "sizeId": 221,
+    "material": "2880:860 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "222": {
+    "sizeId": 222,
+    "material": "1792:832 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "223": {
+    "sizeId": 223,
+    "material": "1920:576 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "224": {
+    "sizeId": 224,
+    "material": "上拉純影",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "225": {
+    "sizeId": 225,
+    "material": "510:420 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "226": {
+    "sizeId": 226,
+    "material": "1184:768 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "227": {
+    "sizeId": 227,
+    "material": "上拉純圖",
+    "siteCostCategory": "置底-展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底(展開)"
+  },
+  "228": {
+    "sizeId": 228,
+    "material": "純蓋版",
+    "siteCostCategory": "蓋板",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】蓋版 900*1600"
+  },
+  "229": {
+    "sizeId": 229,
+    "material": "2048:1412 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "230": {
+    "sizeId": 230,
+    "material": "2048:1151 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "231": {
+    "sizeId": 231,
+    "material": "2048:2560 影音廣告",
+    "siteCostCategory": "DOOH",
+    "revenueCostCategory": "影音型",
+    "definition": "DOOH",
+    "detailDefinition": ""
+  },
+  "236": {
+    "sizeId": 236,
+    "material": "VAST URL",
+    "siteCostCategory": "影音型",
+    "revenueCostCategory": "影音型",
+    "definition": "【影音型】純影 Pre-Roll (不含- 影音摩天純影/ DOOH)",
+    "detailDefinition": ""
+  },
+  "237": {
+    "sizeId": 237,
+    "material": "創意置底banner",
+    "siteCostCategory": "置底-非展開",
+    "revenueCostCategory": "創意型",
+    "definition": "【創意型】文中 - 300x250&320x480 / 置底(非展開)+(展開) / 蓋版",
+    "detailDefinition": "【創意型】置底 (非展開)640*360"
+  },
+  "240": {
+    "sizeId": 240,
+    "material": "Product Feed_Banner_300x250",
+    "siteCostCategory": "文中300x250",
+    "revenueCostCategory": "創意型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】300*250"
+  },
+  "241": {
+    "sizeId": 241,
+    "material": "Product Feed_Banner_320x480",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "創意型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】320*480"
+  },
+  "242": {
+    "sizeId": 242,
+    "material": "Product Feed_Banner_300x600",
+    "siteCostCategory": "Banner",
+    "revenueCostCategory": "創意型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】300*600"
+  },
+  "243": {
+    "sizeId": 243,
+    "material": "Product Feed_蓋板_320x480",
+    "siteCostCategory": "蓋板",
+    "revenueCostCategory": "創意型",
+    "definition": "展示型",
+    "detailDefinition": "【展示型】320*480"
+  }
+}

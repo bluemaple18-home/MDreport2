@@ -1,0 +1,1617 @@
+[
+  {
+    "nid": 53,
+    "sizeIds": [
+      203
+    ],
+    "title": "經典畫廊",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "素材從置底版位，360度旋轉成蓋板，在視覺上如同魔術表演般，引起使用者的目光與好奇心，加深使用者互動與探索廣告中內容。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-01/Screenshot_20240117_143659_Edge.png",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-01/%E7%B6%93%E5%85%B8%E7%95%AB%E5%BB%8A-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_0.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "蓋版圖像 x3",
+        "info": "素材比例：450x800 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：每張圖個別對應導連\r\n背景顏色：可自行定義"
+      },
+      {
+        "title": "置底圖像 x3",
+        "info": "素材比例：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "213",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-01/zugt7-17knl.gif",
+        "localGif": "/multiforce-gifs/53-mobile-213.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:208884"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 54,
+    "sizeIds": [
+      201
+    ],
+    "title": "頁緣蓋版",
+    "typeTitle": "創意廣告 - 蓋板",
+    "description": "頁緣動畫出現，使用者可以左右滑動蓋板，讓廣告生動有趣，就像是在探險一樣，探索廣告中的多元活動內容。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-01/Screenshot_20240117_143737_Edge.png",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-01/%E9%A0%81%E7%B7%A3%E8%93%8B%E6%9D%BF-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "頁緣圖像 x1",
+        "info": "素材尺寸：100x100\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB"
+      },
+      {
+        "title": "蓋板圖像 x3",
+        "info": "素材比例：900x1600 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：每張圖個別對應導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "216",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-01/oki69-iyalo.gif",
+        "localGif": "/multiforce-gifs/54-mobile-216.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:208885"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 55,
+    "sizeIds": [
+      210
+    ],
+    "title": "摩天輪反轉蓋版",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "使用者點擊置底廣告時，透過360度旋轉特效，讓素材以生動的方式呈現，有效地吸引了使用者的好奇心，增加了使用者對廣告內容的探索慾望。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-02/Screenshot_20240117_143737_Edge.png",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-02/%E6%91%A9%E5%A4%A9%E8%BC%AA%E5%8F%8D%E8%BD%89%E8%93%8B%E7%89%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_1.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "蓋版圖像 x3",
+        "info": "素材比例：900x1600 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：每張圖個別對應導連\r\n預留空間：圖像需保留 900x506的空給置底圖像 (請參考素材製作說明)"
+      },
+      {
+        "title": "置底圖像 x3",
+        "info": "素材比例：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "221",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-06/bul1w-8cbzq.gif",
+        "localGif": "/multiforce-gifs/55-mobile-221.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:214094"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 20,
+    "sizeIds": [
+      66
+    ],
+    "title": "旋轉特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "廣告呈現方式豐富且吸睛，同時支援四組素材以影音搭配圖像旋轉呈現，享有多重曝光，增加消費者宣傳內容注意度。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231004_162152_Edge%20%281%29.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E6%97%8B%E8%BD%89%E7%89%B9%E6%95%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "置底影音 x1",
+        "info": "素材比例：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "旋轉圖像 x4",
+        "info": "素材比例：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "63",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/qmzz3-ailx6.gif",
+        "localGif": "/multiforce-gifs/20-mobile-63.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175405"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 59,
+    "sizeIds": [
+      7
+    ],
+    "title": "純蓋版",
+    "typeTitle": "創意廣告 - 蓋板",
+    "description": "蓋版以大圖或影片擇一方式呈現，讓使用者能獲得更豐富的產品資訊。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-11/%E7%B4%94%E8%93%8B%E7%89%883_2.png",
+    "coverPcImage": "",
+    "specImageMobile": "",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "蓋版版圖片x1",
+        "info": "圖片素材尺寸：9:16 (900x1600)​\r\n檔案類型：JPG/PNG/GIF​\r\n檔案大小：小於 4 MB​\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "蓋版影片x1​",
+        "info": "影片素材尺寸：9:16​\r\n檔案類型：MP4​\r\n檔案大小：小於 22 MB​\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "236",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-11/GU_short.gif",
+        "localGif": "/multiforce-gifs/59-mobile-236.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:253426"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 56,
+    "sizeIds": [
+      213
+    ],
+    "title": "旋轉方塊",
+    "typeTitle": "創意廣告 - 文中",
+    "description": "文章置中投放4組獨特而吸引眼球的素材，透過特殊且引人注目的旋轉方式，不僅能夠提高使用者的興趣，更能讓使用者更清楚明瞭產品的內容。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-04/Screenshot_20240411_135121_Edge.png",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/5l4fe-a2q0d-94.png",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-03/%E6%97%8B%E8%BD%89%E6%96%B9%E5%A1%8A-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_0.png",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-03/%E6%97%8B%E8%BD%89%E6%96%B9%E5%A1%8A-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specs": [
+      {
+        "title": "橫幅圖片 x4",
+        "info": "素材尺寸：300x250 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：每張圖個別對應導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "225",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-04/qw8qo-ic5lr.gif",
+        "localGif": "/multiforce-gifs/56-mobile-225.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:221125"
+      },
+      {
+        "id": "226",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-04/5l4fe-a2q0d.gif",
+        "localGif": "/multiforce-gifs/56-desktop-226.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:221125"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 57,
+    "sizeIds": [
+      224
+    ],
+    "title": "上拉純影",
+    "typeTitle": "創意廣告",
+    "description": "以置底廣告的形式出場，在不影響瀏覽體驗的同時，持續曝光廣告，搭配動感跳動的箭頭圖標，吸引使用者和廣告互動後展開影片，進一步加深使用者印象。",
+    "coverImage": "",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/pc_cover.jpg",
+    "specImageMobile": "",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/%E4%B8%8A%E6%8B%89%E7%B4%94%E5%BD%B1-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specs": [
+      {
+        "title": "置底圖像 x1",
+        "info": "素材比例：970x90 /728X90 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：個別對應導連\r\n互動圖標：可自訂背景顏色"
+      },
+      {
+        "title": "影音 x1",
+        "info": "素材比例：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB\r\n導頁連結：個別對應導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "229",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/frpmr-2lsz0.gif",
+        "localGif": "/multiforce-gifs/57-desktop-229.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:229128"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 58,
+    "sizeIds": [
+      227
+    ],
+    "title": "上拉純圖",
+    "typeTitle": "創意廣告",
+    "description": "以置底廣告的形式出場，在不影響瀏覽體驗的同時，持續曝光廣告，搭配動感跳動的箭頭圖標，吸引使用者和廣告互動後展開圖片，進一步加深使用者印象。",
+    "coverImage": "",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-11/pc_cover.jpg",
+    "specImageMobile": "",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-11/%E4%B8%8A%E6%8B%89%E7%B4%94%E5%9C%96-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specs": [
+      {
+        "title": "置底圖像 x1",
+        "info": "素材比例：970x90 /728X90 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：個別對應導連\r\n互動圖標：可自訂背景顏色"
+      },
+      {
+        "title": "展開圖片 x1~3",
+        "info": "素材比例：1600x900\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：個別對應導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "233",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-11/floating_photo3.gif",
+        "localGif": "/multiforce-gifs/58-desktop-233.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:253400"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 14,
+    "sizeIds": [
+      67
+    ],
+    "title": "跑馬燈特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "輕輕左右滑動即能連續看到1則影音及4張圖片，活潑行銷更多元。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20230928_170523_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E8%B7%91%E9%A6%AC%E7%87%88%E7%89%B9%E6%95%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_0.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "置底影音 x1 (必填)",
+        "info": "素材比例：640x360\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "置底圖像 x1~4",
+        "info": "素材比例：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "45",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/y15oy-x765b.gif",
+        "localGif": "/multiforce-gifs/14-mobile-45.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175407"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 22,
+    "sizeIds": [
+      56
+    ],
+    "title": "漂浮多商品",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "滑動網頁可觸發素材的動態效果，依據客戶的宣傳內容，提供客製化的服務，同時滿足多種產品、議題的溝通。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20230928_171422_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E6%BC%82%E6%B5%AE%E5%A4%9A%E5%95%86%E5%93%81-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "置底圖像 x1",
+        "info": "素材尺寸：320x50 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "商品圖像 x4",
+        "info": "素材比例：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：每張圖個別對應導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "69",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/s0upo-weahp.gif",
+        "localGif": "/multiforce-gifs/22-mobile-69.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175408"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 3,
+    "sizeIds": [
+      81
+    ],
+    "title": "上翻特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "廣告以上翻跳出的效果呈現，以提高使用者吸睛度。廣告可選擇以圖像或影音方式呈現。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20230928_171907_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E4%B8%8A%E7%BF%BB%E7%89%B9%E6%95%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "置底素材(圖像) x1",
+        "info": "素材比例：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "置底素材(影音) x1",
+        "info": "素材比例：640x360\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "12",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/nzdwt-tfv8l.gif",
+        "localGif": "/multiforce-gifs/3-mobile-12.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175414"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 21,
+    "sizeIds": [
+      86
+    ],
+    "title": "變身特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "使用3組不同素材，利用在素材上左右滑動變更圖片，提高使用者和產品的互動性，最後則是會呈現完整產品資訊，讓有興趣的使用者能夠了解產品內容。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20230928_172232_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E8%AE%8A%E8%BA%AB%E7%89%B9%E6%95%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "置底圖片x3",
+        "info": "素材尺寸：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "66",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/td6eq-r67j3.gif",
+        "localGif": "/multiforce-gifs/21-mobile-66.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175415"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 9,
+    "sizeIds": [
+      86
+    ],
+    "title": "雙喜臨門",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "兩組素材向左右兩側收放的同時再展開另一組素材，讓使用者體驗拆禮物的驚喜感，以增加產品與使用者的互動趣味性。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20230928_173106_Edge_1.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E9%9B%99%E5%96%9C%E8%87%A8%E9%96%80-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_0.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "合併圖像 x2",
+        "info": "素材尺寸：320x360/800x900 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB"
+      },
+      {
+        "title": "置底圖像 x1",
+        "info": "素材比例：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：此廣告形式僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "30",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/utpcr-6a1bw.gif",
+        "localGif": "/multiforce-gifs/9-mobile-30.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175434"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 17,
+    "sizeIds": [
+      55
+    ],
+    "title": "磁浮廣告",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "跳脫以往矩形樣式，使用者自主滑動，使用者對廣告有興趣才點擊，帶給使用者高度控制感的互動體驗。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20230928_173346_Edge.jpg",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/Maglev_PC.png",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E7%A3%81%E6%B5%AE%E5%BB%A3%E5%91%8A-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-06/07%E7%A3%81%E6%B5%AE%E5%BB%A3%E5%91%8A-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_0.png",
+    "specs": [
+      {
+        "title": "磁浮圖片x1",
+        "info": "素材尺寸：100x100 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "54",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/f7xv1-6qk19.gif",
+        "localGif": "/multiforce-gifs/17-mobile-54.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175435"
+      },
+      {
+        "id": "200",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/07%E7%A3%81%E6%B5%AE%E5%BB%A3%E5%91%8A_pc_3.gif",
+        "localGif": "/multiforce-gifs/17-desktop-200.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175435"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 11,
+    "sizeIds": [
+      93
+    ],
+    "title": "玩轉特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "使用者上下滑動時，廣告會利用翻轉的方式呈現各個不同的產品內容，使用者能隨著瀏覽網頁時也能同時了解產品內容。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20230928_174612_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E7%8E%A9%E8%BD%89%E7%89%B9%E6%95%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "置底圖像 x3~5 組",
+        "info": "素材比例：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連\r\n三張圖片像組成一組：\r\n背景圖\r\n主題圖\r\n特效圖"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "36",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/d6oj5-9905s.gif",
+        "localGif": "/multiforce-gifs/11-mobile-36.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175547"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 4,
+    "sizeIds": [
+      109
+    ],
+    "title": "開場特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "先出現置底廣告，隨著使用者往下滑動時，露出大屏幕廣告素材，有效吸引使用者的注意力。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-02/Screenshot_20231002_093159_Edge_0.png",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2025-10/%E9%96%8B%E5%A0%B4%E7%89%B9%E6%95%88%28%E7%BD%AE%E5%BA%95%E5%96%AE%E5%9C%96%29-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_v2.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "蓋板 x1 (圖片、影片擇一)",
+        "info": "圖片比例：9:16、2:3\r\n圖片類型：JPG/PNG/GIF\r\n圖片大小：小於 4 MB\r\n影片比例：9:16\r\n影片類型：MP4\r\n影片大小：小於 22 MB\r\n導頁連結：主導連x1"
+      },
+      {
+        "title": "置底圖 x1",
+        "info": "素材比例：16:9\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "15",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-02/e4d26-25nmn.gif",
+        "localGif": "/multiforce-gifs/4-mobile-15.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175548"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 12,
+    "sizeIds": [
+      120
+    ],
+    "title": "開場特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "先以蓋版方式呈現，吸引使用者注意，隨後二次觸發置底素材互動，可如抽卡一樣向左右切換廣告素材，同時增加廣告與使用者的互動和興趣。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_093159_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2025-10/%E9%96%8B%E5%A0%B4%E7%89%B9%E6%95%88%28%E7%BD%AE%E5%BA%95%E5%A4%9A%E5%9C%96%29-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_0-a.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "蓋板 x1 (圖片、影片擇一)",
+        "info": "圖片比例：9:16、2:3\r\n圖片類型：JPG/PNG/GIF\r\n圖片大小：小於 4 MB\r\n影片比例：9:16 \r\n影片類型：MP4(無聲)\r\n影片大小：小於 22 MB\r\n導頁連結：主導連x1"
+      },
+      {
+        "title": "置底圖像 x3~5",
+        "info": "素材比例：16:9\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "39",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/zwi2h-7nyre.gif",
+        "localGif": "/multiforce-gifs/12-mobile-39.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175549"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 23,
+    "sizeIds": [
+      121
+    ],
+    "title": "幻燈片特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "以置底的形式展現多商品素材成列，可以利用點擊切換主要商品，並且加深使用者與廣告商品之間更多的互動。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_093556_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%B9%BB%E7%87%88%E7%89%87%E7%89%B9%E6%95%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_0.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "置底圖片 x3~5",
+        "info": "素材尺寸：300x250 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：每張圖個別對應導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "72",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/xrvzg-uav6m.gif",
+        "localGif": "/multiforce-gifs/23-mobile-72.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175550"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 6,
+    "sizeIds": [
+      104
+    ],
+    "title": "彈出特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "彈出特效停留螢幕 3 秒後，Banner接著露出在置底位置。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_094131_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%BD%88%E5%87%BA%E7%89%B9%E6%95%88%EF%BC%88%E7%BD%AE%E5%BA%95%E5%9C%96%E5%83%8F%EF%BC%89-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "蓋板圖像 x1",
+        "info": "素材尺寸：320x480 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "置底圖像 x1",
+        "info": "素材比例：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "21",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/16fgi-r9mr8.gif",
+        "localGif": "/multiforce-gifs/6-mobile-21.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175552"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 5,
+    "sizeIds": [
+      103
+    ],
+    "title": "彈出特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "彈出特效停留螢幕 3 秒後，影片及Banner接著露出在置底位置。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_094317_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2025-10/%E5%BD%88%E5%87%BA%E7%89%B9%E6%95%88%EF%BC%88%E7%BD%AE%E5%BA%95%E5%BD%B1%E9%9F%B3%EF%BC%89-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96A_0.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "蓋板 (圖片x1、影片x1，擇一)",
+        "info": "圖片比例：2:3、9:16\r\n圖片類型：JPG/PNG/GIF\r\n圖片大小：小於 4 MB\r\n影片比例：9:16\r\n影片類型：MP4\r\n影片大小：小於 22 MB"
+      },
+      {
+        "title": "置底影音 x1",
+        "info": "素材比例：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB\r\n導頁連結：主導連x1"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "18",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/jfalz-tkt3l.gif",
+        "localGif": "/multiforce-gifs/5-mobile-18.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175557"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 8,
+    "sizeIds": [
+      106
+    ],
+    "title": "置底滑動多商品",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "使用者上下滑動同時，可變換不同商品，可讓使用者了解多樣產品。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_094647_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-09/%E7%BD%AE%E5%BA%95%E6%BB%91%E5%8B%95%E5%A4%9A%E5%95%86%E5%93%81%28%E5%9C%96%E5%83%8F%29-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "背景圖像 x1",
+        "info": "素材比例：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "商品圖像 x3~5",
+        "info": "素材尺寸：700x1000 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "27",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/uwhy6-djwb6.gif",
+        "localGif": "/multiforce-gifs/8-mobile-27.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175558"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 15,
+    "sizeIds": [
+      95
+    ],
+    "title": "圖卡特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "同時呈形4組不同圖卡式素材，利用輪播的的方式展現產品特點與特性，使用者並能透過廣告素材讓產品多重優勢一目了然。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_094922_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%9C%96%E5%8D%A1%E7%89%B9%E6%95%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "圖片x4",
+        "info": "素材尺寸：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "文案x1",
+        "info": "標題：10個文字（含標點)\r\n內文：30個文字（含標點)\r\n按鈕文字：4個文字（含標點)"
+      },
+      {
+        "title": "顏色x1",
+        "info": "背景顏色：HEX色碼"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "48",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/ekcbb-xaqxk.gif",
+        "localGif": "/multiforce-gifs/15-mobile-48.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175713"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 13,
+    "sizeIds": [
+      96
+    ],
+    "title": "翻轉特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "廣告以上翻跳出的特效呈現產品內容，且隨著使用者滑動的同時會上翻變換4種素材，給予豐富的產品資訊。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-11/Screenshot_20231002_095051_Edge.png",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E7%BF%BB%E8%BD%89%E7%89%B9%E6%95%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "置底圖像 x2~5",
+        "info": "素材比例：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：每張圖個別對應導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "42",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/t74d9-mr4f7.gif",
+        "localGif": "/multiforce-gifs/13-mobile-42.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175714"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 24,
+    "sizeIds": [
+      146
+    ],
+    "title": "拆封特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "起初廣告呈現於下方置底位置，隨著使用者往下滑動兩秒後利用拆封的效果自動呈現蓋版廣告，增加使用者對廣告內容的注意度。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231004_142349_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2025-10/%E6%8B%86%E5%B0%81%E7%89%B9%E6%95%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96a.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "置底圖片 x1",
+        "info": "素材比例：16:9\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：主導連x1"
+      },
+      {
+        "title": "蓋板 ( 圖片、影片擇一 )",
+        "info": "圖片比例：9:16、2:3\r\n圖片類型：JPG/PNG/GIF\r\n圖片大小：小於 4 MB\r\n影片比例：9:16\r\n影片類型：MP4\r\n影片大小：小於 22 MB"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "75",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/34j7b-6a3en.gif",
+        "localGif": "/multiforce-gifs/24-mobile-75.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175718"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 60,
+    "sizeIds": [
+      155
+    ],
+    "title": "移動大看板",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "廣告以移動的方式顯示大看板，影音搭配圖像組合而成的大看板有效吸引使用者的注意，目光也可在大看板停留較長的時間。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2025-11/E1FEF902-58E0-4E9E-809B-BA979EAAC416.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2025-10/%E7%A7%BB%E5%8B%95%E5%A4%A7%E7%9C%8B%E6%9D%BF%28%E5%BD%B1%29-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96-a.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "置底 x2 ( 圖像或影片 )",
+        "info": "圖片比例：16:9\r\n圖片類型：JPG/PNG/GIF\r\n圖片大小：小於 4 MB\r\n影片比例：16:9\r\n影片類型：MP4\r\n影片大小：小於 22 MB"
+      },
+      {
+        "title": "蓋板 ( 圖像x1、影片x1 )",
+        "info": "圖片比例：9:16\r\n圖片類型：JPG/PNG/GIF\r\n圖片大小：小於 4 MB\r\n影片比例：9:16\r\n影片類型：MP4\r\n影片大小：小於 22 MB\r\n導頁連結：主導連x1"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "241",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2025-11/2025-11-14%20161317.gif",
+        "localGif": "/multiforce-gifs/60-mobile-241.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:297900"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 25,
+    "sizeIds": [
+      154
+    ],
+    "title": "移動大看板",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "廣告以移動的方式顯示大看板，使用者目光零死角被鎖定，也能透過大看板更清楚廣告的資訊。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_102643_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2025-10/%E7%A7%BB%E5%8B%95%E5%A4%A7%E7%9C%8B%E6%9D%BF%28%E5%9C%96%E7%89%87%29-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96a.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "置底圖像 x1",
+        "info": "素材尺寸：16:9\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB"
+      },
+      {
+        "title": "蓋板圖像 x1",
+        "info": "素材尺寸：9:16\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：主導連x1"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "78",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/3thdg-ufkcs.gif",
+        "localGif": "/multiforce-gifs/25-mobile-78.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175719"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 16,
+    "sizeIds": [
+      116
+    ],
+    "title": "刮刮卡特效",
+    "typeTitle": "創意廣告 - 置底",
+    "description": "搭配二張廣告素材，通過刮掉其中一張來顯示不同的廣告素材。讓使用者與廣告素材互動以增加趣味性並同時達到傳遞廣告訊息。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_103040_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%88%AE%E5%88%AE%E5%8D%A1%E7%89%B9%E6%95%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "置底蓋板圖片x1",
+        "info": "素材尺寸：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB"
+      },
+      {
+        "title": "置底背景圖片x1",
+        "info": "素材尺寸：640x360 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "51",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/xn0z6-wr51e.gif",
+        "localGif": "/multiforce-gifs/16-mobile-51.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175720"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 26,
+    "sizeIds": [
+      73
+    ],
+    "title": "磁浮2.0",
+    "typeTitle": "創意廣告 - 文中",
+    "description": "滑動網頁可觸發素材的動態效果，同時搭配300*250 Banner，可設計向上或向下或右飄離開，抓住消費者目光！",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_111637_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E7%A3%81%E6%B5%AE2.0.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "橫幅圖片x1",
+        "info": "素材尺寸：300x250 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "磁浮圖片x1",
+        "info": "素材尺寸：100x100 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "81",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/vorq1-lhxc3.gif",
+        "localGif": "/multiforce-gifs/26-mobile-81.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:175726"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 2,
+    "sizeIds": [
+      59
+    ],
+    "title": "變形蓋版",
+    "typeTitle": "創意廣告 - 文中",
+    "description": "文中(末)展開，以特效展開曝光提升蓋板注意力，讓廣告露出也能有創意!",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_173940_Edge.jpg",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/Animated_Cover_PC.png",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E8%AE%8A%E5%BD%A2%E8%93%8B%E6%9D%BF.png",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-06/%E8%AE%8A%E5%BD%A2%E8%93%8B%E6%9D%BF_PC.png",
+    "specs": [
+      {
+        "title": "文中圖片 x1",
+        "info": "素材尺寸：300x250 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅支援一組導連"
+      },
+      {
+        "title": "蓋板圖片 x1~2",
+        "info": "素材尺寸：320x480 或 900x1600 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅支援一組導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "6",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/0psu2-skupc.gif",
+        "localGif": "/multiforce-gifs/2-mobile-6.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:187091"
+      },
+      {
+        "id": "7",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-09/28j5m-fl52q.gif",
+        "localGif": "/multiforce-gifs/2-desktop-7.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:187091"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 27,
+    "sizeIds": [
+      168
+    ],
+    "title": "蓋版PLUS",
+    "typeTitle": "創意廣告 - 文中",
+    "description": "使用者看到300x250圖像時，蓋版會以大圖方式呈現，讓使用者能獲得更豐富的產品資訊。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231004_163102_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E8%93%8B%E6%9D%BFplus_0.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "文中圖片x1",
+        "info": "素材尺寸：300x250 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：主導連x1"
+      },
+      {
+        "title": "蓋板 (圖片x1~2、影片x1，擇一)",
+        "info": "圖片比例：2:3、9:16\r\n圖片類型：JPG/PNG/GIF\r\n圖片大小：小於 4 MB\r\n影片比例：9:16\r\n影片類型：MP4\r\n影片大小：小於 22 MB\r\n導頁連結：僅影片可帶一個連結"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "84",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/qkhrg-zt0ur.gif",
+        "localGif": "/multiforce-gifs/27-mobile-84.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176060"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 28,
+    "sizeIds": [
+      101
+    ],
+    "title": "對焦特效",
+    "typeTitle": "創意廣告 - 文中",
+    "description": "素材從影像模糊到影像清楚，類似相機的對焦效果，可吸引使用者眼球目光。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_111645_Edge.jpg",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/Display_Ads_Focus_PC.png",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%B0%8D%E7%84%A6%E7%89%B9%E6%95%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-06/24%E5%B0%8D%E7%84%A6%E7%89%B9%E6%95%88-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_PC.png",
+    "specs": [
+      {
+        "title": "橫幅圖片x1",
+        "info": "素材尺寸：300x250 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "87",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/d6cov-m0wfh.gif",
+        "localGif": "/multiforce-gifs/28-mobile-87.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176061"
+      },
+      {
+        "id": "201",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/24%E5%B0%8D%E7%84%A6%E7%89%B9%E6%95%88_pc_0.gif",
+        "localGif": "/multiforce-gifs/28-desktop-201.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176061"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 30,
+    "sizeIds": [
+      77
+    ],
+    "title": "內文跑馬燈",
+    "typeTitle": "創意廣告 - 文中",
+    "description": "使用最受歡迎的300X250尺寸大小，同時能放上1則影音以及3組圖片，使用左右滑動的跑馬燈形式，讓使用者清楚了解產品內容。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_112000_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%85%A7%E6%96%87%E8%B7%91%E9%A6%AC%E7%87%88.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "影片 x1 (必填)",
+        "info": "素材比例：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB\r\n導頁連結：每張圖個別對應導連"
+      },
+      {
+        "title": "橫幅圖片 x1~4",
+        "info": "素材尺寸：300x250 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：每張圖個別對應導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "95",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/5ybro-opy5g.gif",
+        "localGif": "/multiforce-gifs/30-mobile-95.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176063"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 19,
+    "sizeIds": [
+      102
+    ],
+    "title": "拼圖特效",
+    "typeTitle": "創意廣告 - 文中",
+    "description": "有別於一般靜態Banner，增加拼圖效果，以吸引使用者注意力，讓廣告更加吸睛。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_112405_Edge.jpg",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/Puzzle_PC_0.png",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E6%8B%BC%E5%9C%96%E7%89%B9%E6%95%88_0.png",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-06/26%E6%8B%BC%E5%9C%96%E7%89%B9%E6%95%88_PC.png",
+    "specs": [
+      {
+        "title": "橫幅圖片x1",
+        "info": "素材尺寸：300x250 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "60",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/xe5of-ys8fg.gif",
+        "localGif": "/multiforce-gifs/19-mobile-60.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176064"
+      },
+      {
+        "id": "202",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/26%E6%8B%BC%E5%9C%96%E7%89%B9%E6%95%88_pc_0.gif",
+        "localGif": "/multiforce-gifs/19-desktop-202.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176064"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 7,
+    "sizeIds": [
+      36
+    ],
+    "title": "內文全屏",
+    "typeTitle": "創意廣告 - 文中",
+    "description": "不影響閱讀動線，完整接受訊息，內文巨大版位，行銷內容清楚。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_112718_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%85%A7%E6%96%87%E5%85%A8%E5%B1%8F.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "橫幅素材 x1",
+        "info": "素材比例： 320x480 /900x1600 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "24",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/kq0mb-u7o9o.gif",
+        "localGif": "/multiforce-gifs/7-mobile-24.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176065"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 10,
+    "sizeIds": [
+      91
+    ],
+    "title": "內文大摩天",
+    "typeTitle": "創意廣告 - 文中",
+    "description": "利用內文中吸睛度最高的大版位，以不影響閱讀動線為主，同時播放影音及圖片內容，讓產品內容的呈現更加豐富多元。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_112915_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%85%A7%E6%96%87%E5%A4%A7%E6%91%A9%E5%A4%A9.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "橫幅影音 x1",
+        "info": "素材比例：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB"
+      },
+      {
+        "title": "橫幅圖像 x1",
+        "info": "素材尺寸：320x300 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "33",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/t57jc-dbdjy.gif",
+        "localGif": "/multiforce-gifs/10-mobile-33.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176066"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 31,
+    "sizeIds": [
+      57
+    ],
+    "title": "卷軸特效",
+    "typeTitle": "創意廣告 - 文中",
+    "description": "滑動網頁可觸發素材的動態效果，廣告曝光結合特效展開，吸引消費者眼球。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/29%E5%8D%B7%E8%BB%B8%E7%89%B9%E6%95%88_m.png",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%8D%B7%E8%BB%B8%E7%89%B9%E6%95%88.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "影片x1",
+        "info": "素材尺寸：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB"
+      },
+      {
+        "title": "圖片x1",
+        "info": "素材尺寸：320x300 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "101",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/29%E5%8D%B7%E8%BB%B8%E7%89%B9%E6%95%88_m.gif",
+        "localGif": "/multiforce-gifs/31-mobile-101.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176067"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 32,
+    "sizeIds": [
+      183
+    ],
+    "title": "影音scroller",
+    "typeTitle": "創意廣告 - 文中",
+    "description": "素材會依使用者滑動變更素材，搭配影音+多圖聚焦，利用圖卡讓使用者清楚瀏覽商品資訊，結合影音的視覺吸引可以加深使用者的廣告印象。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_113121_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%BD%B1%E9%9F%B3scroller.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "橫幅圖片x2~4",
+        "info": "素材尺寸：700x850 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：每張圖個別對應導連"
+      },
+      {
+        "title": "置底影音x1",
+        "info": "素材比例：16:9 \r\n檔案類型：MP4\r\n檔案大小：小於 22 MB\r\n導頁連結：每張圖個別對應導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "104",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/dj2uv-nb2nc.gif",
+        "localGif": "/multiforce-gifs/32-mobile-104.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:177859"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 47,
+    "sizeIds": [
+      112
+    ],
+    "title": "卷軸特效PLUS",
+    "typeTitle": "創意廣告 - 文中",
+    "description": "文中大版位，影片搭配三張圖像素材，滑動網頁可觸發素材的動態效果，可讓行銷內容更佳多元化。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_113838_Edge.jpg",
+    "coverPcImage": "",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%8D%B7%E8%BB%B8%E7%89%B9%E6%95%88plus.png",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "影片x1",
+        "info": "素材尺寸：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB"
+      },
+      {
+        "title": "圖片x3~5",
+        "info": "素材尺寸：320x300 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "149",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/6of8s-qi5r5.gif",
+        "localGif": "/multiforce-gifs/47-mobile-149.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176474"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 34,
+    "sizeIds": [
+      98
+    ],
+    "title": "影音摩天300x600",
+    "typeTitle": "影音廣告",
+    "description": "影音素材除了可以豐富消費者視覺，同時搭配靜態圖更能讓消費者透過生動影片及靜態圖片清楚掌握產品資訊。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-09/motain_300X600_mobile.png",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/motain_300X600_PC.jpg",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9300x600.png",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-06/33%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9300x600_PC.png",
+    "specs": [
+      {
+        "title": "橫幅影音 x1",
+        "info": "素材比例：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "橫幅圖像 x1",
+        "info": "素材尺寸：300x350 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "110",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/skv94-t50xb.gif",
+        "localGif": "/multiforce-gifs/34-mobile-110.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176572"
+      },
+      {
+        "id": "203",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/d1cjm-fyifp.gif",
+        "localGif": "/multiforce-gifs/34-desktop-203.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176572"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 36,
+    "sizeIds": [
+      97
+    ],
+    "title": "影音摩天300x250",
+    "typeTitle": "影音廣告",
+    "description": "廣告框架中執行影音素材,除了不影響到使用者閱讀動線外，更能吸引使用者目光，是您最佳的選擇。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231003_154705_Edge.jpg",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/300x250_PC.png",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9300x250.png",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-06/36%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9300x250_PC.png",
+    "specs": [
+      {
+        "title": "橫幅影音 x1",
+        "info": "素材比例：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "116",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/23i1u-anhn6.gif",
+        "localGif": "/multiforce-gifs/36-mobile-116.gif",
+        "demoLink": "https://cdn.holmesmind.com/videoAD/index.html?176745:a"
+      },
+      {
+        "id": "117",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/36%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9300x250_pc.gif",
+        "localGif": "/multiforce-gifs/36-desktop-117.gif",
+        "demoLink": "https://cdn.holmesmind.com/videoAD/index.html?176745:a"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 48,
+    "sizeIds": [
+      97
+    ],
+    "title": "影音摩天300x250",
+    "typeTitle": "影音廣告",
+    "description": "影音素材除了可以豐富消費者視覺，同時搭配靜態圖更能讓消費者透過生動影片及靜態圖片清楚掌握產品資訊。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_114447_Edge.jpg",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/VB_300x250_PC.png",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9300x250%28%E6%9C%89%E5%9C%96%29.png",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-06/35%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9300x250%28%E6%9C%89%E5%9C%96%29_PC_0.png",
+    "specs": [
+      {
+        "title": "橫幅影音 x1",
+        "info": "素材比例：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "橫幅圖像 x1",
+        "info": "素材尺寸：300x80\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "152",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/f321c-5571h.gif",
+        "localGif": "/multiforce-gifs/48-mobile-152.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176574"
+      },
+      {
+        "id": "205",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/35%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9300x250%28%E6%9C%89%E5%9C%96%29_pc.gif",
+        "localGif": "/multiforce-gifs/48-desktop-205.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176574"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 35,
+    "sizeIds": [
+      100
+    ],
+    "title": "影音摩天970x250",
+    "typeTitle": "影音廣告",
+    "description": "影音素材除了可以豐富消費者視覺，同時搭配靜態圖更能讓消費者透過生動影片及靜態圖片清楚掌握產品資訊。",
+    "coverImage": "",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-09/motain_970x250_pc.png.png",
+    "specImageMobile": "",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9970x250.png",
+    "specs": [
+      {
+        "title": "橫幅影音 x1",
+        "info": "素材比例：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 20 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "橫幅圖像 x1",
+        "info": "素材尺寸：525x250 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "204",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/34%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9970x250_pc.gif",
+        "localGif": "/multiforce-gifs/35-desktop-204.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176573"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 37,
+    "sizeIds": [
+      99
+    ],
+    "title": "影音摩天336x280",
+    "typeTitle": "影音廣告",
+    "description": "影音素材除了可以豐富消費者視覺，同時搭配靜態圖更能讓消費者透過生動影片及靜態圖片清楚掌握產品資訊。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/38%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9336x280_m.png",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/336x280_PC.jpg",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9336x280.png",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-06/38%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9336x280_PC.png",
+    "specs": [
+      {
+        "title": "橫幅影音 x1",
+        "info": "素材比例：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "119",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/38%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9336x280_m.gif",
+        "localGif": "/multiforce-gifs/37-mobile-119.gif",
+        "demoLink": "https://cdn.holmesmind.com/videoAD/index.html?176745:b"
+      },
+      {
+        "id": "120",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/38%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9336x280_pc.gif",
+        "localGif": "/multiforce-gifs/37-desktop-120.gif",
+        "demoLink": "https://cdn.holmesmind.com/videoAD/index.html?176745:b"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 49,
+    "sizeIds": [
+      99
+    ],
+    "title": "影音摩天336x280",
+    "typeTitle": "影音廣告",
+    "description": "影音素材除了可以豐富消費者視覺，同時搭配靜態圖更能讓消費者透過生動影片及靜態圖片清楚掌握產品資訊。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/37%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9336x280%28%E6%9C%89%E5%9C%96%29_m.png",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-09/VB_336x280_PC2.png",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-06/%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9336x280%28%E6%9C%89%E5%9C%96%29.png",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-06/37%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9336x280%28%E6%9C%89%E5%9C%96%29_PC.png",
+    "specs": [
+      {
+        "title": "橫幅影音 x1",
+        "info": "素材比例：16:9\r\n檔案類型：MP4\r\n檔案大小：小於 22 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "橫幅圖像 x1",
+        "info": "素材尺寸：336x90 (支援兩倍大)\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "155",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/37%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9336x280%28%E6%9C%89%E5%9C%96%29_m.gif",
+        "localGif": "/multiforce-gifs/49-mobile-155.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176575"
+      },
+      {
+        "id": "206",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-07/37%E5%BD%B1%E9%9F%B3%E6%91%A9%E5%A4%A9336x280%28%E6%9C%89%E5%9C%96%29_pc.gif",
+        "localGif": "/multiforce-gifs/49-desktop-206.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176575"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 38,
+    "sizeIds": [
+      2,
+      18,
+      1,
+      7,
+      20
+    ],
+    "title": "圖文廣告",
+    "typeTitle": "展示型廣告",
+    "description": "自然呈現廣告內容，讓使用者瀏覽網站時不會感到突兀，以最輕鬆的方式呈現在使用者面前。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_114649_Edge.jpg",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/Banner_PC.png",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-02/%E5%9C%96%E6%96%87%E5%BB%A3%E5%91%8A-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_0.png",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-02/%E5%9C%96%E6%96%87%E5%BB%A3%E5%91%8A-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96.png",
+    "specs": [
+      {
+        "title": "文字",
+        "info": "廣告標題：最多11個字\r\n廣告內文：最多39個字\r\n贊助文字：最多9個字\r\n互動按鈕文字：最多6個字"
+      },
+      {
+        "title": "圖像x1",
+        "info": "素材比例：16:9 \r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：每張圖個別對應導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "122",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/7io3z-347a8.gif",
+        "localGif": "/multiforce-gifs/38-mobile-122.gif",
+        "demoLink": "https://cdn.holmesmind.com/Graphic/indexV2.html?176740:300x250"
+      },
+      {
+        "id": "123",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-08/20230824_150049.gif",
+        "localGif": "/multiforce-gifs/38-desktop-123.gif",
+        "demoLink": "https://cdn.holmesmind.com/Graphic/indexV2.html?176740:970x250"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 39,
+    "sizeIds": [
+      1,
+      5,
+      9,
+      20,
+      42,
+      41,
+      15,
+      2,
+      3,
+      18
+    ],
+    "title": "圖像廣告",
+    "typeTitle": "展示型廣告",
+    "description": "可支援不同大小的靜態圖片、動畫圖片",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_115001_Edge.jpg",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/MC_Banner_PC.png",
+    "specImageMobile": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-09/%E5%9C%96%E5%83%8F%E5%BB%A3%E5%91%8A-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_2.png",
+    "specImagePc": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-09/%E5%9C%96%E5%83%8F%E5%BB%A3%E5%91%8A-%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6%E5%9C%96_1.png",
+    "specs": [
+      {
+        "title": "橫幅圖片 x1",
+        "info": "素材尺寸：300x250, 320x480, 336x280, 300x600 等多種尺寸 \r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "125",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/tvpsm-z68wg.gif",
+        "localGif": "/multiforce-gifs/39-mobile-125.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176741"
+      },
+      {
+        "id": "126",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-08/20230824_150409_0.gif",
+        "localGif": "/multiforce-gifs/39-desktop-126.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176741"
+      }
+    ],
+    "hasGif": true
+  },
+  {
+    "nid": 40,
+    "sizeIds": [
+      20,
+      7,
+      15,
+      42,
+      1
+    ],
+    "title": "直播廣告",
+    "typeTitle": "展示型廣告",
+    "description": "在網頁文中展現即時的直播影片，有效在短時間内直線提升觀看人數。",
+    "coverImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/Screenshot_20231002_173317_Edge.jpg",
+    "coverPcImage": "https://demopage-cms.multiforce.com.tw/sites/default/files/2024-05/Live_PC.png",
+    "specImageMobile": "",
+    "specImagePc": "",
+    "specs": [
+      {
+        "title": "背景圖檔x1",
+        "info": "素材尺寸：300x250, 336x280, 300x600, 320x480\r\n檔案類型：JPG/PNG/GIF\r\n檔案大小：小於 4 MB\r\n導頁連結：僅一個主導連"
+      },
+      {
+        "title": "直播網址x1",
+        "info": "直播連結：一個 Facebook 直播連結"
+      }
+    ],
+    "carousels": [
+      {
+        "id": "128",
+        "device": "mobile",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-10/1gtdj-9hfr3.gif",
+        "localGif": "/multiforce-gifs/40-mobile-128.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176742"
+      },
+      {
+        "id": "209",
+        "device": "desktop",
+        "gifUrl": "https://demopage-cms.multiforce.com.tw/sites/default/files/2023-09/kidsy-wocea.gif",
+        "localGif": "/multiforce-gifs/40-desktop-209.gif",
+        "demoLink": "https://cdn.holmesmind.com/dev/Mike/Pagination/Clickforce.html?cfadc=10230:176742"
+      }
+    ],
+    "hasGif": true
+  }
+]
