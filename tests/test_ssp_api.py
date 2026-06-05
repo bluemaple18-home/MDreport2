@@ -12,10 +12,12 @@ from unittest.mock import patch
 
 from infra.ssp_api import (
     DEFAULT_AUTH_DECRYPT_KEY,
+    SSP_MONTHLY_CREATIVE_REQUEST_SIZE_IDS,
     SspApiClient,
     SspAuthError,
     SspApiSettings,
     SspScopeCheckAuth,
+    build_ssp_size_id_filter,
     build_ssp_monthly_zone_campaign_size_report_condition_payload,
     normalize_ssp_monthly_zone_campaign_size_rows,
     normalize_ssp_report_rows,
@@ -219,6 +221,33 @@ class SspApiTests(unittest.TestCase):
             [item["id"] for item in payload["dimension"]],
             ["data_time", "zone_id", "campaign_id", "creative_size_id"],
         )
+
+    def test_monthly_creative_request_filter_uses_pages_a_size_ids(self) -> None:
+        filters = build_ssp_size_id_filter(SSP_MONTHLY_CREATIVE_REQUEST_SIZE_IDS)
+        payload = build_ssp_monthly_zone_campaign_size_report_condition_payload(
+            start_day="2026-04-01",
+            end_day="2026-04-30",
+            pb=0,
+            dimensions=[
+                {"id": "data_time", "name": "時間"},
+                {"id": "zone_id", "name": "版位"},
+                {"id": "creative_size_id", "name": "素材尺寸"},
+            ],
+            filters=filters,
+        )
+
+        values = payload["filter"][0]["value"]
+        size_ids = [item["id"] for item in values]
+        self.assertEqual(len(size_ids), 79)
+        self.assertIn(177, size_ids)
+        self.assertIn(187, size_ids)
+        self.assertNotIn(163, size_ids)
+        self.assertNotIn(166, size_ids)
+        self.assertNotIn(186, size_ids)
+        self.assertNotIn(240, size_ids)
+        self.assertNotIn(241, size_ids)
+        self.assertNotIn(242, size_ids)
+        self.assertEqual([item["id"] for item in payload["dimension"]], ["data_time", "zone_id", "creative_size_id"])
 
     def test_normalize_ssp_monthly_zone_campaign_size_rows_maps_chart_fields(self) -> None:
         rows = normalize_ssp_monthly_zone_campaign_size_rows(

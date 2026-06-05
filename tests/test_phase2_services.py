@@ -12,7 +12,7 @@ from openpyxl import Workbook, load_workbook
 from domain.services import CanonicalService, _monthly_report_row_ad_format
 from infra.sqlite.bootstrap import bootstrap_init
 from infra.sqlite.repository import SQLiteRepository
-from infra.ssp_api import SspApiSettings
+from infra.ssp_api import SSP_MONTHLY_CREATIVE_REQUEST_SIZE_IDS, SspApiSettings
 
 
 class Phase2ServicesTests(unittest.TestCase):
@@ -1445,11 +1445,25 @@ class Phase2ServicesTests(unittest.TestCase):
                 end_day: str,
                 pb: int = 1,
                 dimensions: list[dict[str, object]] | None = None,
+                filters: list[dict[str, object]] | None = None,
             ) -> dict[str, object]:
                 if start_day != "2026-04-01" or end_day != "2026-04-30":
                     raise AssertionError("monthly SSP fetch range should be preserved")
                 if pb not in {0, 1}:
                     raise AssertionError("monthly SSP fetch should use pb=1 delivery and pb=0 request")
+                if pb == 0:
+                    if [item["id"] for item in dimensions or []] != ["data_time", "zone_id", "creative_size_id"]:
+                        raise AssertionError("monthly SSP request fetch should use zone size dimensions")
+                    if filters:
+                        values = ((filters or [{}])[0].get("value") if filters else []) or []
+                        size_ids = [int(item.get("id") or 0) for item in values if isinstance(item, dict)]
+                        if tuple(size_ids) != SSP_MONTHLY_CREATIVE_REQUEST_SIZE_IDS:
+                            raise AssertionError("monthly SSP creative request fetch should use Pages A size_id filter")
+                else:
+                    if filters:
+                        raise AssertionError("monthly SSP delivery fetch should not use request size_id filter")
+                is_creative_request = pb == 0 and bool(filters)
+                report_id = 176100 if is_creative_request else 175981 + pb
                 rows = [
                     {
                         "data_time": "2026-04",
@@ -1458,8 +1472,8 @@ class Phase2ServicesTests(unittest.TestCase):
                         "campaign_id": "C1" if pb == 1 else "",
                         "campaignName": "Campaign A" if pb == 1 else "",
                         "creative_size_id": "純蓋板 300x250" if pb == 1 else "",
-                        "request": "10" if pb == 1 else "12",
-                        "impress": "100" if pb == 1 else "120",
+                        "request": "10" if pb == 1 else ("12" if is_creative_request else "100"),
+                        "impress": "100" if pb == 1 else ("12" if is_creative_request else "120"),
                         "click": "5" if pb == 1 else "0",
                         "profit": "100.25" if pb == 1 else "0",
                         "advertiser_mu": "200.50" if pb == 1 else "0",
@@ -1471,8 +1485,8 @@ class Phase2ServicesTests(unittest.TestCase):
                         "campaign_id": "C2" if pb == 1 else "",
                         "campaignName": "Campaign B" if pb == 1 else "",
                         "creative_size_id": "320x480",
-                        "request": "20" if pb == 1 else "25",
-                        "impress": "200" if pb == 1 else "250",
+                        "request": "20" if pb == 1 else ("25" if is_creative_request else "200"),
+                        "impress": "200" if pb == 1 else ("25" if is_creative_request else "250"),
                         "click": "10" if pb == 1 else "0",
                         "profit": "300.75" if pb == 1 else "0",
                         "advertiser_mu": "500.50" if pb == 1 else "0",
@@ -1484,10 +1498,10 @@ class Phase2ServicesTests(unittest.TestCase):
                         "user": {"id": 2072, "email": "ssp@example.com"},
                     },
                     "login": {"id": 2072, "email": "ssp@example.com"},
-                    "report_condition": {"code": "200", "data": {"id": 175981 + pb}},
+                    "report_condition": {"code": "200", "data": {"id": report_id}},
                     "report_result": {"code": "200", "data": {"recordsTotal": 2}},
-                    "report_id": 175981 + pb,
-                    "report_ids": [175981 + pb],
+                    "report_id": report_id,
+                    "report_ids": [report_id],
                     "records_total": 2,
                     "chunk_mode": "single",
                     "chunk_days": 30,
@@ -1555,25 +1569,30 @@ class Phase2ServicesTests(unittest.TestCase):
             self.assertEqual(out["status"], "ok")
             self.assertEqual(out["workflow"], "monthly")
             self.assertEqual(out["report_kind"], "ssp_regular_monthly_zone_campaign_size")
-            self.assertEqual(out["row_count"], 4)
-            self.assertEqual(out["records_total"], 8)
+            self.assertEqual(out["row_count"], 6)
+            self.assertEqual(out["records_total"], 10)
             self.assertEqual(out["report_id"], 175982)
             self.assertEqual(out["delivery_row_count"], 2)
             self.assertEqual(out["request_row_count"], 2)
+            self.assertEqual(out["creative_request_row_count"], 2)
             self.assertEqual(out["country_row_count"], 2)
             self.assertEqual(out["child_country_row_count"], 2)
             self.assertEqual(Path(out["monthly_report_db_path"]).resolve(), (root / "data" / "monthly_report.sqlite").resolve())
 
             rows = repo.read_monthly_report_rows(month="2026-04")
-            self.assertEqual(len(rows), 4)
+            self.assertEqual(len(rows), 6)
             self.assertEqual(sum(float(row["profit"] or 0.0) for row in rows), 401.0)
             self.assertEqual(sum(float(row["advertiser_mu"] or 0.0) for row in rows), 701.0)
-            self.assertEqual(sum(float(row["request"] or 0.0) for row in rows), 37.0)
-            self.assertEqual(sum(float(row["request_including_padding"] or 0.0) for row in rows), 37.0)
+            self.assertEqual(sum(float(row["request"] or 0.0) for row in rows), 337.0)
+            self.assertEqual(sum(float(row["request_including_padding"] or 0.0) for row in rows), 337.0)
             self.assertEqual(sum(float(row["request_excluding_padding"] or 0.0) for row in rows), 30.0)
             self.assertEqual(sum(float(row["impress"] or 0.0) for row in rows), 300.0)
-            self.assertEqual(sum(float(row["impress_including_padding"] or 0.0) for row in rows), 370.0)
+            self.assertEqual(sum(float(row["impress_including_padding"] or 0.0) for row in rows), 407.0)
             self.assertEqual(sum(float(row["impress_excluding_padding"] or 0.0) for row in rows), 300.0)
+            request_summary_rows = [row for row in rows if ":pb0_request" in str(row.get("source") or "")]
+            creative_request_rows = [row for row in rows if ":pb0_creative_request" in str(row.get("source") or "")]
+            self.assertEqual(sum(float(row["request"] or 0.0) for row in request_summary_rows), 300.0)
+            self.assertEqual(sum(float(row["request"] or 0.0) for row in creative_request_rows), 37.0)
             c1_delivery_row = next(row for row in rows if str(row.get("campaign_id") or "") == "C1")
             self.assertEqual(str(c1_delivery_row["ad_format"]), "創意廣告")
 
@@ -1665,6 +1684,7 @@ class Phase2ServicesTests(unittest.TestCase):
             charts_snapshot = svc.build_monthly_charts_snapshot(months=["2026-04"], limit=1)
             self.assertEqual(charts_snapshot["networkGroup"]["zoneCount"], 2)
             self.assertEqual(charts_snapshot["monthly"][0]["impress"], 370.0)
+            self.assertEqual(charts_snapshot["monthly"][0]["request"], 300.0)
             self.assertAlmostEqual(float(charts_snapshot["monthly"][0]["dailyImpress"]), 12.33, places=2)
             self.assertEqual(len(charts_snapshot["networkUsage"]), 1)
             network_usage = charts_snapshot["networkUsage"][0]
@@ -1672,8 +1692,8 @@ class Phase2ServicesTests(unittest.TestCase):
             self.assertEqual(network_usage["main"]["request"], 210.0)
             self.assertAlmostEqual(float(network_usage["childRequestShare"]), 30.0, places=4)
             traffic_creative = charts_snapshot["trafficDaily"]["creative"][0]
-            self.assertEqual(traffic_creative["request"], 0.0)
-            self.assertEqual(traffic_creative["dailyRequest"], 0.0)
+            self.assertEqual(traffic_creative["request"], 37.0)
+            self.assertAlmostEqual(float(traffic_creative["dailyRequest"]), 1.23, places=2)
             self.assertLessEqual(traffic_creative["dailyRequest"], charts_snapshot["monthly"][0]["dailyRequest"])
             top_campaign = charts_snapshot["topCampaignsByMonth"]["2026-04"][0]
             self.assertEqual(top_campaign["campaignId"], "C2")

@@ -634,7 +634,9 @@ def collect_workflow_frame(
                 )
             summary["tab4_preview_template_summary"] = template_summary
             summary["tab4_preview_template_detail"] = template_detail
-        if ctx.workflow == "monthly":
+        if ctx.workflow == "monthly" and main_tab == "monthly_charts":
+            summary["monthly_charts"] = service.build_monthly_charts_snapshot()
+        elif ctx.workflow == "monthly":
             summary["monthly_p4"] = service.build_monthly_p4_snapshot(
                 week_start=period_week_start,
                 week_end=period_week_end,
@@ -644,8 +646,6 @@ def collect_workflow_frame(
                 week_end=period_week_end,
                 manual_source="test",
             )
-            if main_tab == "monthly_charts":
-                summary["monthly_charts"] = service.build_monthly_charts_snapshot()
     except Exception as exc:
         summary["frame_error"] = str(exc)
     return summary

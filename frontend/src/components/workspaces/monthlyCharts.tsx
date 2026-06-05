@@ -593,8 +593,8 @@ function ComboChartWithTable({
           y={height - 28}
           itemWidth={170}
           items={[
-            ...bars.map((series) => ({ label: `${series.label}（柱狀）`, color: series.color, kind: "bar" as const })),
-            { label: `${line.label}（折線）`, color: line.color, kind: "line" },
+            ...bars.map((series) => ({ label: series.label, color: series.color, kind: "bar" as const })),
+            { label: line.label, color: line.color, kind: "line" },
           ]}
         />
       </svg>
@@ -846,9 +846,9 @@ function FormatInvestmentChart({
 
   return (
     <div className="monthly-format-investment">
-      <CopyableAsset id="monthly-asset-format-bars" title="長條圖" copied={copiedAssetId === "monthly-asset-format-bars"} onCopy={onCopy}>
+      <CopyableAsset id="monthly-asset-format-bars" title="圖表" copied={copiedAssetId === "monthly-asset-format-bars"} onCopy={onCopy}>
         <div className="monthly-slide-chart">
-          <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="廣告形式 DSP 日均投資額長條圖">
+          <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="廣告形式 DSP 日均投資額">
             {[0, 1, 2, 3, 4].map((tick) => {
               const y = top + (plotH / 4) * tick;
               const value = maxValue - (maxValue / 4) * tick;
@@ -884,7 +884,7 @@ function FormatInvestmentChart({
               itemWidth={190}
               columns={3}
               items={formatNames.map((name, index) => ({
-                label: `${formatFormatName(name)}（柱狀）`,
+                label: formatFormatName(name),
                 color: FORMAT_COLORS[index % FORMAT_COLORS.length],
               }))}
             />
@@ -905,12 +905,12 @@ function FormatInvestmentChart({
       </CopyableAsset>
       <CopyableAsset
         id="monthly-asset-format-pie"
-        title="圓餅圖"
+        title="占比"
         copied={copiedAssetId === "monthly-asset-format-pie"}
         onCopy={onCopy}
         toolbar={
           <div className="monthly-copyable-month-control">
-            <span>圓餅 / Top 月份</span>
+            <span>Top 月份</span>
             <div className="monthly-chart-month-tabs" role="tablist" aria-label="單月素材月份">
               {months.map((m) => (
                 <button
@@ -927,7 +927,7 @@ function FormatInvestmentChart({
         }
       >
         <div className="monthly-pie-card">
-          <svg viewBox="0 0 640 430" role="img" aria-label="廣告形式 DSP 日均投資額圓餅圖">
+          <svg viewBox="0 0 640 430" role="img" aria-label="廣告形式 DSP 日均投資額占比">
             <text x={320} y={34} textAnchor="middle" className="monthly-pie-title">
               {month} 廣告形式 DSP 日均投資額
             </text>

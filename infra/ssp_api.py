@@ -70,6 +70,88 @@ SSP_MONTHLY_ZONE_SIZE_DIMENSIONS = [
     {"id": "creative_size_id", "name": "素材尺寸"},
 ]
 
+SSP_MONTHLY_CREATIVE_REQUEST_SIZE_IDS = (
+    36,
+    55,
+    56,
+    57,
+    58,
+    59,
+    66,
+    67,
+    73,
+    77,
+    80,
+    81,
+    83,
+    84,
+    85,
+    86,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    109,
+    111,
+    112,
+    116,
+    117,
+    119,
+    120,
+    121,
+    123,
+    124,
+    125,
+    146,
+    147,
+    148,
+    152,
+    153,
+    154,
+    155,
+    158,
+    159,
+    160,
+    161,
+    162,
+    167,
+    168,
+    169,
+    170,
+    171,
+    172,
+    173,
+    174,
+    175,
+    177,
+    178,
+    181,
+    183,
+    184,
+    187,
+    188,
+    201,
+    203,
+    210,
+    213,
+    224,
+    227,
+    228,
+    237,
+    243,
+)
+
 SSP_MONTHLY_COUNTRY_DIMENSIONS = [
     {"id": "data_time", "name": "時間"},
     {"id": "country", "name": "國家"},
@@ -328,6 +410,15 @@ def build_ssp_report_condition_payload(
     }
 
 
+def build_ssp_size_id_filter(size_ids: tuple[int, ...] | list[int]) -> list[dict[str, object]]:
+    return [
+        {
+            "name": "size_id",
+            "value": [{"id": int(size_id), "name": str(int(size_id))} for size_id in size_ids],
+        }
+    ]
+
+
 def build_ssp_ad_group_report_condition_payload(
     *,
     start_day: str,
@@ -356,12 +447,14 @@ def build_ssp_monthly_zone_campaign_size_report_condition_payload(
     end_day: str,
     pb: int = 1,
     dimensions: list[dict[str, object]] | None = None,
+    filters: list[dict[str, object]] | None = None,
 ) -> dict[str, object]:
     return build_ssp_report_condition_payload(
         start_day=start_day,
         end_day=end_day,
         report_time="monthly",
         pb=pb,
+        filters=filters,
         dimensions=dimensions or SSP_MONTHLY_ZONE_CAMPAIGN_SIZE_DIMENSIONS,
     )
 
@@ -703,6 +796,7 @@ class SspApiClient:
         end_day: str,
         pb: int = 1,
         dimensions: list[dict[str, object]] | None = None,
+        filters: list[dict[str, object]] | None = None,
     ) -> dict[str, object]:
         auth = self._auth.authenticate()
         token = _strip_text(auth.get("token"))
@@ -718,6 +812,7 @@ class SspApiClient:
             end_day=end_day,
             pb=pb,
             dimensions=dimensions,
+            filters=filters,
         )
         report_id = _coerce_int((report_condition.get("data") or {}).get("id"))
         if report_id <= 0:
@@ -849,6 +944,7 @@ class SspApiClient:
         end_day: str,
         pb: int = 1,
         dimensions: list[dict[str, object]] | None = None,
+        filters: list[dict[str, object]] | None = None,
     ) -> dict[str, object]:
         payload = _request_json(
             self.settings.report_conditions_url,
@@ -859,6 +955,7 @@ class SspApiClient:
                 end_day=end_day,
                 pb=pb,
                 dimensions=dimensions,
+                filters=filters,
             ),
             timeout_seconds=self.settings.timeout_seconds,
         )

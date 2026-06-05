@@ -22,9 +22,11 @@ from infra.dsp_api import DspApiClient, normalize_dsp_report_rows, resolve_dsp_a
 from infra.dsp_rules import classify_dsp_row
 from infra.sqlite.repository import SQLiteRepository
 from infra.ssp_api import (
+    SSP_MONTHLY_CREATIVE_REQUEST_SIZE_IDS,
     SSP_MONTHLY_COUNTRY_DIMENSIONS,
     SSP_MONTHLY_ZONE_SIZE_DIMENSIONS,
     SspApiClient,
+    build_ssp_size_id_filter,
     normalize_ssp_ad_group_report_rows,
     normalize_ssp_monthly_country_rows,
     normalize_ssp_monthly_zone_campaign_size_rows,
@@ -152,56 +154,6 @@ SSP_AD_GROUP_CATALOG = [
 SSP_AD_GROUP_CATALOG_BY_ID = {int(item["id"]): item for item in SSP_AD_GROUP_CATALOG}
 SSP_AD_GROUP_METRICS = ["request", "impress", "click", "ctr", "ecpm", "ecpc", "advertiser_mu"]
 MONTHLY_PRESENTATION_VIDEO_FORMATS = {"影音摩天", "preroll"}
-MONTHLY_CREATIVE_TRAFFIC_EXCLUDED_FORMATS = {"一般廣告", "影音摩天", "preroll", "DOOH北流"}
-MONTHLY_CREATIVE_TRAFFIC_EXCLUDED_TOKENS = (
-    "橫幅",
-    "banner",
-    "影音廣告",
-    "原生廣告",
-    "vast",
-    "pre-roll",
-    "pre roll",
-    "preroll",
-    "影音摩天",
-)
-MONTHLY_CREATIVE_TRAFFIC_INCLUDED_SIZE_IDS = {
-    "36",
-    "55",
-    "56",
-    "59",
-    "67",
-    "73",
-    "77",
-    "81",
-    "86",
-    "91",
-    "93",
-    "94",
-    "95",
-    "96",
-    "101",
-    "102",
-    "103",
-    "104",
-    "106",
-    "109",
-    "116",
-    "120",
-    "121",
-    "146",
-    "154",
-    "155",
-    "160",
-    "168",
-    "184",
-    "201",
-    "203",
-    "210",
-    "213",
-    "227",
-    "228",
-    "237",
-}
 TAB4_DETAIL_SECTION_SPECS = [
     {
         "id": "marketing",
@@ -373,19 +325,16 @@ def _is_taiwan_country(value: object) -> bool:
     return token in {"tw", "twn", "taiwan", "台灣", "臺灣", "taiwan,provinceofchina"}
 
 
-def _is_monthly_creative_traffic_row(row: dict[str, object]) -> bool:
-    creative_size_id = str(row.get("creative_size_id") or "").strip()
-    if not creative_size_id:
-        return _monthly_report_row_ad_format(row) not in MONTHLY_CREATIVE_TRAFFIC_EXCLUDED_FORMATS
-    size_id = _monthly_creative_size_id(creative_size_id)
-    if size_id:
-        return size_id in MONTHLY_CREATIVE_TRAFFIC_INCLUDED_SIZE_IDS
-    token = _monthly_creative_size_token(creative_size_id)
-    if not token:
-        return False
-    if any(_monthly_creative_size_token(excluded) in token for excluded in MONTHLY_CREATIVE_TRAFFIC_EXCLUDED_TOKENS):
-        return False
-    return _monthly_report_row_ad_format(row) not in MONTHLY_CREATIVE_TRAFFIC_EXCLUDED_FORMATS
+def _monthly_row_source(row: dict[str, object]) -> str:
+    return str(row.get("source") or "")
+
+
+def _is_monthly_request_summary_row(row: dict[str, object]) -> bool:
+    return ":pb0_request" in _monthly_row_source(row)
+
+
+def _is_monthly_creative_request_summary_row(row: dict[str, object]) -> bool:
+    return ":pb0_creative_request" in _monthly_row_source(row)
 
 
 def _monthly_request_summary_row(row: dict[str, object]) -> dict[str, object]:
@@ -417,6 +366,12 @@ def _monthly_request_summary_row(row: dict[str, object]) -> dict[str, object]:
         "dsp_ecpc",
     ):
         summary[key] = 0.0
+    return summary
+
+
+def _monthly_creative_request_summary_row(row: dict[str, object]) -> dict[str, object]:
+    summary = _monthly_request_summary_row(row)
+    summary["source"] = f"{row.get('source') or ''}:pb0_creative_request"
     return summary
 
 
@@ -2603,6 +2558,13 @@ class CanonicalService:
             pb=0,
             dimensions=SSP_MONTHLY_ZONE_SIZE_DIMENSIONS,
         )
+        creative_request_bundle = client.fetch_monthly_zone_campaign_size_bundle(
+            start_day=start_day,
+            end_day=end_day,
+            pb=0,
+            dimensions=SSP_MONTHLY_ZONE_SIZE_DIMENSIONS,
+            filters=build_ssp_size_id_filter(SSP_MONTHLY_CREATIVE_REQUEST_SIZE_IDS),
+        )
         country_bundle = client.fetch_monthly_country_bundle(
             start_day=start_day,
             end_day=end_day,
@@ -2622,6 +2584,10 @@ class CanonicalService:
             [row for row in request_bundle["rows"] if isinstance(row, dict)],
             source_name=settings.source_name,
         )
+        creative_request_rows = normalize_ssp_monthly_zone_campaign_size_rows(
+            [row for row in creative_request_bundle["rows"] if isinstance(row, dict)],
+            source_name=settings.source_name,
+        )
         country_rows = normalize_ssp_monthly_country_rows(
             [row for row in country_bundle["rows"] if isinstance(row, dict)],
             source_name=settings.source_name,
@@ -2635,6 +2601,7 @@ class CanonicalService:
         )
         rows = [
             *[_monthly_request_summary_row(row) for row in request_rows],
+            *[_monthly_creative_request_summary_row(row) for row in creative_request_rows],
             *[_monthly_delivery_detail_row(row) for row in delivery_rows],
         ]
         auth = delivery_bundle.get("auth") if isinstance(delivery_bundle.get("auth"), dict) else {}
@@ -2648,6 +2615,11 @@ class CanonicalService:
         request_condition = (
             request_bundle.get("report_condition") if isinstance(request_bundle.get("report_condition"), dict) else {}
         )
+        creative_request_condition = (
+            creative_request_bundle.get("report_condition")
+            if isinstance(creative_request_bundle.get("report_condition"), dict)
+            else {}
+        )
         country_condition = (
             country_bundle.get("report_condition") if isinstance(country_bundle.get("report_condition"), dict) else {}
         )
@@ -2656,6 +2628,11 @@ class CanonicalService:
         )
         delivery_result = delivery_bundle.get("report_result") if isinstance(delivery_bundle.get("report_result"), dict) else {}
         request_result = request_bundle.get("report_result") if isinstance(request_bundle.get("report_result"), dict) else {}
+        creative_request_result = (
+            creative_request_bundle.get("report_result")
+            if isinstance(creative_request_bundle.get("report_result"), dict)
+            else {}
+        )
         country_result = country_bundle.get("report_result") if isinstance(country_bundle.get("report_result"), dict) else {}
         child_country_result = (
             child_country_bundle.get("report_result") if isinstance(child_country_bundle.get("report_result"), dict) else {}
@@ -2674,6 +2651,7 @@ class CanonicalService:
                 report_id=int(delivery_bundle.get("report_id") or 0),
                 records_total=int(delivery_bundle.get("records_total") or 0)
                 + int(request_bundle.get("records_total") or 0)
+                + int(creative_request_bundle.get("records_total") or 0)
                 + int(country_bundle.get("records_total") or 0)
                 + int(child_country_bundle.get("records_total") or 0),
                 source=settings.source_name,
@@ -2681,12 +2659,14 @@ class CanonicalService:
                 request_payload={
                     "delivery_pb1": delivery_condition,
                     "request_pb0": request_condition,
+                    "creative_request_pb0": creative_request_condition,
                     "country_pb0": country_condition,
                     "child_country_pb0": child_country_condition,
                 },
                 response_payload={
                     "delivery_pb1": delivery_result,
                     "request_pb0": request_result,
+                    "creative_request_pb0": creative_request_result,
                     "country_pb0": country_result,
                     "child_country_pb0": child_country_result,
                 },
@@ -2707,12 +2687,14 @@ class CanonicalService:
             "row_count": changed,
             "records_total": int(delivery_bundle.get("records_total") or 0)
             + int(request_bundle.get("records_total") or 0)
+            + int(creative_request_bundle.get("records_total") or 0)
             + int(country_bundle.get("records_total") or 0)
             + int(child_country_bundle.get("records_total") or 0),
             "report_id": int(delivery_bundle.get("report_id") or 0),
             "report_ids": [
                 *list(delivery_bundle.get("report_ids") or []),
                 *list(request_bundle.get("report_ids") or []),
+                *list(creative_request_bundle.get("report_ids") or []),
                 *list(country_bundle.get("report_ids") or []),
                 *list(child_country_bundle.get("report_ids") or []),
             ],
@@ -2722,6 +2704,7 @@ class CanonicalService:
             "request_pb": 0,
             "delivery_row_count": len(delivery_rows),
             "request_row_count": len(request_rows),
+            "creative_request_row_count": len(creative_request_rows),
             "country_row_count": len(country_rows),
             "child_country_row_count": len(child_country_rows),
             "service_id": int(auth.get("service_id") or 0),
@@ -2737,6 +2720,7 @@ class CanonicalService:
             raise ValueError("month must be YYYY-MM")
         start_day, end_day = _month_date_range(month_text)
         rows = self.repo.read_monthly_report_rows(month=month_text)
+        rows = [row for row in rows if not _is_monthly_creative_request_summary_row(row)]
         latest_run = self.repo.read_latest_monthly_report_run(
             report_kind="ssp_regular_monthly_zone_campaign_size",
             month=month_text,
@@ -2790,6 +2774,7 @@ class CanonicalService:
             raise ValueError("month must be YYYY-MM")
         start_day, end_day = _month_date_range(month_text)
         rows = self.repo.read_monthly_report_rows(month=month_text)
+        rows = [row for row in rows if not _is_monthly_creative_request_summary_row(row)]
         latest_run = self.repo.read_latest_monthly_report_run(
             report_kind="ssp_regular_monthly_zone_campaign_size",
             month=month_text,
@@ -2979,7 +2964,11 @@ class CanonicalService:
                 excluded = float(row.get("impress_excluding_padding") or 0.0)
                 if padded > 0:
                     return padded
-                if excluded > 0 or ":pb0_request" in str(row.get("source") or ""):
+                if (
+                    excluded > 0
+                    or _is_monthly_request_summary_row(row)
+                    or _is_monthly_creative_request_summary_row(row)
+                ):
                     return 0.0
                 return float(row.get("impress") or 0.0)
 
@@ -2991,12 +2980,13 @@ class CanonicalService:
                     target[key] = float(target.get(key) or 0.0) + float(row_value or 0.0)
 
             for row in rows:
+                if _is_monthly_creative_request_summary_row(row):
+                    add_metric(creative_traffic, row, include_padding_impress=True)
+                    continue
                 zone_id = int(row.get("zone_id") or 0)
                 add_metric(monthly, row, include_padding_impress=True)
                 if zone_id in child_zone_ids:
                     add_metric(child_network, row, include_padding_impress=True)
-                if _is_monthly_creative_traffic_row(row):
-                    add_metric(creative_traffic, row, include_padding_impress=True)
                 fmt_key = _monthly_report_row_ad_format(row) or "未分類"
                 fmt = by_format.setdefault(fmt_key, {"month": month_text, "adFormat": fmt_key})
                 add_metric(fmt, row)

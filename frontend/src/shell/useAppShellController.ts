@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { RecentMap } from "../components/workspaces/shared";
 import { buildExportDownloadUrl } from "../api/runtimeApi";
 import { getMainTabOptions, getSubTabOptions } from "../state/runtimeContract";
@@ -15,6 +15,9 @@ type TabOption = {
   label: string;
 };
 
+const EMPTY_ROWS: Array<Record<string, unknown>> = [];
+const EMPTY_STRINGS: string[] = [];
+
 function isDspDateBucketPreset(preset: PeriodPreset): preset is DspDateBucket {
   return preset === "last_week"
     || preset === "two_weeks_ago"
@@ -25,6 +28,7 @@ function isDspDateBucketPreset(preset: PeriodPreset): preset is DspDateBucket {
 export function useAppShellController() {
   const { state, dispatch, refreshRuntime, refreshStatus, refreshFrame, runAction, runActionWithResult } = useRuntimeStore();
   const [runtimeDetailsOpen, setRuntimeDetailsOpen] = useState<boolean>(false);
+  const lastAutoFrameRefreshKey = useRef<string>("");
   const runtimeContextKey = [
     state.ctx.root,
     state.ctx.env,
@@ -42,6 +46,13 @@ export function useAppShellController() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runtimeContextKey]);
 
+  const frameRefreshKey = [
+    state.route.workflow,
+    state.route.mainTab,
+    state.period.weekStart,
+    state.period.weekEnd,
+  ].join("\n");
+
   useEffect(() => {
     const shouldRefreshFrame =
       (state.route.workflow === "dsp" && state.route.mainTab === "dsp_tab4")
@@ -52,8 +63,14 @@ export function useAppShellController() {
     if (!shouldRefreshFrame) {
       return;
     }
+    if (lastAutoFrameRefreshKey.current === frameRefreshKey) {
+      return;
+    }
+    lastAutoFrameRefreshKey.current = frameRefreshKey;
     void refreshFrame();
-  }, [refreshFrame, state.period.weekEnd, state.period.weekStart, state.route.mainTab, state.route.workflow]);
+  // 自動刷新以 route/period key 為準，避免 callback identity 變動時重複送出 frame request。
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frameRefreshKey]);
 
   const healthStatus =
     state.statusPayload?.status === "ok"
@@ -61,8 +78,8 @@ export function useAppShellController() {
       : "error";
 
   const frameResult = state.framePayload?.result as RuntimeFrameResult | undefined;
-  const allColumns = frameResult?.columns || [];
-  const allRows = frameResult?.rows || [];
+  const allColumns = frameResult?.columns || EMPTY_STRINGS;
+  const allRows = frameResult?.rows || EMPTY_ROWS;
   const tab4TemplateSummary = frameResult?.tab4_preview_template_summary || null;
   const tab4TemplateDetail = frameResult?.tab4_preview_template_detail || null;
   const tab4PreviewContract = frameResult?.tab4_preview_contract || null;
@@ -71,7 +88,7 @@ export function useAppShellController() {
   const monthlyP4 = frameResult?.monthly_p4 as MonthlyP4Snapshot | undefined;
   const monthlyP4Test = frameResult?.monthly_p4_test as MonthlyP4Snapshot | undefined;
   const monthlyCharts = frameResult?.monthly_charts as MonthlyChartsSnapshot | undefined;
-  const manualFields = frameResult?.manual_fields || [];
+  const manualFields = frameResult?.manual_fields || EMPTY_STRINGS;
   const workflowCapability = useMemo(() => getWorkflowCapability(state.route.workflow), [state.route.workflow]);
   const rawdataCapability = workflowCapability.rawdata;
   const workspaceVisibility = useMemo(() => getWorkspaceVisibilityCapability(state.route), [state.route]);

@@ -24,6 +24,8 @@ function buildApiUrl(path: string): string {
   return `${base}${normalizedPath}`;
 }
 
+const inFlightFrameRequests = new Map<string, Promise<RuntimeEnvelope<RuntimeFrameResult>>>();
+
 function withQuery(ctx: RuntimeContext): string {
   const params = new URLSearchParams({
     root: ctx.root,
@@ -104,8 +106,18 @@ export async function fetchFrame(
   if (route?.sub_tab) {
     query.set("sub_tab", route.sub_tab);
   }
-  const resp = await fetch(`${buildApiUrl("/api/frame")}?${query.toString()}`, { cache: "no-store" });
-  return parseEnvelope<RuntimeFrameResult>(resp);
+  const url = `${buildApiUrl("/api/frame")}?${query.toString()}`;
+  const existing = inFlightFrameRequests.get(url);
+  if (existing) {
+    return existing;
+  }
+  const request = fetch(url, { cache: "no-store" })
+    .then((resp) => parseEnvelope<RuntimeFrameResult>(resp))
+    .finally(() => {
+      inFlightFrameRequests.delete(url);
+    });
+  inFlightFrameRequests.set(url, request);
+  return request;
 }
 
 export async function fetchSspMediaDemand(
