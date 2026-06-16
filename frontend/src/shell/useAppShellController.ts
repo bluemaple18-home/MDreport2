@@ -85,6 +85,8 @@ export function useAppShellController() {
   const tab4PreviewContract = frameResult?.tab4_preview_contract || null;
   const sspMediaDemandConfig = frameResult?.ssp_media_demand as SspMediaDemandConfig | undefined;
   const sspAdGroupMonitor = frameResult?.ssp_ad_group_monitor;
+  const sspExcludingPaddingRows = frameResult?.ssp_excluding_padding_rows || EMPTY_ROWS;
+  const sspPaddingScope = frameResult?.ssp_padding_scope;
   const monthlyP4 = frameResult?.monthly_p4 as MonthlyP4Snapshot | undefined;
   const monthlyP4Test = frameResult?.monthly_p4_test as MonthlyP4Snapshot | undefined;
   const monthlyCharts = frameResult?.monthly_charts as MonthlyChartsSnapshot | undefined;
@@ -182,6 +184,8 @@ export function useAppShellController() {
     tab4PreviewContract,
     sspMediaDemandConfig,
     sspAdGroupMonitor,
+    sspExcludingPaddingRows,
+    sspPaddingScope,
     monthlyP4,
     monthlyP4Test,
     monthlyCharts,

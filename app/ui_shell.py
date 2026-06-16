@@ -55,6 +55,7 @@ SANDBOX_MUTATING_ACTIONS = {
     "monthly_p4_test_template_upload",
     "monthly_p4_close",
     "fetch_ssp_api",
+    "fetch_ssp_excluding_padding_api",
     "fetch_ssp_ad_group_api",
     "fetch_dsp_api",
     "seed_rebuild",
@@ -148,6 +149,56 @@ def _latest_day_rows(rows: list[dict[str, Any]]) -> tuple[str, list[dict[str, An
     if not latest_day:
         return "", rows
     return latest_day, [row for row in rows if _row_day_text(row) == latest_day]
+
+
+def _ssp_placement_fact_key(row: dict[str, Any]) -> tuple[str, int, int]:
+    try:
+        hour = int(row.get("hour") or 0)
+    except Exception:
+        hour = 0
+    try:
+        placement_id = int(row.get("placement_id") or 0)
+    except Exception:
+        placement_id = 0
+    return (_row_day_text(row), hour, placement_id)
+
+
+def _merge_ssp_excluding_padding_rows(
+    *,
+    including_rows: list[dict[str, Any]],
+    excluding_rows: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    excluding_by_key = {_ssp_placement_fact_key(row): row for row in excluding_rows}
+    metric_fields = {
+        "impression",
+        "clicks",
+        "revenue",
+        "dsp_amount",
+        "active_view",
+        "active_view_rate",
+        "ctr",
+        "ecpm",
+        "ecpc",
+        "invalid_impress",
+        "invalid_click",
+        "profit",
+        "site_mu",
+        "advertiser_mu",
+        "dsp_ecpm",
+        "dsp_ecpc",
+    }
+    merged: list[dict[str, Any]] = []
+    for including in including_rows:
+        excluding = excluding_by_key.get(_ssp_placement_fact_key(including), {})
+        item = dict(including)
+        for field in metric_fields:
+            item[field] = excluding.get(field, 0.0)
+        item["padding_scope"] = "mixed_request_including_metrics_excluding"
+        item["pb"] = 1
+        item["request_padding_scope"] = "including_padding"
+        item["metric_padding_scope"] = "excluding_padding"
+        merged.append(item)
+    return merged
 
 
 def _sandbox_lock_key(ctx: UiContext) -> str:
@@ -535,6 +586,7 @@ def collect_workflow_frame(
     if not db_path.exists():
         return summary
 
+    ssp_excluding_fact_rows: list[dict[str, Any]] = []
     try:
         service = _build_service(
             ctx.root,
@@ -562,6 +614,20 @@ def collect_workflow_frame(
                     ctx.runtime_env,
                     cfg.data_seed_root,
                 )
+                if main_tab == "ssp_anomaly":
+                    ssp_excluding_fact_rows = repo.read_ssp_performance_facts(
+                        dataset="placement_hourly",
+                        padding_scope="excluding_padding",
+                        start_day=period_week_start or "",
+                        end_day=period_week_end or "",
+                    )
+                    summary["ssp_padding_scope"] = {
+                        "default": "including_padding",
+                        "including_row_count": len(rows),
+                        "excluding_row_count": len(ssp_excluding_fact_rows),
+                        "request_source": "including_padding",
+                        "metric_source": "excluding_padding",
+                    }
             if main_tab == "ssp_ad_group":
                 summary["ssp_ad_group_monitor"] = service.build_ssp_ad_group_monitor_snapshot(
                     start_day=period_week_start or "",
@@ -592,6 +658,15 @@ def collect_workflow_frame(
                     "row_count": len(rows),
                 }
         row_count = len(rows)
+        if ctx.workflow == "ssp" and main_tab == "ssp_anomaly" and isinstance(summary.get("ssp_padding_scope"), dict):
+            summary["ssp_excluding_padding_rows"] = _merge_ssp_excluding_padding_rows(
+                including_rows=rows,
+                excluding_rows=ssp_excluding_fact_rows,
+            )
+            padding_meta = dict(summary["ssp_padding_scope"])
+            padding_meta["including_row_count"] = row_count
+            padding_meta["excluding_row_count"] = len(summary.get("ssp_excluding_padding_rows") or [])
+            summary["ssp_padding_scope"] = padding_meta
         summary["columns"] = columns
         summary["rows"] = rows
         summary["row_count"] = row_count
@@ -817,6 +892,31 @@ def _dispatch_mutating_action(
             end_day=payload.get("end_day") or payload.get("endDay"),
         )
         return service.fetch_ssp_api(
+            start_day=start_day,
+            end_day=end_day,
+            template_version=template_version,
+            rule_version=rule_version,
+            email=str(payload.get("email") or "").strip() or None,
+            password=str(payload.get("password") or "").strip() or None,
+            scope_check_url=str(payload.get("scope_check_url") or payload.get("scopeCheckUrl") or "").strip() or None,
+            api_base_url=str(payload.get("api_base_url") or payload.get("apiBaseUrl") or "").strip() or None,
+            auth_decrypt_key=str(payload.get("auth_decrypt_key") or payload.get("authDecryptKey") or "").strip() or None,
+            service_id=int(payload["service_id"]) if payload.get("service_id") not in (None, "") else (int(payload["serviceId"]) if payload.get("serviceId") not in (None, "") else None),
+            source_name=str(payload.get("source_name") or payload.get("sourceName") or "").strip() or None,
+            timeout_seconds=int(payload["timeout_seconds"]) if payload.get("timeout_seconds") not in (None, "") else (int(payload["timeoutSeconds"]) if payload.get("timeoutSeconds") not in (None, "") else None),
+        )
+    if action == "fetch_ssp_excluding_padding_api":
+        if not ctx.sandbox_id:
+            bootstrap_init(ctx.root, ctx.manifest_rel, ctx.runtime_env)
+        if workflow != "ssp":
+            raise ValueError("fetch_ssp_excluding_padding_api only supports ssp workflow")
+        service = _build_service(ctx.root, ctx.manifest_rel, ctx.runtime_env, db_path=ctx.db_path)
+        start_day, end_day = _resolve_fetch_range(
+            single_date=payload.get("date"),
+            start_day=payload.get("start_day") or payload.get("startDay"),
+            end_day=payload.get("end_day") or payload.get("endDay"),
+        )
+        return service.fetch_ssp_excluding_padding_api(
             start_day=start_day,
             end_day=end_day,
             template_version=template_version,

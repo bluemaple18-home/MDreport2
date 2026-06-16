@@ -148,6 +148,12 @@ export type RuntimeFrameResult = {
   };
   ssp_media_demand?: SspMediaDemandConfig;
   ssp_ad_group_monitor?: SspAdGroupMonitorSnapshot;
+  ssp_excluding_padding_rows?: Array<Record<string, unknown>>;
+  ssp_padding_scope?: {
+    default: "including_padding" | "excluding_padding";
+    including_row_count: number;
+    excluding_row_count: number;
+  };
   monthly_p4?: MonthlyP4Snapshot;
   monthly_p4_test?: MonthlyP4Snapshot;
   monthly_charts?: MonthlyChartsSnapshot;

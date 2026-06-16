@@ -670,6 +670,9 @@ class SspApiClient:
         self._auth = SspScopeCheckAuth(settings)
 
     def fetch_report_bundle(self, *, start_day: str, end_day: str) -> dict[str, object]:
+        return self.fetch_report_bundle_with_padding(start_day=start_day, end_day=end_day, pb=0)
+
+    def fetch_report_bundle_with_padding(self, *, start_day: str, end_day: str, pb: int = 0) -> dict[str, object]:
         auth = self._auth.authenticate()
         token = _strip_text(auth.get("token"))
         login_info = self.get_login_info(token)
@@ -692,7 +695,7 @@ class SspApiClient:
             current_day = current.isoformat()
             if day_count > 0:
                 time.sleep(DEFAULT_RANGE_DAY_PAUSE_SECONDS)
-            report_condition = self.create_report_condition(token, start_day=current_day, end_day=current_day)
+            report_condition = self.create_report_condition(token, start_day=current_day, end_day=current_day, pb=pb)
             report_id = _coerce_int((report_condition.get("data") or {}).get("id"))
             if report_id <= 0:
                 raise SspApiError(f"report-conditions 未回傳有效 id: {report_condition}")
@@ -735,6 +738,7 @@ class SspApiClient:
             "rows": combined_rows,
             "records_total": records_total,
             "sum_row": aggregate_ssp_sum_rows(sum_rows),
+            "pb": int(pb),
             "chunk_mode": "daily" if day_count > 1 else "single",
             "chunk_days": day_count,
         }
@@ -899,12 +903,12 @@ class SspApiClient:
             raise SspAuthError(f"get-login 回傳無效: {payload}")
         return payload
 
-    def create_report_condition(self, token: str, *, start_day: str, end_day: str) -> dict[str, object]:
+    def create_report_condition(self, token: str, *, start_day: str, end_day: str, pb: int = 0) -> dict[str, object]:
         payload = _request_json(
             self.settings.report_conditions_url,
             method="POST",
             headers={"Authorization": f"Bearer {token}"},
-            json_body=build_ssp_report_condition_payload(start_day=start_day, end_day=end_day),
+            json_body=build_ssp_report_condition_payload(start_day=start_day, end_day=end_day, pb=pb),
             timeout_seconds=self.settings.timeout_seconds,
         )
         if _strip_text(payload.get("code")) != "200":

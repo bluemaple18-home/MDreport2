@@ -1321,9 +1321,11 @@ class Phase2ServicesTests(unittest.TestCase):
             def __init__(self, settings: SspApiSettings) -> None:
                 self.settings = settings
 
-            def fetch_report_bundle(self, *, start_day: str, end_day: str) -> dict[str, object]:
+            def fetch_report_bundle_with_padding(self, *, start_day: str, end_day: str, pb: int = 0) -> dict[str, object]:
                 if start_day != "2026-05-10" or end_day != "2026-05-11":
                     raise AssertionError("SSP API fetch range should be preserved")
+                if pb not in {0, 1}:
+                    raise AssertionError("SSP API fetch should use pb=0 and pb=1")
                 return {
                     "auth": {
                         "service_id": self.settings.service_id,
@@ -1407,6 +1409,8 @@ class Phase2ServicesTests(unittest.TestCase):
             self.assertEqual(out["status"], "ok")
             self.assertEqual(out["row_count"], 2)
             self.assertEqual(out["records_total"], 2)
+            self.assertEqual(out["excluded_padding_row_count"], 2)
+            self.assertEqual(out["excluded_padding_records_total"], 2)
             self.assertEqual(out["report_ids"], [101, 102])
             self.assertEqual(out["chunk_mode"], "daily")
             self.assertEqual(out["chunk_days"], 2)
@@ -1424,6 +1428,15 @@ class Phase2ServicesTests(unittest.TestCase):
                 detail_json = conn.execute(
                     "SELECT detail_json FROM run_log WHERE run_type='fetch_ssp_api' AND workflow='ssp' ORDER BY created_at DESC LIMIT 1"
                 ).fetchone()[0]
+                fact_scopes = conn.execute(
+                    """
+                    SELECT padding_scope, pb, COUNT(1)
+                    FROM ssp_performance_facts
+                    WHERE dataset='placement_hourly'
+                    GROUP BY padding_scope, pb
+                    ORDER BY padding_scope ASC
+                    """
+                ).fetchall()
 
             self.assertEqual(dsp_after, dsp_before)
             self.assertEqual(dsp_label, "DSP_KEEP")
@@ -1431,7 +1444,12 @@ class Phase2ServicesTests(unittest.TestCase):
             self.assertEqual(tuple(ssp_raw_summary), (2, "2026-05-10", "2026-05-11", "ssp3_api", "ssp3_api"))
             detail = json.loads(str(detail_json))
             self.assertEqual(detail["daily"], out["daily"])
+            self.assertEqual(detail["excluded_padding_row_count"], 2)
             self.assertEqual(detail["chunk_days"], 2)
+            self.assertEqual(
+                [(str(row[0]), int(row[1]), int(row[2])) for row in fact_scopes],
+                [("excluding_padding", 1, 2), ("including_padding", 0, 2)],
+            )
 
     def test_fetch_monthly_report_ssp_regular_api_writes_dedicated_monthly_db_and_media_cost_snapshot(self) -> None:
         class _FakeSspApiClient:

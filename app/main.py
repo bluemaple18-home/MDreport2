@@ -171,6 +171,20 @@ def _build_parser() -> argparse.ArgumentParser:
     fetch_ssp_p.add_argument("--service-id", type=int, default=None)
     fetch_ssp_p.add_argument("--source-name", default=None)
     fetch_ssp_p.add_argument("--timeout-seconds", type=int, default=None)
+    fetch_ssp_excluding_p = sub.add_parser("fetch-ssp-excluding-padding-api", help="Fetch SSP regular rows with pb=1 into performance facts only")
+    fetch_ssp_excluding_p.add_argument("--date", default=None, help="Single fetch date (YYYY-MM-DD)")
+    fetch_ssp_excluding_p.add_argument("--start-day", default=None, help="Fetch range start date (YYYY-MM-DD)")
+    fetch_ssp_excluding_p.add_argument("--end-day", default=None, help="Fetch range end date (YYYY-MM-DD)")
+    fetch_ssp_excluding_p.add_argument("--template-version", default="v1")
+    fetch_ssp_excluding_p.add_argument("--rule-version", default="v1")
+    fetch_ssp_excluding_p.add_argument("--email", default=None)
+    fetch_ssp_excluding_p.add_argument("--password", default=None)
+    fetch_ssp_excluding_p.add_argument("--scope-check-url", default=None)
+    fetch_ssp_excluding_p.add_argument("--api-base-url", default=None)
+    fetch_ssp_excluding_p.add_argument("--auth-decrypt-key", default=None)
+    fetch_ssp_excluding_p.add_argument("--service-id", type=int, default=None)
+    fetch_ssp_excluding_p.add_argument("--source-name", default=None)
+    fetch_ssp_excluding_p.add_argument("--timeout-seconds", type=int, default=None)
     fetch_ssp_ad_group_p = sub.add_parser("fetch-ssp-ad-group-api", help="Fetch SSP ad group demand data from the regular HolmesMind API flow")
     fetch_ssp_ad_group_p.add_argument("--date", default=None, help="Single fetch date (YYYY-MM-DD)")
     fetch_ssp_ad_group_p.add_argument("--start-day", default=None, help="Fetch range start date (YYYY-MM-DD)")
@@ -338,6 +352,30 @@ def run_cli(argv: list[str] | None = None) -> int:
             )
             return _ok(
                 svc.fetch_ssp_api(
+                    start_day=start_day,
+                    end_day=end_day,
+                    template_version=args.template_version,
+                    rule_version=args.rule_version,
+                    email=args.email,
+                    password=args.password,
+                    scope_check_url=args.scope_check_url,
+                    api_base_url=args.api_base_url,
+                    auth_decrypt_key=args.auth_decrypt_key,
+                    service_id=args.service_id,
+                    source_name=args.source_name,
+                    timeout_seconds=args.timeout_seconds,
+                )
+            )
+        if args.command == "fetch-ssp-excluding-padding-api":
+            bootstrap_init(root, manifest_rel, args.env)
+            svc = _service(root, manifest_rel, args.env)
+            start_day, end_day = _resolve_fetch_range(
+                single_date=args.date,
+                start_day=args.start_day,
+                end_day=args.end_day,
+            )
+            return _ok(
+                svc.fetch_ssp_excluding_padding_api(
                     start_day=start_day,
                     end_day=end_day,
                     template_version=args.template_version,

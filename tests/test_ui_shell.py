@@ -774,7 +774,10 @@ class UiShellTests(unittest.TestCase):
 
             with patch("domain.services.resolve_ssp_api_settings") as mock_settings, patch("domain.services.SspApiClient") as mock_client:
                 mock_settings.return_value = SspApiSettings(email="matt@clickforce.com.tw", password="24450379")
-                mock_client.return_value.fetch_report_bundle.return_value = self._mock_ssp_fetch_bundle()
+                mock_client.return_value.fetch_report_bundle_with_padding.side_effect = [
+                    self._mock_ssp_fetch_bundle(),
+                    self._mock_ssp_fetch_bundle(),
+                ]
 
                 out = dispatch_action(
                     ctx,
@@ -815,6 +818,25 @@ class UiShellTests(unittest.TestCase):
                     LIMIT 1
                     """
                 ).fetchone()
+                fact_row = conn.execute(
+                    """
+                    SELECT dataset, time_grain, padding_scope, pb, source, date, hour,
+                      placement_id, placement_name, supplier_name, site_name,
+                      request, impression, clicks, revenue, dsp_amount
+                    FROM ssp_performance_facts
+                    ORDER BY id ASC
+                    LIMIT 1
+                    """
+                ).fetchone()
+                fact_scopes = conn.execute(
+                    """
+                    SELECT padding_scope, pb, COUNT(1)
+                    FROM ssp_performance_facts
+                    WHERE dataset='placement_hourly'
+                    GROUP BY padding_scope, pb
+                    ORDER BY padding_scope ASC
+                    """
+                ).fetchall()
             finally:
                 conn.close()
 
@@ -829,6 +851,30 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual(float(ssp_row[8]), 8.32)
             self.assertEqual(int(canonical_count[0] or 0), 0)
             self.assertEqual(tuple(str(v) for v in run_row), ("fetch_ssp_api", "ssp", "ok"))
+            self.assertEqual(str(fact_row[0]), "placement_hourly")
+            self.assertEqual(str(fact_row[1]), "hourly")
+            self.assertEqual(str(fact_row[2]), "including_padding")
+            self.assertEqual(int(fact_row[3]), 0)
+            self.assertEqual(str(fact_row[4]), "ssp3_api")
+            self.assertEqual(str(fact_row[5]), "2026-05-11")
+            self.assertEqual(int(fact_row[6]), 0)
+            self.assertEqual(int(fact_row[7]), 10230)
+            self.assertEqual(str(fact_row[8]), "DEMO LINK 專用")
+            self.assertEqual(str(fact_row[9]), "域動測試")
+            self.assertEqual(str(fact_row[10]), "DEMO link")
+            self.assertEqual(float(fact_row[11]), 2885.0)
+            self.assertEqual(float(fact_row[12]), 1386.0)
+            self.assertEqual(float(fact_row[13]), 0.0)
+            self.assertEqual(float(fact_row[14]), 2.08)
+            self.assertEqual(float(fact_row[15]), 8.32)
+            self.assertEqual(
+                [(str(row[0]), int(row[1]), int(row[2])) for row in fact_scopes],
+                [("excluding_padding", 1, 1), ("including_padding", 0, 1)],
+            )
+            self.assertEqual(
+                [call.kwargs["pb"] for call in mock_client.return_value.fetch_report_bundle_with_padding.call_args_list],
+                [0, 1],
+            )
 
     def test_dispatch_action_fetch_ssp_api_preserves_other_days_when_refreshing_single_day(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -866,7 +912,10 @@ class UiShellTests(unittest.TestCase):
 
             with patch("domain.services.resolve_ssp_api_settings") as mock_settings, patch("domain.services.SspApiClient") as mock_client:
                 mock_settings.return_value = SspApiSettings(email="matt@clickforce.com.tw", password="24450379")
-                mock_client.return_value.fetch_report_bundle.return_value = self._mock_ssp_fetch_bundle()
+                mock_client.return_value.fetch_report_bundle_with_padding.side_effect = [
+                    self._mock_ssp_fetch_bundle(),
+                    self._mock_ssp_fetch_bundle(),
+                ]
 
                 out = dispatch_action(
                     ctx,
@@ -904,7 +953,10 @@ class UiShellTests(unittest.TestCase):
             self._make_project(root)
             with patch("domain.services.resolve_ssp_api_settings") as mock_settings, patch("domain.services.SspApiClient") as mock_client:
                 mock_settings.return_value = SspApiSettings(email="matt@clickforce.com.tw", password="24450379")
-                mock_client.return_value.fetch_report_bundle.return_value = self._mock_ssp_fetch_bundle()
+                mock_client.return_value.fetch_report_bundle_with_padding.side_effect = [
+                    self._mock_ssp_fetch_bundle(),
+                    self._mock_ssp_fetch_bundle(),
+                ]
 
                 code, payload = self._run_cli_json(
                     [
@@ -926,6 +978,58 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual(int(result["row_count"]), 1)
             self.assertEqual(int(result["report_id"]), 174425)
             self.assertEqual(result["sum_row"], {"request": 2885, "impress": 1386, "profit": 2.08})
+
+    def test_fetch_ssp_excluding_padding_api_cli_writes_facts_only(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            with patch("domain.services.resolve_ssp_api_settings") as mock_settings, patch("domain.services.SspApiClient") as mock_client:
+                mock_settings.return_value = SspApiSettings(email="matt@clickforce.com.tw", password="24450379")
+                mock_client.return_value.fetch_report_bundle_with_padding.return_value = self._mock_ssp_fetch_bundle()
+
+                code, payload = self._run_cli_json(
+                    [
+                        "--root",
+                        str(root),
+                        "fetch-ssp-excluding-padding-api",
+                        "--date",
+                        "2026-05-11",
+                    ]
+                )
+
+            self.assertEqual(code, 0)
+            self.assertEqual(payload["status"], "ok")
+            result = payload["result"]
+            self.assertEqual(result["workflow"], "ssp")
+            self.assertEqual(result["padding_scope"], "excluding_padding")
+            self.assertEqual(int(result["pb"]), 1)
+            self.assertEqual(int(result["row_count"]), 1)
+            self.assertEqual(
+                [call.kwargs["pb"] for call in mock_client.return_value.fetch_report_bundle_with_padding.call_args_list],
+                [1],
+            )
+
+            conn = sqlite3.connect(root / "data" / "mdrep.sqlite")
+            try:
+                raw_count = conn.execute("SELECT COUNT(1) FROM ssp_raw").fetchone()[0]
+                fact_row = conn.execute(
+                    """
+                    SELECT dataset, padding_scope, pb, date, placement_id, request, impression
+                    FROM ssp_performance_facts
+                    LIMIT 1
+                    """
+                ).fetchone()
+            finally:
+                conn.close()
+
+            self.assertEqual(int(raw_count), 0)
+            self.assertEqual(str(fact_row[0]), "placement_hourly")
+            self.assertEqual(str(fact_row[1]), "excluding_padding")
+            self.assertEqual(int(fact_row[2]), 1)
+            self.assertEqual(str(fact_row[3]), "2026-05-11")
+            self.assertEqual(int(fact_row[4]), 10230)
+            self.assertEqual(float(fact_row[5]), 2885.0)
+            self.assertEqual(float(fact_row[6]), 1386.0)
 
     def test_fetch_ssp_ad_group_api_cli_uses_runtime_command_contract(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -970,6 +1074,16 @@ class UiShellTests(unittest.TestCase):
                     LIMIT 1
                     """
                 ).fetchone()
+                fact_row = conn.execute(
+                    """
+                    SELECT dataset, time_grain, padding_scope, pb, run_id, source,
+                      zone_group_id, zone_group_name, ad_format, price_tier,
+                      date, placement_id, placement_name, request, impression, revenue, dsp_amount
+                    FROM ssp_performance_facts
+                    ORDER BY id ASC
+                    LIMIT 1
+                    """
+                ).fetchone()
             finally:
                 conn.close()
 
@@ -982,6 +1096,52 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual(float(metric_row[6]), 2885.0)
             self.assertEqual(float(metric_row[7]), 1386.0)
             self.assertEqual(float(metric_row[8]), 2.08)
+            self.assertEqual(str(fact_row[0]), "ad_group_daily")
+            self.assertEqual(str(fact_row[1]), "daily")
+            self.assertEqual(str(fact_row[2]), "excluding_padding")
+            self.assertEqual(int(fact_row[3]), 1)
+            self.assertTrue(str(fact_row[4]).startswith("run-"))
+            self.assertEqual(str(fact_row[5]), "ssp3_api")
+            self.assertEqual(int(fact_row[6]), 335)
+            self.assertEqual(str(fact_row[7]), "知名媒體 高價版位 BN")
+            self.assertEqual(str(fact_row[8]), "知名媒體 BN")
+            self.assertEqual(str(fact_row[9]), "高")
+            self.assertEqual(str(fact_row[10]), "2026-05-11")
+            self.assertEqual(int(fact_row[11]), 10230)
+            self.assertEqual(str(fact_row[12]), "DEMO LINK 專用")
+            self.assertEqual(float(fact_row[13]), 2885.0)
+            self.assertEqual(float(fact_row[14]), 1386.0)
+            self.assertEqual(float(fact_row[15]), 2.08)
+            self.assertEqual(float(fact_row[16]), 8.32)
+
+    def test_ssp_zone_group_membership_dedupes_api_zone_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="ssp")
+            dispatch_action(ctx, {"action": "bootstrap"})
+            cfg = build_config(root, "bootstrap.manifest.json", "prod")
+            repo = SQLiteRepository(cfg.db_path, project_root=root)
+
+            result = repo.replace_ssp_zone_group_memberships(
+                group_id=117,
+                group_name="玩藝國際",
+                source_updated_at="2026-06-10T14:34:55.000000Z",
+                zones=[
+                    {"id": "539", "name": "(539)(子)CF_300x250_特殊流量合作_8comic無限動漫"},
+                    {"id": "539", "name": "(539)(子)CF_300x250_特殊流量合作_8comic無限動漫"},
+                    {"id": "25078", "name": "(25078)(子)MW_728x90 Banner_免費圖床"},
+                ],
+            )
+            membership = repo.read_ssp_zone_group_membership(group_id=117)
+
+            self.assertEqual(result["input_zone_count"], 3)
+            self.assertEqual(result["zone_count"], 2)
+            self.assertEqual(result["duplicate_count"], 1)
+            self.assertEqual(membership["group_name"], "玩藝國際")
+            self.assertEqual(membership["source_updated_at"], "2026-06-10T14:34:55.000000Z")
+            self.assertEqual(membership["zone_ids"], {539, 25078})
+            self.assertEqual(len(membership["zones"]), 2)
 
     def test_fetch_ssp_api_cli_multi_day_sum_row_is_aggregated(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -989,7 +1149,10 @@ class UiShellTests(unittest.TestCase):
             self._make_project(root)
             with patch("domain.services.resolve_ssp_api_settings") as mock_settings, patch("domain.services.SspApiClient") as mock_client:
                 mock_settings.return_value = SspApiSettings(email="matt@clickforce.com.tw", password="24450379")
-                mock_client.return_value.fetch_report_bundle.return_value = self._mock_ssp_fetch_bundle_multi_day()
+                mock_client.return_value.fetch_report_bundle_with_padding.side_effect = [
+                    self._mock_ssp_fetch_bundle_multi_day(),
+                    self._mock_ssp_fetch_bundle_multi_day(),
+                ]
 
                 code, payload = self._run_cli_json(
                     [
@@ -1050,7 +1213,7 @@ class UiShellTests(unittest.TestCase):
                 return SspApiSettings(email="matt@clickforce.com.tw", password="24450379")
 
             with patch("domain.services.resolve_ssp_api_settings", side_effect=_resolve_no_legacy), patch("domain.services.SspApiClient") as mock_client:
-                mock_client.return_value.fetch_report_bundle.return_value = bundle
+                mock_client.return_value.fetch_report_bundle_with_padding.side_effect = [bundle, bundle]
                 out = dispatch_action(
                     ctx,
                     {
@@ -2132,6 +2295,75 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual(fallback.get("reason"), "selected_period_has_no_rows")
             self.assertEqual(fallback.get("requested_start"), "2026-06-01")
             self.assertEqual(fallback.get("fallback_start"), "2026-05-10")
+
+    def test_ssp_anomaly_frame_includes_excluding_padding_rows_for_switch(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="ssp")
+            dispatch_action(ctx, {"action": "bootstrap"})
+            cfg = build_config(root, ctx.manifest_rel, ctx.runtime_env)
+            repo = SQLiteRepository(cfg.db_path, project_root=root)
+            included_rows = [
+                {
+                    "source": "ssp3_api",
+                    "ts": "2026-06-10 10:00:00",
+                    "date": "2026-06-10",
+                    "hour": 10,
+                    "placement_id": 1001,
+                    "placement_name": "Slot A",
+                    "supplier_name": "Supplier A",
+                    "site_name": "Site A",
+                    "request": 100,
+                    "impression": 50,
+                }
+            ]
+            excluded_rows = [
+                {
+                    "source": "ssp3_api",
+                    "ts": "2026-06-10 10:00:00",
+                    "date": "2026-06-10",
+                    "hour": 10,
+                    "placement_id": 1001,
+                    "placement_name": "Slot A",
+                    "supplier_name": "Supplier A",
+                    "site_name": "Site A",
+                    "request": 80,
+                    "impression": 40,
+                }
+            ]
+            with repo.connect() as conn:
+                repo.save_ssp_raw_rows(conn, included_rows)
+                repo.save_ssp_placement_performance_facts(
+                    conn,
+                    excluded_rows,
+                    padding_scope="excluding_padding",
+                    pb=1,
+                    replace_days={"2026-06-10"},
+                )
+                conn.commit()
+
+            frame = collect_workflow_frame(
+                ctx,
+                main_tab="ssp_anomaly",
+                period_week_start="2026-06-10",
+                period_week_end="2026-06-10",
+            )
+
+            self.assertEqual(frame.get("row_count"), 1)
+            self.assertEqual((frame.get("rows") or [{}])[0].get("request"), 100.0)
+            excluded = frame.get("ssp_excluding_padding_rows") or []
+            self.assertEqual(len(excluded), 1)
+            self.assertEqual(excluded[0].get("padding_scope"), "mixed_request_including_metrics_excluding")
+            self.assertEqual(excluded[0].get("request"), 100.0)
+            self.assertEqual(excluded[0].get("impression"), 40.0)
+            self.assertEqual(excluded[0].get("request_padding_scope"), "including_padding")
+            self.assertEqual(excluded[0].get("metric_padding_scope"), "excluding_padding")
+            padding_scope = frame.get("ssp_padding_scope") or {}
+            self.assertEqual(padding_scope.get("including_row_count"), 1)
+            self.assertEqual(padding_scope.get("excluding_row_count"), 1)
+            self.assertEqual(padding_scope.get("request_source"), "including_padding")
+            self.assertEqual(padding_scope.get("metric_source"), "excluding_padding")
 
     def test_ssp_media_demand_config_loads_defaults_and_saves_per_env(self) -> None:
         with tempfile.TemporaryDirectory() as td:

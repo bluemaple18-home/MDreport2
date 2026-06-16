@@ -70,6 +70,8 @@ export default function App() {
             exportDeliverySnapshotToken: controller.exportDeliverySnapshotToken,
             sspMediaDemandConfig: controller.sspMediaDemandConfig,
             sspAdGroupMonitor: controller.sspAdGroupMonitor,
+            sspExcludingPaddingRows: controller.sspExcludingPaddingRows,
+            sspPaddingScope: controller.sspPaddingScope,
             monthlyP4: controller.monthlyP4,
             monthlyP4Test: controller.monthlyP4Test,
             monthlyCharts: controller.monthlyCharts,

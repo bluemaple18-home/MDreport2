@@ -1106,8 +1106,82 @@
 
 .ssp-anomaly-controls {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
+}
+
+.ssp-padding-segment {
+  display: inline-flex;
+  width: 100%;
+  min-height: 36px;
+  padding: 3px;
+  border: 1px solid #cfdbe3;
+  border-radius: 8px;
+  background: #f5f8fb;
+}
+
+.ssp-padding-segment button {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #415766;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ssp-padding-segment button.active {
+  background: #ffffff;
+  color: #102938;
+  box-shadow: 0 1px 4px rgba(37, 62, 79, 0.18);
+}
+
+.ssp-padding-segment button:disabled {
+  color: #98a8b3;
+  cursor: not-allowed;
+}
+
+.ssp-anomaly-daily-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ssp-anomaly-daily-toolbar > span {
+  color: #526674;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ssp-anomaly-table-switch {
+  display: inline-flex;
+  gap: 6px;
+  min-height: 34px;
+  padding: 3px;
+  border: 1px solid #cfdbe3;
+  border-radius: 8px;
+  background: #f5f8fb;
+}
+
+.ssp-anomaly-table-switch button {
+  min-width: 72px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #415766;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ssp-anomaly-table-switch button.active {
+  background: #ffffff;
+  color: #102938;
+  box-shadow: 0 1px 4px rgba(37, 62, 79, 0.18);
 }
 
 .ssp-anomaly-daily-meta {
@@ -1124,6 +1198,182 @@
   font-size: 11px;
   color: #556773;
   background: #fbfdff;
+}
+
+.ssp-anomaly-trend-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.ssp-anomaly-trend-control-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ssp-anomaly-trend-control-group > span {
+  color: #526674;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ssp-anomaly-trend-toolbar {
+  display: inline-flex;
+  gap: 6px;
+  padding: 3px;
+  border: 1px solid #cfdbe3;
+  border-radius: 8px;
+  background: #f5f8fb;
+}
+
+.ssp-anomaly-trend-toolbar button {
+  min-width: 76px;
+  min-height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #415766;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ssp-anomaly-trend-toolbar button.active {
+  background: #ffffff;
+  color: #102938;
+  box-shadow: 0 1px 4px rgba(37, 62, 79, 0.18);
+}
+
+.ssp-anomaly-trend-chart {
+  width: 100%;
+}
+
+.ssp-anomaly-trend-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #526674;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ssp-anomaly-trend-head span {
+  border: 1px solid #d4dee5;
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: #fbfdff;
+}
+
+.ssp-anomaly-trend-svg {
+  width: 100%;
+  height: 230px;
+  overflow: visible;
+}
+
+.ssp-anomaly-trend-axis-text {
+  fill: #667887;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.ssp-anomaly-trend-bar {
+  stroke-width: 1;
+}
+
+.ssp-anomaly-trend-bar-top {
+  fill: rgba(15, 121, 117, 0.32);
+  stroke: rgba(15, 121, 117, 0.58);
+}
+
+.ssp-anomaly-trend-bar-rest {
+  fill: rgba(79, 70, 229, 0.24);
+  stroke: rgba(79, 70, 229, 0.44);
+}
+
+.ssp-anomaly-trend-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.ssp-anomaly-trend-line-top {
+  stroke: #d97706;
+}
+
+.ssp-anomaly-trend-line-rest {
+  stroke: #2563eb;
+}
+
+.ssp-anomaly-trend-node {
+  fill: #ffffff;
+  stroke-width: 2.5;
+}
+
+.ssp-anomaly-trend-node-top {
+  stroke: #d97706;
+}
+
+.ssp-anomaly-trend-node-rest {
+  stroke: #2563eb;
+}
+
+.ssp-anomaly-trend-x-axis {
+  display: grid;
+  gap: 4px;
+  margin-left: 82px;
+  margin-right: 56px;
+  color: #647587;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.ssp-anomaly-trend-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  color: #526674;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ssp-anomaly-trend-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ssp-anomaly-trend-legend i {
+  display: inline-block;
+  width: 22px;
+  height: 4px;
+  border-radius: 999px;
+}
+
+.ssp-anomaly-trend-legend .legend-request {
+  background: rgba(15, 121, 117, 0.42);
+}
+
+.ssp-anomaly-trend-legend .legend-request-top {
+  background: rgba(15, 121, 117, 0.5);
+}
+
+.ssp-anomaly-trend-legend .legend-request-rest {
+  background: rgba(79, 70, 229, 0.42);
+}
+
+.ssp-anomaly-trend-legend .legend-line-top {
+  background: #d97706;
+}
+
+.ssp-anomaly-trend-legend .legend-line-rest {
+  background: #2563eb;
 }
 
 .ssp-anomaly-daily-table table th,

@@ -2431,9 +2431,15 @@ class CanonicalService:
             source_name=source_name,
             timeout_seconds=timeout_seconds,
         )
-        bundle = SspApiClient(settings).fetch_report_bundle(start_day=start_day, end_day=end_day)
+        client = SspApiClient(settings)
+        bundle = client.fetch_report_bundle_with_padding(start_day=start_day, end_day=end_day, pb=0)
+        excluded_bundle = client.fetch_report_bundle_with_padding(start_day=start_day, end_day=end_day, pb=1)
         rows = normalize_ssp_report_rows(
             [row for row in bundle["rows"] if isinstance(row, dict)],
+            source_name=settings.source_name,
+        )
+        excluded_rows = normalize_ssp_report_rows(
+            [row for row in excluded_bundle["rows"] if isinstance(row, dict)],
             source_name=settings.source_name,
         )
         auth = bundle.get("auth") if isinstance(bundle.get("auth"), dict) else {}
@@ -2459,6 +2465,13 @@ class CanonicalService:
                 )
             )
             changed = self.repo.save_ssp_raw_rows(conn, merged_rows)
+            excluded_changed = self.repo.save_ssp_placement_performance_facts(
+                conn,
+                excluded_rows,
+                padding_scope="excluding_padding",
+                pb=1,
+                replace_days=set(requested_days),
+            )
             self.repo.save_canonical_rows(conn, "ssp", [])
             trace = self.repo.build_trace_meta(conn, "ssp", template_version, rule_version)
             detail = {
@@ -2470,9 +2483,14 @@ class CanonicalService:
                 "retained_row_count": len(preserved_rows),
                 "replaced_day_count": len(requested_days),
                 "records_total": int(bundle.get("records_total") or 0),
+                "excluded_padding_row_count": len(excluded_rows),
+                "excluded_padding_records_total": int(excluded_bundle.get("records_total") or 0),
                 "report_id": int(bundle.get("report_id") or 0),
                 "report_ids": list(bundle.get("report_ids") or []),
+                "excluded_padding_report_id": int(excluded_bundle.get("report_id") or 0),
+                "excluded_padding_report_ids": list(excluded_bundle.get("report_ids") or []),
                 "daily": list(bundle.get("daily") or []),
+                "excluded_padding_daily": list(excluded_bundle.get("daily") or []),
                 "chunk_mode": str(bundle.get("chunk_mode") or "single"),
                 "chunk_days": int(bundle.get("chunk_days") or 1),
                 "service_id": int(auth.get("service_id") or 0),
@@ -2509,15 +2527,110 @@ class CanonicalService:
             "retained_row_count": len(preserved_rows),
             "replaced_day_count": len(requested_days),
             "records_total": int(bundle.get("records_total") or 0),
+            "excluded_padding_row_count": excluded_changed,
+            "excluded_padding_records_total": int(excluded_bundle.get("records_total") or 0),
             "report_id": int(bundle.get("report_id") or 0),
             "report_ids": list(bundle.get("report_ids") or []),
+            "excluded_padding_report_id": int(excluded_bundle.get("report_id") or 0),
+            "excluded_padding_report_ids": list(excluded_bundle.get("report_ids") or []),
             "daily": list(bundle.get("daily") or []),
+            "excluded_padding_daily": list(excluded_bundle.get("daily") or []),
             "chunk_mode": str(bundle.get("chunk_mode") or "single"),
             "chunk_days": int(bundle.get("chunk_days") or 1),
             "service_id": int(auth.get("service_id") or 0),
             "login_user_id": login_user_id,
             "login_email": login_email,
             "source_name": settings.source_name,
+            "sum_row": bundle.get("sum_row") if isinstance(bundle.get("sum_row"), dict) else {},
+        }
+
+    def fetch_ssp_excluding_padding_api(
+        self,
+        *,
+        start_day: str,
+        end_day: str,
+        template_version: str,
+        rule_version: str,
+        email: str | None = None,
+        password: str | None = None,
+        scope_check_url: str | None = None,
+        api_base_url: str | None = None,
+        auth_decrypt_key: str | None = None,
+        service_id: int | None = None,
+        source_name: str | None = None,
+        timeout_seconds: int | None = None,
+    ) -> dict:
+        settings = resolve_ssp_api_settings(
+            email=email,
+            password=password,
+            scope_check_url=scope_check_url,
+            api_base_url=api_base_url,
+            auth_decrypt_key=auth_decrypt_key,
+            service_id=service_id,
+            source_name=source_name,
+            timeout_seconds=timeout_seconds,
+        )
+        bundle = SspApiClient(settings).fetch_report_bundle_with_padding(start_day=start_day, end_day=end_day, pb=1)
+        rows = normalize_ssp_report_rows(
+            [row for row in bundle["rows"] if isinstance(row, dict)],
+            source_name=settings.source_name,
+        )
+        requested_days = _inclusive_day_texts(start_day, end_day)
+        auth = bundle.get("auth") if isinstance(bundle.get("auth"), dict) else {}
+        auth_user = auth.get("user") if isinstance(auth.get("user"), dict) else {}
+        login = bundle.get("login") if isinstance(bundle.get("login"), dict) else {}
+        login_user_id = int(auth_user.get("id") or login.get("id") or 0)
+        login_email = str(auth_user.get("email") or login.get("email") or "")
+
+        with self.repo.connect() as conn:
+            self.repo.resolve_trace_binding(conn, "ssp", template_version, rule_version)
+            changed = self.repo.save_ssp_placement_performance_facts(
+                conn,
+                rows,
+                padding_scope="excluding_padding",
+                pb=1,
+                replace_days=set(requested_days),
+            )
+            trace = self.repo.build_trace_meta(conn, "ssp", template_version, rule_version)
+            detail = {
+                "start_day": start_day,
+                "end_day": end_day,
+                "row_count": changed,
+                "records_total": int(bundle.get("records_total") or 0),
+                "report_id": int(bundle.get("report_id") or 0),
+                "report_ids": list(bundle.get("report_ids") or []),
+                "daily": list(bundle.get("daily") or []),
+                "chunk_mode": str(bundle.get("chunk_mode") or "single"),
+                "chunk_days": int(bundle.get("chunk_days") or 1),
+                "pb": 1,
+                "padding_scope": "excluding_padding",
+                "service_id": int(auth.get("service_id") or 0),
+                "source_name": settings.source_name,
+                "login_user_id": login_user_id,
+                "login_email": login_email,
+            }
+            run_id = self.repo.insert_run_log(
+                conn,
+                run_type="fetch_ssp_excluding_padding_api",
+                workflow="ssp",
+                status="ok",
+                trace=trace,
+                detail=detail,
+            )
+            self.repo.append_audit_event(
+                conn,
+                event_type="fetch_ssp_excluding_padding_api",
+                scope="service",
+                status="ok",
+                payload={"run_id": run_id, **detail},
+            )
+            conn.commit()
+
+        return {
+            "status": "ok",
+            "workflow": "ssp",
+            "run_id": run_id,
+            **detail,
             "sum_row": bundle.get("sum_row") if isinstance(bundle.get("sum_row"), dict) else {},
         }
 

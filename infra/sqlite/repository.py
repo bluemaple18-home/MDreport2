@@ -32,6 +32,24 @@ def _now() -> str:
     return datetime.now().isoformat(timespec="seconds")
 
 
+def _coerce_int(value: object) -> int:
+    try:
+        return int(value or 0)
+    except Exception:
+        return 0
+
+
+def _coerce_float(value: object) -> float:
+    try:
+        return float(value or 0.0)
+    except Exception:
+        return 0.0
+
+
+def _text(value: object) -> str:
+    return str(value or "")
+
+
 SSP_RAW_COLUMNS = [
     "source",
     "ts",
@@ -165,6 +183,114 @@ SSP_AD_GROUP_METRIC_COLUMNS = [
     "active_view",
     "active_view_rate",
     "click",
+    "ctr",
+    "ecpm",
+    "ecpc",
+    "invalid_impress",
+    "invalid_click",
+    "profit",
+    "site_mu",
+    "advertiser_mu",
+    "dsp_ecpm",
+    "dsp_ecpc",
+]
+
+SSP_PERFORMANCE_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS ssp_performance_facts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  dataset TEXT NOT NULL DEFAULT '',
+  time_grain TEXT NOT NULL DEFAULT '',
+  padding_scope TEXT NOT NULL DEFAULT '',
+  pb INTEGER NOT NULL DEFAULT 0,
+  run_id TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL DEFAULT '',
+  ts TEXT NOT NULL DEFAULT '',
+  date TEXT NOT NULL DEFAULT '',
+  hour INTEGER NOT NULL DEFAULT 0,
+  month TEXT NOT NULL DEFAULT '',
+  supplier_id INTEGER NOT NULL DEFAULT 0,
+  supplier_name TEXT NOT NULL DEFAULT '',
+  site_id INTEGER NOT NULL DEFAULT 0,
+  site_name TEXT NOT NULL DEFAULT '',
+  placement_id INTEGER NOT NULL DEFAULT 0,
+  placement_name TEXT NOT NULL DEFAULT '',
+  zone_group_id INTEGER NOT NULL DEFAULT 0,
+  zone_group_name TEXT NOT NULL DEFAULT '',
+  ad_format TEXT NOT NULL DEFAULT '',
+  price_tier TEXT NOT NULL DEFAULT '',
+  campaign_id TEXT NOT NULL DEFAULT '',
+  campaign_name TEXT NOT NULL DEFAULT '',
+  creative_size_id TEXT NOT NULL DEFAULT '',
+  request REAL NOT NULL DEFAULT 0.0,
+  impression REAL NOT NULL DEFAULT 0.0,
+  clicks REAL NOT NULL DEFAULT 0.0,
+  revenue REAL NOT NULL DEFAULT 0.0,
+  dsp_amount REAL NOT NULL DEFAULT 0.0,
+  active_view REAL NOT NULL DEFAULT 0.0,
+  active_view_rate REAL NOT NULL DEFAULT 0.0,
+  ctr REAL NOT NULL DEFAULT 0.0,
+  ecpm REAL NOT NULL DEFAULT 0.0,
+  ecpc REAL NOT NULL DEFAULT 0.0,
+  invalid_impress REAL NOT NULL DEFAULT 0.0,
+  invalid_click REAL NOT NULL DEFAULT 0.0,
+  profit REAL NOT NULL DEFAULT 0.0,
+  site_mu REAL NOT NULL DEFAULT 0.0,
+  advertiser_mu REAL NOT NULL DEFAULT 0.0,
+  dsp_ecpm REAL NOT NULL DEFAULT 0.0,
+  dsp_ecpc REAL NOT NULL DEFAULT 0.0,
+  updated_at TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_ssp_performance_dataset_scope_date
+ON ssp_performance_facts(dataset, padding_scope, date);
+CREATE INDEX IF NOT EXISTS idx_ssp_performance_zone_group_date
+ON ssp_performance_facts(zone_group_id, date);
+CREATE INDEX IF NOT EXISTS idx_ssp_performance_placement_date
+ON ssp_performance_facts(placement_id, date);
+
+CREATE TABLE IF NOT EXISTS ssp_zone_group_memberships (
+  group_id INTEGER NOT NULL DEFAULT 0,
+  group_name TEXT NOT NULL DEFAULT '',
+  zone_id INTEGER NOT NULL DEFAULT 0,
+  zone_name TEXT NOT NULL DEFAULT '',
+  source_updated_at TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY(group_id, zone_id)
+);
+CREATE INDEX IF NOT EXISTS idx_ssp_zone_group_memberships_zone
+ON ssp_zone_group_memberships(zone_id);
+"""
+
+SSP_PERFORMANCE_COLUMNS = [
+    "dataset",
+    "time_grain",
+    "padding_scope",
+    "pb",
+    "run_id",
+    "source",
+    "ts",
+    "date",
+    "hour",
+    "month",
+    "supplier_id",
+    "supplier_name",
+    "site_id",
+    "site_name",
+    "placement_id",
+    "placement_name",
+    "zone_group_id",
+    "zone_group_name",
+    "ad_format",
+    "price_tier",
+    "campaign_id",
+    "campaign_name",
+    "creative_size_id",
+    "request",
+    "impression",
+    "clicks",
+    "revenue",
+    "dsp_amount",
+    "active_view",
+    "active_view_rate",
     "ctr",
     "ecpm",
     "ecpc",
@@ -531,6 +657,9 @@ class SQLiteRepository:
             if column_name not in existing_columns:
                 conn.execute(f"ALTER TABLE ssp_media_slots ADD COLUMN {column_name} {column_sql}")
 
+    def _ensure_ssp_performance_tables(self, conn: sqlite3.Connection) -> None:
+        conn.executescript(SSP_PERFORMANCE_TABLE_SQL)
+
     def _ensure_ssp_ad_group_monitor_tables(self, conn: sqlite3.Connection) -> None:
         conn.executescript(SSP_AD_GROUP_MONITOR_TABLE_SQL)
         existing_columns = {
@@ -546,6 +675,180 @@ class SQLiteRepository:
         for column_name, column_sql in required_columns.items():
             if column_name not in existing_columns:
                 conn.execute(f"ALTER TABLE ssp_ad_group_daily_metrics ADD COLUMN {column_name} {column_sql}")
+
+    def _insert_ssp_performance_fact(self, conn: sqlite3.Connection, row: dict[str, object], now: str) -> None:
+        self._ensure_ssp_performance_tables(conn)
+        values: list[object] = []
+        for col in SSP_PERFORMANCE_COLUMNS:
+            value = row.get(col, "")
+            if col in {
+                "pb",
+                "hour",
+                "supplier_id",
+                "site_id",
+                "placement_id",
+                "zone_group_id",
+            }:
+                values.append(_coerce_int(value))
+            elif col in {
+                "request",
+                "impression",
+                "clicks",
+                "revenue",
+                "dsp_amount",
+                "active_view",
+                "active_view_rate",
+                "ctr",
+                "ecpm",
+                "ecpc",
+                "invalid_impress",
+                "invalid_click",
+                "profit",
+                "site_mu",
+                "advertiser_mu",
+                "dsp_ecpm",
+                "dsp_ecpc",
+            }:
+                values.append(_coerce_float(value))
+            else:
+                values.append(_text(value))
+        columns_sql = ", ".join([*SSP_PERFORMANCE_COLUMNS, "updated_at"])
+        placeholders = ", ".join("?" for _ in range(len(SSP_PERFORMANCE_COLUMNS) + 1))
+        conn.execute(
+            f"INSERT INTO ssp_performance_facts({columns_sql}) VALUES ({placeholders})",
+            (*values, now),
+        )
+
+    def _save_ssp_raw_performance_facts(
+        self,
+        conn: sqlite3.Connection,
+        rows: list[dict],
+        now: str,
+        *,
+        padding_scope: str = "including_padding",
+        pb: int = 0,
+        replace_days: set[str] | None = None,
+    ) -> None:
+        self._ensure_ssp_performance_tables(conn)
+        if replace_days:
+            placeholders = ", ".join("?" for _ in replace_days)
+            conn.execute(
+                f"""
+                DELETE FROM ssp_performance_facts
+                WHERE dataset = ? AND padding_scope = ? AND date IN ({placeholders})
+                """,
+                ("placement_hourly", padding_scope, *sorted(replace_days)),
+            )
+        else:
+            conn.execute(
+                "DELETE FROM ssp_performance_facts WHERE dataset = ? AND padding_scope = ?",
+                ("placement_hourly", padding_scope),
+            )
+        for row in rows:
+            self._insert_ssp_performance_fact(
+                conn,
+                {
+                    "dataset": "placement_hourly",
+                    "time_grain": "hourly",
+                    "padding_scope": padding_scope,
+                    "pb": pb,
+                    "source": row.get("source"),
+                    "ts": row.get("ts"),
+                    "date": row.get("date"),
+                    "hour": row.get("hour"),
+                    "placement_id": row.get("placement_id"),
+                    "placement_name": row.get("placement_name"),
+                    "supplier_id": row.get("supplier_id"),
+                    "supplier_name": row.get("supplier_name"),
+                    "site_id": row.get("site_id"),
+                    "site_name": row.get("site_name"),
+                    "request": row.get("request"),
+                    "impression": row.get("impression"),
+                    "clicks": row.get("clicks"),
+                    "revenue": row.get("revenue"),
+                    "dsp_amount": row.get("dsp_amount"),
+                    "profit": row.get("revenue"),
+                    "advertiser_mu": row.get("dsp_amount"),
+                },
+                now,
+            )
+
+    def save_ssp_placement_performance_facts(
+        self,
+        conn: sqlite3.Connection,
+        rows: list[dict],
+        *,
+        padding_scope: str,
+        pb: int,
+        replace_days: set[str],
+    ) -> int:
+        now = _now()
+        self._save_ssp_raw_performance_facts(
+            conn,
+            rows,
+            now,
+            padding_scope=str(padding_scope or ""),
+            pb=int(pb),
+            replace_days=replace_days,
+        )
+        return len(rows)
+
+    def _save_ssp_ad_group_performance_facts(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        run_id: str,
+        zone_group_id: int,
+        start_day: str,
+        end_day: str,
+        rows: list[dict],
+        now: str,
+    ) -> None:
+        self._ensure_ssp_performance_tables(conn)
+        conn.execute(
+            """
+            DELETE FROM ssp_performance_facts
+            WHERE dataset = ? AND padding_scope = ? AND zone_group_id = ? AND date >= ? AND date <= ?
+            """,
+            ("ad_group_daily", "excluding_padding", int(zone_group_id), str(start_day), str(end_day)),
+        )
+        for row in rows:
+            self._insert_ssp_performance_fact(
+                conn,
+                {
+                    "dataset": "ad_group_daily",
+                    "time_grain": "daily",
+                    "padding_scope": "excluding_padding",
+                    "pb": 1,
+                    "run_id": row.get("run_id") or run_id,
+                    "source": row.get("source"),
+                    "date": row.get("date"),
+                    "placement_id": row.get("zone_id"),
+                    "placement_name": row.get("zone_name"),
+                    "zone_group_id": row.get("zone_group_id") or zone_group_id,
+                    "zone_group_name": row.get("zone_group_name"),
+                    "ad_format": row.get("ad_format"),
+                    "price_tier": row.get("price_tier"),
+                    "request": row.get("request"),
+                    "impression": row.get("impress"),
+                    "clicks": row.get("click"),
+                    "revenue": row.get("profit"),
+                    "dsp_amount": row.get("advertiser_mu"),
+                    "active_view": row.get("active_view"),
+                    "active_view_rate": row.get("active_view_rate"),
+                    "ctr": row.get("ctr"),
+                    "ecpm": row.get("ecpm"),
+                    "ecpc": row.get("ecpc"),
+                    "invalid_impress": row.get("invalid_impress"),
+                    "invalid_click": row.get("invalid_click"),
+                    "profit": row.get("profit"),
+                    "site_mu": row.get("site_mu"),
+                    "advertiser_mu": row.get("advertiser_mu"),
+                    "dsp_ecpm": row.get("dsp_ecpm"),
+                    "dsp_ecpc": row.get("dsp_ecpc"),
+                },
+                now,
+            )
 
     def _ensure_monthly_p4_tables(self, conn: sqlite3.Connection) -> None:
         conn.executescript(MONTHLY_P4_TARGET_TABLE_SQL)
@@ -684,6 +987,7 @@ class SQLiteRepository:
                 f"INSERT INTO ssp_raw({columns_sql}) VALUES ({placeholders})",
                 (idx, *normalized, now),
             )
+        self._save_ssp_raw_performance_facts(conn, rows, now)
         return len(rows)
 
     def replace_ssp_raw_rows(self, rows: list[dict]) -> int:
@@ -691,6 +995,242 @@ class SQLiteRepository:
             changed = self.save_ssp_raw_rows(conn, rows)
             conn.commit()
             return changed
+
+    def backfill_ssp_performance_facts(self) -> dict[str, object]:
+        with self.connect() as conn:
+            self._ensure_ssp_raw_table(conn)
+            self._ensure_ssp_ad_group_monitor_tables(conn)
+            self._ensure_ssp_performance_tables(conn)
+            raw_rows = [
+                dict(zip(SSP_RAW_COLUMNS, raw))
+                for raw in conn.execute(
+                    f"""
+                    SELECT {", ".join(SSP_RAW_COLUMNS)}
+                    FROM ssp_raw
+                    ORDER BY row_order ASC
+                    """
+                ).fetchall()
+            ]
+            ad_group_columns = ["run_id", *SSP_AD_GROUP_METRIC_COLUMNS]
+            ad_group_rows = [
+                dict(zip(ad_group_columns, raw))
+                for raw in conn.execute(
+                    f"""
+                    SELECT {", ".join(ad_group_columns)}
+                    FROM ssp_ad_group_daily_metrics
+                    ORDER BY date ASC, zone_group_id ASC, zone_id ASC
+                    """
+                ).fetchall()
+            ]
+            deleted_placement = conn.execute(
+                "DELETE FROM ssp_performance_facts WHERE dataset = ? AND padding_scope = ?",
+                ("placement_hourly", "including_padding"),
+            ).rowcount
+            deleted_ad_group = conn.execute(
+                "DELETE FROM ssp_performance_facts WHERE dataset = ? AND padding_scope = ?",
+                ("ad_group_daily", "excluding_padding"),
+            ).rowcount
+            now = _now()
+            for row in raw_rows:
+                self._insert_ssp_performance_fact(
+                    conn,
+                    {
+                        "dataset": "placement_hourly",
+                        "time_grain": "hourly",
+                        "padding_scope": "including_padding",
+                        "pb": 0,
+                        "source": row.get("source"),
+                        "ts": row.get("ts"),
+                        "date": row.get("date"),
+                        "hour": row.get("hour"),
+                        "placement_id": row.get("placement_id"),
+                        "placement_name": row.get("placement_name"),
+                        "supplier_id": row.get("supplier_id"),
+                        "supplier_name": row.get("supplier_name"),
+                        "site_id": row.get("site_id"),
+                        "site_name": row.get("site_name"),
+                        "request": row.get("request"),
+                        "impression": row.get("impression"),
+                        "clicks": row.get("clicks"),
+                        "revenue": row.get("revenue"),
+                        "dsp_amount": row.get("dsp_amount"),
+                        "profit": row.get("revenue"),
+                        "advertiser_mu": row.get("dsp_amount"),
+                    },
+                    now,
+                )
+            for row in ad_group_rows:
+                self._insert_ssp_performance_fact(
+                    conn,
+                    {
+                        "dataset": "ad_group_daily",
+                        "time_grain": "daily",
+                        "padding_scope": "excluding_padding",
+                        "pb": 1,
+                        "run_id": row.get("run_id"),
+                        "source": row.get("source"),
+                        "date": row.get("date"),
+                        "placement_id": row.get("zone_id"),
+                        "placement_name": row.get("zone_name"),
+                        "zone_group_id": row.get("zone_group_id"),
+                        "zone_group_name": row.get("zone_group_name"),
+                        "ad_format": row.get("ad_format"),
+                        "price_tier": row.get("price_tier"),
+                        "request": row.get("request"),
+                        "impression": row.get("impress"),
+                        "clicks": row.get("click"),
+                        "revenue": row.get("profit"),
+                        "dsp_amount": row.get("advertiser_mu"),
+                        "active_view": row.get("active_view"),
+                        "active_view_rate": row.get("active_view_rate"),
+                        "ctr": row.get("ctr"),
+                        "ecpm": row.get("ecpm"),
+                        "ecpc": row.get("ecpc"),
+                        "invalid_impress": row.get("invalid_impress"),
+                        "invalid_click": row.get("invalid_click"),
+                        "profit": row.get("profit"),
+                        "site_mu": row.get("site_mu"),
+                        "advertiser_mu": row.get("advertiser_mu"),
+                        "dsp_ecpm": row.get("dsp_ecpm"),
+                        "dsp_ecpc": row.get("dsp_ecpc"),
+                    },
+                    now,
+                )
+            conn.commit()
+        return {
+            "status": "ok",
+            "workflow": "ssp",
+            "source_ssp_raw_row_count": len(raw_rows),
+            "source_ad_group_row_count": len(ad_group_rows),
+            "placement_fact_row_count": len(raw_rows),
+            "ad_group_fact_row_count": len(ad_group_rows),
+            "deleted_placement_fact_row_count": max(0, int(deleted_placement or 0)),
+            "deleted_ad_group_fact_row_count": max(0, int(deleted_ad_group or 0)),
+            "updated_at": now,
+        }
+
+    def replace_ssp_zone_group_memberships(
+        self,
+        *,
+        group_id: int,
+        group_name: str,
+        zones: list[dict],
+        source_updated_at: str = "",
+    ) -> dict[str, object]:
+        with self.connect() as conn:
+            self._ensure_ssp_performance_tables(conn)
+            now = _now()
+            conn.execute("DELETE FROM ssp_zone_group_memberships WHERE group_id = ?", (int(group_id),))
+            seen: set[int] = set()
+            duplicate_count = 0
+            for zone in zones:
+                zone_id = _coerce_int(zone.get("zone_id", zone.get("id")))
+                if zone_id <= 0:
+                    continue
+                if zone_id in seen:
+                    duplicate_count += 1
+                    continue
+                seen.add(zone_id)
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO ssp_zone_group_memberships(
+                      group_id, group_name, zone_id, zone_name, source_updated_at, updated_at
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        int(group_id),
+                        str(group_name or ""),
+                        zone_id,
+                        str(zone.get("zone_name", zone.get("name")) or ""),
+                        str(source_updated_at or ""),
+                        now,
+                    ),
+                )
+            conn.commit()
+        return {
+            "group_id": int(group_id),
+            "group_name": str(group_name or ""),
+            "input_zone_count": len(zones),
+            "zone_count": len(seen),
+            "duplicate_count": duplicate_count,
+            "source_updated_at": str(source_updated_at or ""),
+            "updated_at": now,
+        }
+
+    def read_ssp_zone_group_membership(self, *, group_id: int) -> dict[str, object]:
+        with self.connect() as conn:
+            self._ensure_ssp_performance_tables(conn)
+            rows = conn.execute(
+                """
+                SELECT group_id, group_name, zone_id, zone_name, source_updated_at, updated_at
+                FROM ssp_zone_group_memberships
+                WHERE group_id = ?
+                ORDER BY zone_id ASC
+                """,
+                (int(group_id),),
+            ).fetchall()
+        if not rows:
+            return {
+                "group_id": int(group_id),
+                "group_name": "",
+                "zone_ids": set(),
+                "zones": [],
+                "source_updated_at": "",
+                "updated_at": "",
+            }
+        zones = [
+            {
+                "zone_id": int(row[2] or 0),
+                "zone_name": str(row[3] or ""),
+            }
+            for row in rows
+        ]
+        return {
+            "group_id": int(rows[0][0] or group_id),
+            "group_name": str(rows[0][1] or ""),
+            "zone_ids": {int(row["zone_id"]) for row in zones},
+            "zones": zones,
+            "source_updated_at": str(rows[0][4] or ""),
+            "updated_at": str(rows[0][5] or ""),
+        }
+
+    def read_ssp_performance_facts(
+        self,
+        *,
+        dataset: str,
+        padding_scope: str = "",
+        start_day: str = "",
+        end_day: str = "",
+        zone_group_id: int | None = None,
+    ) -> list[dict[str, object]]:
+        with self.connect() as conn:
+            self._ensure_ssp_performance_tables(conn)
+            where_parts = ["dataset = ?"]
+            params: list[object] = [str(dataset or "")]
+            if padding_scope:
+                where_parts.append("padding_scope = ?")
+                params.append(str(padding_scope))
+            if start_day:
+                where_parts.append("date >= ?")
+                params.append(str(start_day))
+            if end_day:
+                where_parts.append("date <= ?")
+                params.append(str(end_day))
+            if zone_group_id is not None:
+                where_parts.append("zone_group_id = ?")
+                params.append(int(zone_group_id))
+            cur = conn.execute(
+                f"""
+                SELECT id, {", ".join(SSP_PERFORMANCE_COLUMNS)}, updated_at
+                FROM ssp_performance_facts
+                WHERE {" AND ".join(where_parts)}
+                ORDER BY date ASC, hour ASC, zone_group_id ASC, placement_id ASC, id ASC
+                """,
+                tuple(params),
+            )
+            keys = ["id", *SSP_PERFORMANCE_COLUMNS, "updated_at"]
+            return [dict(zip(keys, raw)) for raw in cur.fetchall()]
 
     def save_ssp_ad_group_report(
         self,
@@ -780,6 +1320,15 @@ class SQLiteRepository:
                 f"INSERT OR REPLACE INTO ssp_ad_group_daily_metrics({columns_sql}) VALUES ({placeholders})",
                 (run_id, *normalized, now),
             )
+        self._save_ssp_ad_group_performance_facts(
+            conn,
+            run_id=run_id,
+            zone_group_id=zone_group_id,
+            start_day=start_day,
+            end_day=end_day,
+            rows=rows,
+            now=now,
+        )
         return len(rows)
 
     def save_monthly_report_rows(

@@ -71,6 +71,12 @@ type MainWorkspaceRendererProps = {
     exportDeliverySnapshotToken: string;
     sspMediaDemandConfig?: SspMediaDemandConfig;
     sspAdGroupMonitor?: SspAdGroupMonitorSnapshot;
+    sspExcludingPaddingRows: RowData[];
+    sspPaddingScope?: {
+      default: "including_padding" | "excluding_padding";
+      including_row_count: number;
+      excluding_row_count: number;
+    };
     monthlyP4?: MonthlyP4Snapshot;
     monthlyP4Test?: MonthlyP4Snapshot;
     monthlyCharts?: MonthlyChartsSnapshot;
@@ -189,6 +195,8 @@ export function MainWorkspaceRenderer(props: MainWorkspaceRendererProps) {
         {showSspAnomalyWorkspace ? (
           <SspParityWorkspace
             rows={data.allRows}
+            excludingPaddingRows={data.sspExcludingPaddingRows}
+            paddingScope={data.sspPaddingScope}
             workflow={route.workflow}
             busy={data.busy}
           />
