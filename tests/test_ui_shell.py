@@ -50,6 +50,9 @@ class UiShellTests(unittest.TestCase):
     def _dsp_bucket_datetime(self, *, weeks_ago: int = 2, day_offset: int = 4) -> str:
         return f"{self._dsp_bucket_date(weeks_ago=weeks_ago, day_offset=day_offset)} 00:00:00"
 
+    def _month_index_for_datetime(self, value: str) -> int:
+        return date.fromisoformat(value[:10]).month - 1
+
     def _full_row(self, **overrides: object) -> dict:
         row = {
             "日期時間": "2026-05-01 00:00:00",
@@ -2708,13 +2711,14 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual(str(preview_contract.get("kind") or ""), "template_preview")
             summary_preview = frame.get("tab4_preview_template_summary", {})
             detail_preview = frame.get("tab4_preview_template_detail", {})
+            delivery_month_index = self._month_index_for_datetime(str(self._full_row()["日期時間"]))
             self.assertIn("tab4_preview_template_summary", frame)
             self.assertIn("tab4_preview_template_detail", frame)
-            self.assertGreater(float((summary_preview.get("monthTotals") or [0.0] * 12)[4]), 0.0)
-            self.assertGreater(float((summary_preview.get("rows") or [{}])[0].get("monthlyAmounts", [0.0] * 12)[4]), 0.0)
-            self.assertGreater(float((detail_preview.get("kpiRows") or [{}])[0].get("monthlyAmounts", [0.0] * 12)[4]), 0.0)
+            self.assertGreater(float((summary_preview.get("monthTotals") or [0.0] * 12)[delivery_month_index]), 0.0)
+            self.assertGreater(float((summary_preview.get("rows") or [{}])[0].get("monthlyAmounts", [0.0] * 12)[delivery_month_index]), 0.0)
+            self.assertGreater(float((detail_preview.get("kpiRows") or [{}])[0].get("monthlyAmounts", [0.0] * 12)[delivery_month_index]), 0.0)
             first_section = (detail_preview.get("sections") or [{}])[0]
-            self.assertGreater(float(((first_section.get("rows") or [{}])[0]).get("monthlyAmounts", [0.0] * 12)[4]), 0.0)
+            self.assertGreater(float(((first_section.get("rows") or [{}])[0]).get("monthlyAmounts", [0.0] * 12)[delivery_month_index]), 0.0)
             self.assertNotIn("tab4_template_summary", frame)
             self.assertNotIn("tab4_template_detail", frame)
 
@@ -3453,7 +3457,8 @@ class UiShellTests(unittest.TestCase):
                             delivery_snapshot_token,
                         )
                         frame_summary = delivery_frame_payload.get("result", {}).get("tab4_preview_template_summary") or {}
-                        self.assertGreater(float((frame_summary.get("monthTotals") or [0.0] * 12)[4]), 0.0)
+                        delivery_month_index = self._month_index_for_datetime(browser_acceptance_date)
+                        self.assertGreater(float((frame_summary.get("monthTotals") or [0.0] * 12)[delivery_month_index]), 0.0)
                         page.wait_for_function(
                             """() => {
                               const tab4 = document.querySelector("[data-testid='main-tab-dsp-tab4']");
@@ -3745,9 +3750,15 @@ class UiShellTests(unittest.TestCase):
                                     captured_actions.append(body)
 
                         page.on("request", _capture_action_request)
+                        ssp_custom_start_date = date.fromisoformat(browser_acceptance_date) - timedelta(
+                            days=date.fromisoformat(browser_acceptance_date).weekday()
+                        )
+                        ssp_custom_end_date = ssp_custom_start_date + timedelta(days=6)
+                        ssp_custom_start = ssp_custom_start_date.isoformat()
+                        ssp_custom_end = ssp_custom_end_date.isoformat()
                         page.locator("[data-testid='period-range-toggle']").click()
-                        page.locator("[data-testid='period-range-day-2026-05-05']").click()
-                        page.locator("[data-testid='period-range-day-2026-05-11']").click()
+                        page.locator(f"[data-testid='period-range-day-{ssp_custom_start}']").click()
+                        page.locator(f"[data-testid='period-range-day-{ssp_custom_end}']").click()
                         page.get_by_role("button", name="展開詳細").click()
                         with page.expect_response(lambda resp: resp.request.method == "POST" and "/api/action" in resp.url):
                             page.get_by_role("button", name="Health").click()
@@ -3756,8 +3767,8 @@ class UiShellTests(unittest.TestCase):
                         self.assertEqual(last_action_payload.get("action"), "health")
                         self.assertEqual(last_action_payload.get("workflow"), "ssp")
                         self.assertEqual(last_action_payload.get("period_preset"), "custom")
-                        self.assertEqual(last_action_payload.get("period_week_start"), "2026-05-05")
-                        self.assertEqual(last_action_payload.get("period_week_end"), "2026-05-11")
+                        self.assertEqual(last_action_payload.get("period_week_start"), ssp_custom_start)
+                        self.assertEqual(last_action_payload.get("period_week_end"), ssp_custom_end)
                         page.get_by_role("button", name="收合詳細").click()
 
                         # 切回 DSP Result，驗證 Result segmented view 仍是摘要優先。
