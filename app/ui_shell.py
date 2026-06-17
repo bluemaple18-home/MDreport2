@@ -1121,9 +1121,14 @@ def _dispatch_mutating_action(
 
 def _resolve_frontend_asset(path: str) -> Path | None:
     # 只允許 frontend/dist 內檔案，避免 path traversal。
+    frontend_root = FRONTEND_DIST_DIR.resolve()
     relative = "index.html" if path == "/" else path.lstrip("/")
-    candidate = (FRONTEND_DIST_DIR / relative).resolve()
-    if not str(candidate).startswith(str(FRONTEND_DIST_DIR.resolve())):
+    candidate = (frontend_root / relative).resolve()
+    if candidate.is_dir():
+        candidate = (candidate / "index.html").resolve()
+    if (not candidate.exists() or not candidate.is_file()) and relative.startswith("multiforce-gifs/"):
+        candidate = (frontend_root / "ad-format-performance-hub" / relative).resolve()
+    if not str(candidate).startswith(str(frontend_root)):
         return None
     if not candidate.exists() or not candidate.is_file():
         return None
