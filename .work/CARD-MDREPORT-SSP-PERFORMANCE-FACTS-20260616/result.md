@@ -1,6 +1,6 @@
 ---
 id: CARD-MDREPORT-SSP-PERFORMANCE-FACTS-20260616
-status: verification_partial
+status: completed
 type: result
 ---
 
@@ -20,8 +20,8 @@ type: result
 - Pass: `.venv/bin/python -m pytest tests/test_ui_shell.py -k "fetch_ssp_api_writes_ssp_raw or fetch_ssp_ad_group_api_cli_uses_runtime_command_contract or zone_group_membership"`
 - Pass: `.venv/bin/python -m pytest tests/test_ui_shell.py -k "fetch_ssp_api_writes_ssp_raw or fetch_ssp_api_preserves_other_days or fetch_ssp_api_cli_uses_runtime_command_contract or fetch_ssp_ad_group_api_cli_uses_runtime_command_contract or zone_group_membership or fetch_ssp_api_cli_multi_day_sum_row_is_aggregated or camelcase_auth_contract"`
 - Pass: `.venv/bin/python -m pytest tests/test_ssp_api.py tests/test_phase2_services.py -k "ssp or monthly_report or ad_group"`
+- Pass: `.venv/bin/python -m pytest tests/test_ui_shell.py tests/test_ssp_api.py tests/test_phase2_services.py` (`98 passed`)
 - Pass: `git diff --check`
-- Partial: `.venv/bin/python -m pytest tests/test_ui_shell.py` has one existing/non-SSP DSP browser acceptance failure where `monthTotals[4]` is `0.0`.
 
 ## Remaining
 - UI/monthly report queries are not yet migrated to the new facts table.

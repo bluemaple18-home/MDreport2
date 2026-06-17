@@ -21,7 +21,7 @@ Can existing SSP raw/ad group data paths be integrated into a common fact/member
 Open the next card for UI/monthly query migration to `ssp_performance_facts`, and separately wire the zone group API fetch action for group `117`.
 
 ## Blocker
-None for SSP first slice. Full `tests/test_ui_shell.py` still has one DSP browser acceptance failure unrelated to this storage change.
+None for SSP first slice. `.venv/bin/python -m pytest tests/test_ui_shell.py tests/test_ssp_api.py tests/test_phase2_services.py` now passes with `98 passed`.
 
 ## Do Not Touch
 - DSP pipeline.
