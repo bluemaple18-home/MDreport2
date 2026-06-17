@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { RecentMap } from "../components/workspaces/shared";
 import { buildExportDownloadUrl } from "../api/runtimeApi";
-import { getMainTabOptions, getSubTabOptions } from "../state/runtimeContract";
+import { getMainTabOptions, getSubTabOptions, shouldRefreshFrameForRoute } from "../state/runtimeContract";
 import { useRuntimeStore } from "../state/useRuntimeStore";
 import type { DspDateBucket, DspRawdataFilters, MainTab, MonthlyChartsSnapshot, MonthlyP4Snapshot, PeriodPreset, RuntimeFrameResult, SspMediaDemandConfig, SspMediaDemandSlot, SubTab, Workflow } from "../types";
 import { collectDspFacetOptions, filterDspRawdataRows } from "./dspRawdataFilters";
@@ -54,13 +54,7 @@ export function useAppShellController() {
   ].join("\n");
 
   useEffect(() => {
-    const shouldRefreshFrame =
-      (state.route.workflow === "dsp" && state.route.mainTab === "dsp_tab4")
-      || (
-        state.route.workflow === "monthly"
-        && (state.route.mainTab === "monthly_p4" || state.route.mainTab === "monthly_charts")
-      );
-    if (!shouldRefreshFrame) {
+    if (!shouldRefreshFrameForRoute(state.route)) {
       return;
     }
     if (lastAutoFrameRefreshKey.current === frameRefreshKey) {

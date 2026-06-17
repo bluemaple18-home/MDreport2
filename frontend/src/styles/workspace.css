@@ -1459,7 +1459,8 @@
 }
 
 .ssp-anomaly-daily-table table th,
-.ssp-anomaly-daily-table table td {
+.ssp-anomaly-daily-table table td,
+.ssp-anomaly-daily-total-wrap table td {
   border-bottom: 1px solid #e2e8f0;
   font-size: 13px;
   padding: 8px 10px;
@@ -1481,11 +1482,42 @@
   );
 }
 
+.ssp-anomaly-daily-table::-webkit-scrollbar {
+  width: 12px;
+  height: 14px;
+}
+
+.ssp-anomaly-daily-table::-webkit-scrollbar-track {
+  background: #edf2f7;
+  border-radius: 999px;
+}
+
+.ssp-anomaly-daily-table::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border: 3px solid #edf2f7;
+  border-radius: 999px;
+}
+
+.ssp-anomaly-daily-table::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
 .ssp-anomaly-daily-table table {
   border-collapse: separate;
   border-spacing: 0;
-  width: max-content;
-  min-width: max-content;
+  width: var(--ssp-anomaly-table-width);
+  min-width: var(--ssp-anomaly-table-width);
+  table-layout: fixed;
+}
+
+.ssp-anomaly-daily-table .ssp-anomaly-supplier-col,
+.ssp-anomaly-daily-total-wrap .ssp-anomaly-supplier-col {
+  width: var(--ssp-anomaly-supplier-col-width);
+}
+
+.ssp-anomaly-daily-table .ssp-anomaly-metric-col,
+.ssp-anomaly-daily-total-wrap .ssp-anomaly-metric-col {
+  width: var(--ssp-anomaly-metric-col-width);
 }
 
 .ssp-anomaly-daily-table tbody td {
@@ -1503,7 +1535,7 @@
 }
 
 .ssp-anomaly-daily-table thead th:first-child,
-.ssp-anomaly-daily-table tfoot td:first-child {
+.ssp-anomaly-daily-total-wrap td:first-child {
   text-align: left;
 }
 
@@ -1532,11 +1564,29 @@
   height: calc(var(--ssp-anomaly-header-row-1) + var(--ssp-anomaly-header-row-2));
 }
 
-.ssp-anomaly-daily-table tfoot td {
-  position: sticky;
-  bottom: 0;
-  z-index: 3;
-  box-shadow: 0 -2px 6px rgba(15, 23, 42, 0.08);
+.ssp-anomaly-daily-total-wrap {
+  margin-top: -1px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  max-width: 100%;
+  border: 1px solid #c2d0d9;
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  background: #f8fafc;
+  box-shadow: inset 0 1px 0 #e2e8f0;
+}
+
+.ssp-anomaly-daily-total-wrap table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: var(--ssp-anomaly-table-width);
+  min-width: var(--ssp-anomaly-table-width);
+  table-layout: fixed;
+}
+
+.ssp-anomaly-daily-total-wrap .table-total-row td {
+  height: 38px;
+  border-bottom: 0;
 }
 
 .ssp-anomaly-summary-row {
@@ -1550,7 +1600,10 @@
 .ssp-anomaly-supplier-cell {
   color: #0f172a;
   font-weight: 400;
+  max-width: var(--ssp-anomaly-supplier-col-width);
+  overflow: hidden;
   text-align: left;
+  text-overflow: ellipsis;
 }
 
 .ssp-anomaly-supplier-cell-risk {

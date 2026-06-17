@@ -16,6 +16,11 @@ function loadRestorePersistedState(): {
     current: { preset: string; weekStart: string; weekEnd: string; label: string },
     preset: string,
   ) => { preset: string; weekStart: string; weekEnd: string; label: string };
+  resolvePeriodForMainTab: (
+    mainTab: string,
+    current: { preset: string; weekStart: string; weekEnd: string; label: string },
+  ) => { preset: string; weekStart: string; weekEnd: string; label: string };
+  shouldRefreshFrameForRoute: (route: { mainTab: string }) => boolean;
   resolveTab4DeliveryReadiness: (
     delivery: {
       ready?: boolean;
@@ -71,10 +76,14 @@ function loadRestorePersistedState(): {
 
   const restore = runtime.exports.restorePersistedState;
   const updatePeriodPreset = runtime.exports.updatePeriodPreset;
+  const resolvePeriodForMainTab = runtime.exports.resolvePeriodForMainTab;
+  const shouldRefreshFrameForRoute = runtime.exports.shouldRefreshFrameForRoute;
   const resolveTab4DeliveryReadiness = runtime.exports.resolveTab4DeliveryReadiness;
   const key = runtime.exports.FRONTEND_SESSION_KEY;
   assert.equal(typeof restore, "function", "restorePersistedState 載入失敗");
   assert.equal(typeof updatePeriodPreset, "function", "updatePeriodPreset 載入失敗");
+  assert.equal(typeof resolvePeriodForMainTab, "function", "resolvePeriodForMainTab 載入失敗");
+  assert.equal(typeof shouldRefreshFrameForRoute, "function", "shouldRefreshFrameForRoute 載入失敗");
   assert.equal(typeof resolveTab4DeliveryReadiness, "function", "resolveTab4DeliveryReadiness 載入失敗");
   assert.equal(typeof key, "string", "FRONTEND_SESSION_KEY 載入失敗");
 
@@ -89,6 +98,11 @@ function loadRestorePersistedState(): {
       current: { preset: string; weekStart: string; weekEnd: string; label: string },
       preset: string,
     ) => { preset: string; weekStart: string; weekEnd: string; label: string },
+    resolvePeriodForMainTab: resolvePeriodForMainTab as (
+      mainTab: string,
+      current: { preset: string; weekStart: string; weekEnd: string; label: string },
+    ) => { preset: string; weekStart: string; weekEnd: string; label: string },
+    shouldRefreshFrameForRoute: shouldRefreshFrameForRoute as (route: { mainTab: string }) => boolean,
     resolveTab4DeliveryReadiness: resolveTab4DeliveryReadiness as (
       delivery: {
         ready?: boolean;
@@ -207,6 +221,80 @@ test("query dsp period keeps rawdata date filter on the selected week", () => {
   const restored = runtime.restorePersistedState();
   assert.equal(restored.period.preset, "two_weeks_ago");
   assert.equal(restored.dspRawdataFilters.dateBucket, "two_weeks_ago");
+});
+
+test("ssp current_month ignores stale query window and resolves through yesterday", () => {
+  installRuntimeGlobals(
+    "?workflow=ssp&main_tab=ssp_anomaly&period_preset=current_month&period_week_start=2026-05-01&period_week_end=2026-05-10",
+  );
+
+  const restored = runtime.restorePersistedState();
+  assert.equal(restored.period.preset, "current_month");
+  assert.equal(restored.period.weekStart, "2026-05-01");
+  assert.equal(restored.period.weekEnd, "2026-05-11");
+});
+
+test("custom period keeps explicit query window", () => {
+  installRuntimeGlobals(
+    "?workflow=ssp&main_tab=ssp_anomaly&period_preset=custom&period_week_start=2026-05-03&period_week_end=2026-05-10",
+  );
+
+  const restored = runtime.restorePersistedState();
+  assert.equal(restored.period.preset, "custom");
+  assert.equal(restored.period.weekStart, "2026-05-03");
+  assert.equal(restored.period.weekEnd, "2026-05-10");
+});
+
+test("ssp legacy last_7_days query is coerced to last_14_days", () => {
+  installRuntimeGlobals(
+    "?workflow=ssp&main_tab=ssp_anomaly&period_preset=last_7_days&period_week_start=2026-05-05&period_week_end=2026-05-11",
+  );
+
+  const restored = runtime.restorePersistedState();
+  assert.equal(restored.period.preset, "last_14_days");
+  assert.equal(restored.period.weekStart, "2026-04-28");
+  assert.equal(restored.period.weekEnd, "2026-05-11");
+});
+
+test("legacy last_7_days preset action is coerced to last_14_days", () => {
+  const restored = runtime.updatePeriodPreset(
+    { preset: "current_month", weekStart: "2026-05-01", weekEnd: "2026-05-11", label: "2026-05-01 ~ 2026-05-11" },
+    "last_7_days",
+  );
+
+  assert.equal(restored.preset, "last_14_days");
+  assert.equal(restored.weekStart, "2026-04-28");
+  assert.equal(restored.weekEnd, "2026-05-11");
+});
+
+test("main tab period policy resets SSP anomaly to current month", () => {
+  const restored = runtime.resolvePeriodForMainTab(
+    "ssp_anomaly",
+    { preset: "last_14_days", weekStart: "2026-04-28", weekEnd: "2026-05-11", label: "2026-04-28 ~ 2026-05-11" },
+  );
+
+  assert.equal(restored.preset, "current_month");
+  assert.equal(restored.weekStart, "2026-05-01");
+  assert.equal(restored.weekEnd, "2026-05-11");
+});
+
+test("main tab period policy keeps non-overridden SSP tabs unchanged", () => {
+  const restored = runtime.resolvePeriodForMainTab(
+    "ssp_media_demand",
+    { preset: "last_14_days", weekStart: "2026-04-28", weekEnd: "2026-05-11", label: "2026-04-28 ~ 2026-05-11" },
+  );
+
+  assert.equal(restored.preset, "last_14_days");
+  assert.equal(restored.weekStart, "2026-04-28");
+  assert.equal(restored.weekEnd, "2026-05-11");
+});
+
+test("route frame refresh policy is centralized by main tab", () => {
+  assert.equal(runtime.shouldRefreshFrameForRoute({ mainTab: "ssp_anomaly" }), true);
+  assert.equal(runtime.shouldRefreshFrameForRoute({ mainTab: "ssp_media_demand" }), true);
+  assert.equal(runtime.shouldRefreshFrameForRoute({ mainTab: "ssp_ad_group" }), true);
+  assert.equal(runtime.shouldRefreshFrameForRoute({ mainTab: "dsp_tab4" }), true);
+  assert.equal(runtime.shouldRefreshFrameForRoute({ mainTab: "dsp_tab3" }), false);
 });
 
 test("monthly workflow defaults to previous full month", () => {

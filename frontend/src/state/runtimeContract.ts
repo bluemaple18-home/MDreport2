@@ -83,6 +83,51 @@ type Tab4DeliveryLike = {
   delivery_week_end?: string;
 };
 
+type WorkflowPeriodPolicy = {
+  allowedPresets: PeriodPreset[];
+  defaultPreset: PeriodPreset;
+};
+
+const PERIOD_PRESET_ALIASES: Partial<Record<PeriodPreset, PeriodPreset>> = {
+  last_7_days: "last_14_days",
+};
+
+const WORKFLOW_PERIOD_POLICIES: Record<Workflow, WorkflowPeriodPolicy> = {
+  dsp: {
+    allowedPresets: ["last_week", "two_weeks_ago", "three_weeks_ago", "four_weeks_ago"],
+    defaultPreset: "last_week",
+  },
+  ssp: {
+    allowedPresets: ["custom", "current_month", "last_14_days"],
+    defaultPreset: "current_month",
+  },
+  monthly: {
+    allowedPresets: ["custom"],
+    defaultPreset: "custom",
+  },
+};
+
+const MAIN_TAB_PERIOD_PRESET_OVERRIDES: Partial<Record<MainTab, PeriodPreset>> = {
+  ssp_anomaly: "current_month",
+};
+
+const PERIOD_AWARE_FRAME_TABS: ReadonlySet<MainTab> = new Set([
+  "dsp_tab4",
+  "ssp_anomaly",
+  "ssp_media_demand",
+  "ssp_ad_group",
+  "monthly_p4",
+  "monthly_charts",
+]);
+
+export function normalizePeriodPresetAlias(preset: PeriodPreset): PeriodPreset {
+  return PERIOD_PRESET_ALIASES[preset] || preset;
+}
+
+export function shouldRefreshFrameForRoute(route: Pick<RouteState, "mainTab">): boolean {
+  return PERIOD_AWARE_FRAME_TABS.has(route.mainTab);
+}
+
 export function resolveTab4DeliveryReadiness(
   delivery: Tab4DeliveryLike | null | undefined,
   period: Pick<PeriodState, "weekStart" | "weekEnd">,
@@ -200,6 +245,7 @@ function weekRangeByOffset(weeksAgo: number): { weekStart: string; weekEnd: stri
 
 function lastNDaysRange(days: number): { weekStart: string; weekEnd: string } {
   const end = new Date();
+  end.setDate(end.getDate() - 1);
   const start = new Date(end);
   start.setDate(end.getDate() - (days - 1));
   return {
@@ -288,16 +334,16 @@ function parsePeriodPreset(raw: string | null): PeriodPreset | null {
 }
 
 function normalizePeriodPresetByWorkflow(workflow: Workflow, preset: PeriodPreset | null, fallback: PeriodPreset): PeriodPreset {
-  if (workflow === "monthly") {
-    return "custom";
+  const policy = WORKFLOW_PERIOD_POLICIES[workflow];
+  const normalizedPreset = preset ? normalizePeriodPresetAlias(preset) : null;
+  const normalizedFallback = normalizePeriodPresetAlias(fallback);
+  if (normalizedPreset && policy.allowedPresets.includes(normalizedPreset)) {
+    return normalizedPreset;
   }
-  if (workflow === "ssp") {
-    return preset === "custom" || preset === "current_month" || preset === "last_7_days" || preset === "last_14_days" ? preset : fallback;
+  if (policy.allowedPresets.includes(normalizedFallback)) {
+    return normalizedFallback;
   }
-  return preset === "last_week"
-    || preset === "two_weeks_ago"
-    || preset === "three_weeks_ago"
-    || preset === "four_weeks_ago" ? preset : fallback;
+  return policy.defaultPreset;
 }
 
 export function isDspDateBucketPreset(preset: PeriodPreset): preset is DspDateBucket {
@@ -317,38 +363,30 @@ function buildPeriodLabel(weekStart: string, weekEnd: string): string {
 }
 
 function applyPreset(preset: PeriodPreset, fallback: PeriodState): PeriodState {
-  if (preset === "custom") {
+  const normalizedPreset = normalizePeriodPresetAlias(preset);
+  if (normalizedPreset === "custom") {
     return {
       ...fallback,
-      preset,
+      preset: normalizedPreset,
       label: buildPeriodLabel(fallback.weekStart, fallback.weekEnd),
     };
   }
-  if (preset === "current_month") {
+  if (normalizedPreset === "current_month") {
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
     const end = new Date(now);
     end.setDate(now.getDate() - 1);
     return {
-      preset,
+      preset: normalizedPreset,
       weekStart: toDateIso(start),
       weekEnd: toDateIso(end),
       label: buildPeriodLabel(toDateIso(start), toDateIso(end)),
     };
   }
-  if (preset === "last_14_days") {
+  if (normalizedPreset === "last_14_days") {
     const range = lastNDaysRange(14);
     return {
-      preset,
-      weekStart: range.weekStart,
-      weekEnd: range.weekEnd,
-      label: buildPeriodLabel(range.weekStart, range.weekEnd),
-    };
-  }
-  if (preset === "last_7_days") {
-    const range = lastNDaysRange(7);
-    return {
-      preset,
+      preset: normalizedPreset,
       weekStart: range.weekStart,
       weekEnd: range.weekEnd,
       label: buildPeriodLabel(range.weekStart, range.weekEnd),
@@ -364,11 +402,16 @@ function applyPreset(preset: PeriodPreset, fallback: PeriodState): PeriodState {
     ? thisWeekRange()
     : weekRangeByOffset(dspWeekOffsets[preset] || 1);
   return {
-    preset,
+    preset: normalizedPreset,
     weekStart: range.weekStart,
     weekEnd: range.weekEnd,
     label: buildPeriodLabel(range.weekStart, range.weekEnd),
   };
+}
+
+export function resolvePeriodForMainTab(mainTab: MainTab, current: PeriodState): PeriodState {
+  const overridePreset = MAIN_TAB_PERIOD_PRESET_OVERRIDES[mainTab];
+  return overridePreset ? applyPreset(overridePreset, current) : current;
 }
 
 type PersistedState = {
@@ -504,7 +547,8 @@ export function restorePersistedState(): PersistedState {
     || sessionParsed.period?.weekEnd
     || workflowFallbackPeriod.weekEnd;
 
-  const currentPeriod = queryWeekStart && queryWeekEnd ? {
+  const useQueryPeriodWindow = periodPreset === "custom" && queryWeekStart && queryWeekEnd;
+  const currentPeriod = useQueryPeriodWindow ? {
     preset: periodPreset,
     weekStart: queryWeekStart,
     weekEnd: queryWeekEnd,

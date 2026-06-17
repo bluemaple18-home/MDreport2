@@ -121,7 +121,7 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.required = True
     sub.add_parser("bootstrap", help="Run bootstrap init")
     sub.add_parser("health", help="Run bootstrap health check")
-    seed_p = sub.add_parser("seed-bootstrap", help="Build old-data migration seed scaffold")
+    seed_p = sub.add_parser("seed-bootstrap", help="Build data seed scaffold")
     seed_p.add_argument("--seed-root", default=None, help="Override data seed root directory (relative to project root)")
     seed_p.add_argument(
         "--raw-source",
@@ -144,7 +144,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     rebuild_p.add_argument("--template-version", default="v1")
     rebuild_p.add_argument("--rule-version", default="v1")
-    import_p = sub.add_parser("seed-import-mdreport", help="Import legacy MDreport seed into current seed scaffold")
+    import_p = sub.add_parser("seed-import-mdreport", help="Import MDreport seed into current seed scaffold")
     import_p.add_argument("--mdreport-root", required=True, help="Legacy MDreport project root")
     import_p.add_argument("--seed-root", default=None, help="Override data seed root directory (relative to project root)")
     promote_p = sub.add_parser("seed-promote-live", help="Promote seed canonical into live runtime DB")

@@ -253,7 +253,7 @@ export function WorkbenchCommandDeck({
   const periodPresetOptions = isSspWorkflow || isMonthlyWorkflow
     ? [
       { value: "current_month", label: "本月" },
-      { value: "last_7_days", label: "最近 7 天" },
+      { value: "last_14_days", label: "最近 14 天" },
     ]
     : buildDspDateOptions();
   const periodSubtitle = isMonthlyWorkflow
@@ -261,7 +261,7 @@ export function WorkbenchCommandDeck({
     : isSspWorkflow
     ? "SSP 預設本月，可自由拉取日期區間"
     : "DSP 週期篩選（以完整週為單位）";
-  const sspPeriodModeText = periodPreset === "custom" ? "目前：自訂區間" : periodPreset === "current_month" ? "目前：本月" : "目前：最近 7 天";
+  const sspPeriodModeText = periodPreset === "custom" ? "目前：自訂區間" : periodPreset === "current_month" ? "目前：本月" : "目前：最近 14 天";
   const monthlyPeriodModeText = `最新月：${periodWeekEnd.slice(0, 7) || "未選"}`;
 
   return (
@@ -384,9 +384,9 @@ export function WorkbenchCommandDeck({
                             testId={ACCEPTANCE_SELECTORS.periodPreset}
                           />
                           <ActionButton
-                            label="最近 7 天"
-                            variant={periodPreset === "last_7_days" ? "primary" : "ghost"}
-                            onClick={() => onPeriodPresetChange("last_7_days")}
+                            label="最近 14 天"
+                            variant={periodPreset === "last_14_days" ? "primary" : "ghost"}
+                            onClick={() => onPeriodPresetChange("last_14_days")}
                             disabled={dspPeriodLocked}
                           />
                         </div>

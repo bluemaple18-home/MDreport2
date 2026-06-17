@@ -24,6 +24,7 @@ import {
   normalizeSubTabByMainTab,
   normalizeRowLimit,
   persistState,
+  resolvePeriodForMainTab,
   resolveTab4DeliveryReadiness,
   restorePersistedState,
   updatePeriodPreset,
@@ -240,6 +241,7 @@ function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
     case "set_main_tab":
       {
         const nextSubTab = normalizeSubTabByMainTab(action.value, state.route.subTab);
+        const nextPeriod = resolvePeriodForMainTab(action.value, state.period);
         return {
           ...state,
           route: {
@@ -247,6 +249,7 @@ function reducer(state: RuntimeState, action: RuntimeAction): RuntimeState {
             mainTab: action.value,
             subTab: nextSubTab,
           },
+          period: nextPeriod,
         };
       }
     case "set_subtab":

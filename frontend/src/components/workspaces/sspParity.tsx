@@ -1,4 +1,5 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties, UIEvent } from "react";
 import type { Workflow } from "../../types";
 import { DataStateBlock, Field, Panel } from "../ui";
 import type { RowData } from "./shared";
@@ -109,6 +110,8 @@ const PERFORMANCE_MIN_IMPRESSIONS = 1000;
 const SUPPLIER_REQUEST_WINDOW_DAYS = 15;
 const SUPPLIER_MIN_WINDOW_REQUESTS = 10000;
 const SITE_CONTRIBUTION_FOLD_THRESHOLD_PERCENT = 10;
+const DAILY_TABLE_SUPPLIER_COL_WIDTH = 240;
+const DAILY_TABLE_METRIC_COL_WIDTH = 96;
 function normalizeSupplier(row: RowData): string {
   return String(row["supplier_name"] ?? "未分類供應商").trim() || "未分類供應商";
 }
@@ -776,6 +779,8 @@ export function SspParityWorkspace({ rows, excludingPaddingRows, paddingScope, w
   const [dodThresholdInput, setDodThresholdInput] = useState<string>(String(DOD_THRESHOLD_MILLION));
   const [performanceDodThresholdInput, setPerformanceDodThresholdInput] = useState<string>(String(PERFORMANCE_DOD_THRESHOLD_PERCENT));
   const [expandedSupplier, setExpandedSupplier] = useState<string | null>(null);
+  const dailyTableScrollRef = useRef<HTMLDivElement | null>(null);
+  const dailyTotalScrollRef = useRef<HTMLDivElement | null>(null);
   const dodThresholdMillion = Number(dodThresholdInput || 0);
   const performanceDodThresholdPercent = Number(performanceDodThresholdInput || 0);
   const effectiveRows = selectedPaddingScope === "excluding_padding" ? excludingPaddingRows : rows;
@@ -1000,6 +1005,29 @@ export function SspParityWorkspace({ rows, excludingPaddingRows, paddingScope, w
     }
   }, [anomalySuppliers, expandedSupplier]);
 
+  useLayoutEffect(() => {
+    if (dailyTableScrollRef.current && dailyTotalScrollRef.current) {
+      dailyTotalScrollRef.current.scrollLeft = dailyTableScrollRef.current.scrollLeft;
+    }
+  }, [
+    anomalyWorkbench.dateKeysDesc,
+    dailyTableMode,
+    filteredSuppliers.length,
+    selectedPaddingScope,
+    visibilityMode,
+  ]);
+
+  const syncDailySummaryScroll = (event: UIEvent<HTMLDivElement>) => {
+    if (dailyTotalScrollRef.current) {
+      dailyTotalScrollRef.current.scrollLeft = event.currentTarget.scrollLeft;
+    }
+  };
+  const dailyTableColumnStyle = {
+    "--ssp-anomaly-table-width": `${DAILY_TABLE_SUPPLIER_COL_WIDTH + anomalyWorkbench.dateKeysDesc.length * dailyHeaders.length * DAILY_TABLE_METRIC_COL_WIDTH}px`,
+    "--ssp-anomaly-supplier-col-width": `${DAILY_TABLE_SUPPLIER_COL_WIDTH}px`,
+    "--ssp-anomaly-metric-col-width": `${DAILY_TABLE_METRIC_COL_WIDTH}px`,
+  } as CSSProperties;
+
   return (
     <Panel title={`${workflow.toUpperCase()} 成效異常 Workspace`} subtitle="控制列 + 每日總表 + 異常供應商收合區，網站異常清單以下鑽呈現。" full>
       <DataStateBlock loading={busy} empty={!busy && effectiveRows.length === 0} />
@@ -1176,8 +1204,24 @@ export function SspParityWorkspace({ rows, excludingPaddingRows, paddingScope, w
               <span>{dailyTableMode === "performance" ? "成效異常供應商" : "請求異常供應商"}: {formatNumber(anomalySuppliers.length)}</span>
               <span>可上下 / 左右捲動查看更多資料</span>
             </div>
-            <div className="table-wrap ssp-anomaly-daily-table" data-testid="ssp-anomaly-daily-summary">
+            <div
+              className="table-wrap ssp-anomaly-daily-table"
+              data-testid="ssp-anomaly-daily-summary"
+              ref={dailyTableScrollRef}
+              onScroll={syncDailySummaryScroll}
+              style={dailyTableColumnStyle}
+            >
               <table>
+                <colgroup>
+                  <col className="ssp-anomaly-supplier-col" />
+                  {anomalyWorkbench.dateKeysDesc.map((date) => (
+                    <Fragment key={`col-${date}`}>
+                      <col className="ssp-anomaly-metric-col" />
+                      <col className="ssp-anomaly-metric-col" />
+                      <col className="ssp-anomaly-metric-col" />
+                    </Fragment>
+                  ))}
+                </colgroup>
                 <thead>
                   <tr>
                     <th rowSpan={2}>供應商</th>
@@ -1255,7 +1299,26 @@ export function SspParityWorkspace({ rows, excludingPaddingRows, paddingScope, w
                     );
                   })}
                 </tbody>
-                <tfoot>
+              </table>
+            </div>
+            <div
+              className="ssp-anomaly-daily-total-wrap"
+              ref={dailyTotalScrollRef}
+              data-testid="ssp-anomaly-daily-total"
+              style={dailyTableColumnStyle}
+            >
+              <table className="ssp-anomaly-daily-total-table" aria-label="每日總表總計">
+                <colgroup>
+                  <col className="ssp-anomaly-supplier-col" />
+                  {anomalyWorkbench.dateKeysDesc.map((date) => (
+                    <Fragment key={`total-col-${date}`}>
+                      <col className="ssp-anomaly-metric-col" />
+                      <col className="ssp-anomaly-metric-col" />
+                      <col className="ssp-anomaly-metric-col" />
+                    </Fragment>
+                  ))}
+                </colgroup>
+                <tbody>
                   <tr className="table-total-row">
                     <td>總計</td>
                     {anomalyWorkbench.dateKeysDesc.map((date) => {
@@ -1275,7 +1338,7 @@ export function SspParityWorkspace({ rows, excludingPaddingRows, paddingScope, w
                       );
                     })}
                   </tr>
-                </tfoot>
+                </tbody>
               </table>
             </div>
           </Panel>

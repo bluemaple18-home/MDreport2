@@ -1,115 +1,174 @@
-# MDREP Bootstrap Runtime（目前狀態）
+# MDreport
 
-本專案已不只 Phase 1 骨架，現況是「可執行的最小 runtime」：
-- `bootstrap` / `health` / `save` / `modify` / `export` 可用
-- SQLite 為唯一真相來源（canonical source of truth）
-- `export` 產出 Excel workbook artifact（非真相來源）
-- DSP / SSP workflow 走同一套契約與流程
-- `audit_log`、`run_log`、`publish_runs`、`evidence_index` 已串接
-- `feature_flags` 與 `strict_acceptance_gate` 已正式接入 runtime
+MDreport 是一套給 DSP、SSP 與月報營運使用的報表 runtime。它把資料抓取、canonical 儲存、手動修正、驗收閘門、Excel artifact 匯出與前端工作台收斂在同一套 SQLite 契約上，讓日常補數、核對、交付與追溯都能用同一個系統完成。
 
-## 範圍（已完成）
-- Bootstrap manifest（檔案式契約）
-- SQLite 單一來源 + migration (`0001_initial` + `schema_migrations`)
-- Template / rule seed 與 binding
-- Canonical save / modify / export 服務層
-- CLI/app shell 公開入口：`app/main.py`
-- Workbook artifact 匯出（`.xlsx`）
-- Audit trail 與追溯欄位
-- Strict acceptance gate（可由 manifest 控制）
+## 現有能力
 
-## 非範圍（目前仍不做）
-- 完整業務流程擴充（超出 bootstrap/runtime 最小能力）
-- 舊專案資料隱式搬運或自動導入
-- 以 workbook 反寫 canonical（明確禁止）
+- DSP workflow：DSP API 抓數、rawdata 編修、pivot 預覽、Tab4 交付快照、period-bound template 驗證、Excel 報表匯出與已關帳月份封存。
+- SSP workflow：SSP API 抓數、含 padding / 排除 padding 指標核對、ad group demand 抓取與監控、media demand slot 編修、read-only rawdata 檢視與匯出。
+- Monthly workflow：SSP 月報資料抓取、media cost analysis、dimension summary、zone group 匯入、P4(J) 手 key 欄位、測試模板比對、月結與圖表 snapshot。
+- Runtime foundation：manifest 設定、feature flags、strict acceptance gate、template/rule binding、SQLite schema versioning、service 層 save/modify/export。
+- 追溯與證據：`run_log`、`audit_log`、`publish_runs`、`evidence_index` 會記錄流程結果、artifact 與驗收狀態。
+- Sandbox：前端與 API 可使用 sandbox DB / artifact root 進行隔離操作，支援 baseline 準備與 reset。
+- 前端工作台：React + TypeScript + Vite，透過 runtime API 操作 DSP / SSP / monthly 工作流。
 
-## 核心邊界
-- SQLite 是唯一真相：`canonical_raw` / `run_log` / `audit_log` / `publish_runs` / `evidence_index`
-- Artifact 只存輸出與證據（例如 `.xlsx`），刪除 artifact 不應改變 canonical
-- `audit_log` 是追溯補強，不是主流程 blocker
-  - service audit：soft-fail
-  - bootstrap audit：soft-fail（回傳 `audit_log_status`）
+## 架構邊界
 
-## Bootstrap Manifest
-預設檔案：`bootstrap.manifest.json`
+- SQLite 是唯一 canonical source of truth；workbook 只作輸出 artifact，不反寫 canonical。
+- `canonical_raw`、workflow 專用表、`run_log`、`audit_log`、`publish_runs`、`evidence_index` 是 runtime 追溯核心。
+- `artifact_root` 只放輸出與證據；刪除 artifact 不應改變 canonical 資料。
+- DSP rawdata 目前可編修；SSP rawdata 目前以 read-only 檢視、篩選與核對為主。
+- `strict_acceptance_gate` 是額外驗收閘門；service 本身仍會做 template/rule binding 驗證。
 
-環境分流：
-- 正式：`bootstrap.manifest.json`
-- 測試：`bootstrap.test.manifest.json`
-- CLI / UI 若帶 `env=test`，且未額外指定 `manifest`，會自動切到測試 manifest。
+## 主要入口
 
-關鍵欄位：
-- `db.path`
-- `data_seed.root`
-- `schema.target_version`
-- `template_registry.seed`
-- `rule_registry.seed`
-- `feature_flags`
-- `artifact_root`
+- CLI：`app/main.py`
+- 相容 wrapper：`app/bootstrap_init.py`
+- API + frontend static host：`app/ui_shell.py`
+- 前端：`frontend/`
+- 預設 manifest：`bootstrap.manifest.json`
+- 測試 manifest：`bootstrap.test.manifest.json`
 
-目前支援的 `feature_flags`：
-- `enable_test_hooks`：`save/modify/export` 回傳與 audit payload 附加 `test_hooks_enabled`
-- `enable_trace_markers`：`save/modify/export` 回傳與 audit payload 附加 `trace_marker`
-- `strict_acceptance_gate`：控制 gate 是否阻擋主流程（見下節）
+Runtime API：
 
-目前範例 manifest（`bootstrap.manifest.json`）預設為：
-- `strict_acceptance_gate: true`
+- `GET /api/status`
+- `GET /api/frame`
+- `GET /api/ssp/media-demand`
+- `GET /api/export/download`
+- `POST /api/action`
 
-## Strict Acceptance Gate 行為
-- `strict_acceptance_gate=true`
-  - service 入口（`save/modify/export`）先跑 gate
-  - 若驗收失敗，CLI 回 `STRICT_ACCEPTANCE_GATE_FAILED`
-- `strict_acceptance_gate=false`
-  - gate 不作為額外 blocker（health 會以 `checks.acceptance_gate.status=warning` 呈現）
-
-注意：
-- gate 只是「額外驗收閘門」；service 本身仍會做 template/rule binding 驗證。
-- 因此即使 `strict_acceptance_gate=false`，若你操作的 workflow 缺少有效 binding，仍可能在 service 階段失敗（例如 `LOOKUP_ERROR`）。
-
-`health` 也會回傳 machine-readable gate 狀態於 `checks.acceptance_gate`。
-
-## CLI 使用方式
-主入口：`app/main.py`
+## Bootstrap 與健康檢查
 
 ```bash
-uv run python app/main.py --root /path/to/project bootstrap
-uv run python app/main.py --root /path/to/project --env test bootstrap
-uv run python app/main.py --root /path/to/project health
-uv run python app/main.py --root /path/to/project --env test health
-uv run python app/main.py --root /path/to/project save \
-  --workflow dsp --template-version v1 --rule-version v1 \
-  --rows-json /path/to/rows.json
-uv run python app/main.py --root /path/to/project modify \
-  --workflow dsp --template-version v1 --rule-version v1 \
-  --updates-json /path/to/updates.json
-uv run python app/main.py --root /path/to/project export \
-  --workflow dsp --template-version v1 --rule-version v1 \
-  --main-tab dsp_tab4 --sub-tab overview
-uv run python app/main.py --root /path/to/project seed-bootstrap \
-  --raw-source raw-inbox
-uv run python app/main.py --root /path/to/project seed-import-mdreport \
-  --mdreport-root /path/to/MDreport
-uv run python app/main.py --root /path/to/project seed-promote-live \
-  --workflow dsp --source-db-rel canonical/mdreport_dsp.sqlite
-uv run python app/main.py --root /path/to/project seed-rebuild \
-  --workflow dsp --template-version v1 --rule-version v1
-uv run python app/main.py --root /path/to/project fetch-dsp-api \
-  --date 2026-05-10
-uv run python app/main.py --root /path/to/project fetch-ssp-api \
-  --date 2026-05-11
+uv run python app/main.py --root <repo-root> bootstrap
+uv run python app/main.py --root <repo-root> health
+uv run python app/main.py --root <repo-root> --env test bootstrap
+uv run python app/main.py --root <repo-root> --env test health
 ```
 
-相容 wrapper：`app/bootstrap_init.py`
-- 未指定 command 時會自動補 `bootstrap`
-- `export --workflow dsp` 若未提供 `--main-tab/--sub-tab`，CLI 會預設補 `dsp_tab4/overview` 以符合 DSP export 守門。
-- `POST /api/action` 的 DSP `export` 不會補 route；需由前端/呼叫端明確帶 `main_tab=dsp_tab4`、`sub_tab=overview`。
-- `POST /api/action` 目前也支援 `seed_rebuild`、`seed_promote_live`，可沿用 `workflow / template_version / rule_version / seed_root / source_db_rel` 這組 runtime 契約走 API 重建。
-- `POST /api/action` 目前也支援 `fetch_dsp_api`，正式 auth 走 `scope-check -> service_id=10 -> reports -> view-job`。
-- `POST /api/action` 目前也支援 `fetch_ssp_api`，正式 auth 走 `scope-check -> service_id=14 -> get-login -> report-conditions -> report`。
-- 若只帶 `--env test` 而未指定 `--manifest`，CLI 會自動改用 `bootstrap.test.manifest.json`。
+`--env test` 且未指定 `--manifest` 時，CLI / UI 會自動使用 `bootstrap.test.manifest.json`。
 
-## CLI 輸出契約（JSON）
+## Canonical 操作
+
+```bash
+uv run python app/main.py --root <repo-root> save \
+  --workflow dsp --template-version v1 --rule-version v1 \
+  --rows-json <rows.json>
+
+uv run python app/main.py --root <repo-root> modify \
+  --workflow dsp --template-version v1 --rule-version v1 \
+  --updates-json <updates.json>
+
+uv run python app/main.py --root <repo-root> export \
+  --workflow dsp --template-version v1 --rule-version v1 \
+  --main-tab dsp_tab4 --sub-tab overview
+```
+
+`save` 會整批覆蓋指定 workflow 的 canonical rows；`modify` 只允許修改欄位契約中標示的 manual fields；`export` 會從 canonical 產生 artifact，並寫入 publish / evidence / audit 追溯紀錄。
+
+DSP export 會使用 Tab4 delivery 契約。CLI 入口若未提供 `--main-tab` / `--sub-tab`，會預設補 `dsp_tab4` / `overview`；`POST /api/action` 不會自動補 route，前端或呼叫端需明確帶入。
+
+## DSP 功能
+
+```bash
+uv run python app/main.py --root <repo-root> fetch-dsp-api --date 2026-05-10
+uv run python app/main.py --root <repo-root> fetch-dsp-api --start-day 2026-05-01 --end-day 2026-05-10
+uv run python app/main.py --root <repo-root> archive-dsp-month --month 2026-05
+```
+
+- 正式 API flow：`scope-check -> service_id=10 -> dsp3-api/reports -> reports/view-job`。
+- 單日 refresh 只替換請求日期範圍內的 rows，保留其他日期資料。
+- 多日查詢會逐日 fetch、節流，最後一次性寫回，避免 server-side 截斷造成缺頁。
+- export 會產出 DSP Tab4 workbook，例如 `<artifact_root>/<YYYY> DSP投資量報表_<MMDD>-<MMDD>.xlsx`。
+- Tab4 template 可搭配 `.period.json` sidecar 設定 `week_start` / `week_end`，讓 template 與交付週期綁定。
+
+帳密解析順序：
+
+- `--email / --password`
+- `MDREP_DSP_EMAIL / MDREP_DSP_PASSWORD`
+- `MDREPORT_API_EMAIL / MDREPORT_API_PASSWORD`
+
+## SSP 功能
+
+```bash
+uv run python app/main.py --root <repo-root> fetch-ssp-api --date 2026-05-11
+uv run python app/main.py --root <repo-root> fetch-ssp-excluding-padding-api --date 2026-05-11
+uv run python app/main.py --root <repo-root> fetch-ssp-ad-group-api --date 2026-05-11
+```
+
+- 正式 API flow：`scope-check -> service_id=14 -> ssp3-api/get-login -> admin/report-conditions -> admin/report/{id}`。
+- `fetch-ssp-api` 寫入 live SSP 資料。
+- `fetch-ssp-excluding-padding-api` 以 `pb=1` 抓取排除 padding 的 performance facts。
+- `fetch-ssp-ad-group-api` 可抓單一或全部 zone group 的 ad group demand。
+- 多日查詢會逐日 fetch、節流，最後一次性寫回，避免 SSP3 multi-day hourly job 回空資料。
+- SSP export 會產出 `<artifact_root>/ssp_export.xlsx`，包含 `canonical_data` 與 `metadata`。
+
+帳密解析順序：
+
+- `--email / --password`
+- `MDREP_SSP_EMAIL / MDREP_SSP_PASSWORD`
+- `MDREPORT_API_EMAIL / MDREPORT_API_PASSWORD`
+
+## Monthly 功能
+
+```bash
+uv run python app/main.py --root <repo-root> fetch-monthly-ssp-api --start-day 2026-05-01 --end-day 2026-05-31
+uv run python app/main.py --root <repo-root> monthly-media-cost-analysis --month 2026-05
+uv run python app/main.py --root <repo-root> monthly-dimension-summary --month 2026-05 --limit 20
+uv run python app/main.py --root <repo-root> import-monthly-zone-group \
+  --csv <zone_group.csv> --group-id 1 --group-name <group-name>
+```
+
+Monthly workflow 使用 `data/monthly_report.sqlite` 建立月報 snapshot，支援 P4(J) 手 key 欄位、測試模板上傳比對、月結與月報圖表。相關操作也可透過前端 monthly 工作台執行。
+
+## 資料初始化與同步工具
+
+```bash
+uv run python app/main.py --root <repo-root> seed-bootstrap --raw-source <raw-source-dir>
+uv run python app/main.py --root <repo-root> seed-rebuild --workflow dsp --template-version v1 --rule-version v1
+uv run python app/main.py --root <repo-root> seed-promote-live --workflow dsp --source-db-rel canonical/mdreport_dsp.sqlite
+uv run python app/main.py --root <repo-root> seed-import-mdreport --mdreport-root <mdreport-root>
+```
+
+- `seed-bootstrap` 建立可重建的 raw seed、canonical snapshot、log snapshot、template/rule mapping 與 manifest。
+- `seed-rebuild` 讀取 seed manifest，透過既有 `save` 契約重建 canonical。
+- `seed-promote-live` 將 seed canonical 轉寫進 live runtime DB。
+- `seed-import-mdreport` 可從指定的 MDreport 資料來源匯入 seed 結構。
+
+## 前端工作台
+
+前端位於 `frontend/`，使用 React + TypeScript + Vite，預設 proxy 到 `http://127.0.0.1:8510`。
+
+```bash
+# terminal A：啟動 runtime API / static host
+uv run python app/ui_shell.py --host 127.0.0.1 --port 8510
+
+# terminal B：啟動 Vite frontend
+cd frontend
+pnpm install
+pnpm dev
+```
+
+若 runtime 不在預設 port：
+
+```bash
+cd frontend
+VITE_RUNTIME_PROXY_TARGET=http://127.0.0.1:9000 pnpm dev
+```
+
+前端主要區塊：
+
+- Workflow / main tab / sub tab / period 控制列。
+- Overview、Rawdata、Pivot、Result 共用工作區。
+- DSP Tab4 預覽與 delivery/export 控制。
+- SSP media demand、ad group monitor、padding parity 工作區。
+- Monthly P4、monthly charts 工作區。
+- Runtime utility strip：bootstrap、health、sandbox prepare/reset、status/frame refresh、recent logs。
+
+## CLI 輸出契約
+
 成功：
+
 ```json
 {
   "status": "ok",
@@ -118,6 +177,7 @@ uv run python app/main.py --root /path/to/project fetch-ssp-api \
 ```
 
 失敗：
+
 ```json
 {
   "status": "error",
@@ -128,130 +188,38 @@ uv run python app/main.py --root /path/to/project fetch-ssp-api \
 ```
 
 常見錯誤碼：
+
 - `CLI_USAGE_ERROR`
 - `INVALID_ROWS_JSON` / `INVALID_UPDATES_JSON`
 - `FILE_NOT_FOUND`
 - `LOOKUP_ERROR`
 - `VALIDATION_ERROR`
 - `STRICT_ACCEPTANCE_GATE_FAILED`
-- `MANIFEST_JSON_INVALID`（health）
-- `RULE_BINDING_INCOMPLETE`（health strict gate）
-- `HEALTH_CHECK_EXCEPTION`（例如 `rule_bindings` 全空等基礎健康檢查失敗）
-
-## 舊資料搬家 Seed 骨架（MDREP-DATA-001）
-- 命令：`seed-bootstrap`
-- 目標：建立「可重建」的最小資料骨架，不碰前端 workbench，不改既有 runtime API。
-- 會產生：
-  - `data_seed/raw_seed/`：raw seed 檔（排除 debug/probe/rerun/workbook-first 噪音）
-  - `data_seed/canonical/mdrep.sqlite`：canonical DB snapshot
-  - `data_seed/logs/*.json`：`run_log` / `audit_log` / `publish_runs` / `evidence_index`
-  - `data_seed/templates_rules_mapping/`：manifest、template/rule seed、fields contract
-  - `data_seed/manifests/seed_manifest.json`：raw 檔索引（workflow、source_date、checksum、import_run_id/latest_run_id）
-- 重建命令：`seed-rebuild`
-  - 來源：`data_seed/manifests/seed_manifest.json`
-  - 行為：讀取 raw seed，走既有 `save` 契約重建 canonical（仍寫入 run_log/audit_log）
-- 匯入既有 MDreport：`seed-import-mdreport`
-  - 來源：`<mdreport-root>/artifacts`、`<mdreport-root>/data`
-  - 行為：把 raw seed 與 canonical seed 分層複製到 `data_seed/`，並生成可重建 manifest
-- 升級 seed canonical 成 live DB：`seed-promote-live`
-  - 預設來源：
-    - `workflow=dsp` -> `data_seed/canonical/mdreport_dsp.sqlite`
-    - `workflow=ssp` -> `data_seed/canonical/mdreport.sqlite`（SSP 單一真相）
-  - 可用 `--source-db-rel` 覆寫來源 DB。
-  - 行為：將 seed canonical 轉寫進 live `canonical_raw`（SQLite 單一真相不變）
-  - 若走測試環境，對應 seed 根目錄會改用 `data_seed_test/`。
-- SSP 正規 API 抓數：`fetch-ssp-api`
-  - 正式鏈：`POST cua3/api/login/scope-check` → 解密 services payload → 選 `service_id=14` → `GET ssp3-api/get-login` → `POST admin/report-conditions` → `POST admin/report/{id}`
-  - 預設會把資料寫入 live `ssp_raw`，並清空 `canonical_raw WHERE workflow='ssp'`，避免非 API 舊污染繼續混入。
-  - 若指定日期區間，client 會自動改成「逐日查詢 + 節流 + 最後一次性寫回」；這是因為 SSP3 multi-day hourly job 會回空資料，不能直接信。
-  - 帳密解析順序：
-    - `--email / --password`
-    - `MDREP_SSP_EMAIL / MDREP_SSP_PASSWORD`
-    - `MDREPORT_API_EMAIL / MDREPORT_API_PASSWORD`
-  - 常用例子：
-```bash
-uv run python app/main.py --root /path/to/project fetch-ssp-api --date 2026-05-11
-uv run python app/main.py --root /path/to/project --env test fetch-ssp-api --date 2026-05-11
-```
-- DSP 正規 API 抓數：`fetch-dsp-api`
-  - 正式鏈：`POST cua3/api/login/scope-check` → 解密 services payload → 選 `service_id=10` → `POST dsp3-api/reports` → `GET reports/view-job`
-  - 預設會把資料寫入 live `canonical_raw WHERE workflow='dsp'`，並同步更新 Tab4 delivery 快照，讓後續 `export --workflow dsp` 能直接接續。
-  - 若指定日期區間，client 會自動改成「逐日查詢 + 節流 + 最後一次性寫回」；這是因為 DSP3 multi-day job 會被 server-side 截斷，`page=2/3` 也只會重複同一批資料。
-  - 單日 refresh 不再清空整段 DSP 歷史；目前語意是「只替換請求日期範圍內的 rows，保留其他日期」。
-  - 回傳結果中的 `row_count` 代表本次 fetch 寫入筆數；若要看 merge 後整體 DSP 筆數，請讀 `total_row_count`。
-  - 帳密解析順序：
-    - `--email / --password`
-    - `MDREP_DSP_EMAIL / MDREP_DSP_PASSWORD`
-    - `MDREPORT_API_EMAIL / MDREPORT_API_PASSWORD`
-  - 常用例子：
-```bash
-uv run python app/main.py --root /path/to/project fetch-dsp-api --date 2026-05-10
-uv run python app/main.py --root /path/to/project --env test fetch-dsp-api --date 2026-05-10
-```
-- 注意：
-  - 這張卡只做 seed 骨架，不做舊資料隱式搬運。
-  - 若要索引 raw 檔，請透過 `bootstrap.manifest.json.data_seed.raw_sources` 或 CLI `--raw-source` 提供來源目錄。
-
-## Save / Modify / Export 行為
-- `save`：整批覆蓋指定 workflow canonical rows，寫 `run_log` + `audit_log`
-- `modify`：只允許 manual fields（受欄位契約限制），寫 `run_log` + `audit_log`
-- `export`：從 canonical 產生 workbook，並寫 `run_log` + `publish_runs` + `evidence_index` + `audit_log`
-
-`export` 產出：
-- DSP：`<artifact_root>/<YYYY> DSP投資量報表_<MMDD>-<MMDD>.xlsx`（Tab4 template workbook）
-- SSP：`<artifact_root>/ssp_export.xlsx`（Sheet：`canonical_data`、`metadata`）
-
-DSP Tab4 template 週期 sidecar（period-bound 規則）：
-- 正式模板可在同目錄放 `dsp_tab4_template.xlsx.period.json`。
-- JSON 最小欄位：`week_start`、`week_end`（格式 `YYYY-MM-DD`）。
-- 範例：
-```json
-{
-  "week_start": "2026-01-01",
-  "week_end": "2026-12-31"
-}
-```
-- 判定優先序：`sidecar` > 檔名區間（例如 `_0101-0503`）> generic（無週期資訊）。
-- 若同一候選群已有 period-bound template，但請求週期不在其窗口內，`save/export` 會直接擋下，不會退回 generic。
+- `MANIFEST_JSON_INVALID`
+- `RULE_BINDING_INCOMPLETE`
+- `HEALTH_CHECK_EXCEPTION`
 
 ## 開發與驗證
-建議環境：Python `uv + .venv`
 
-常用驗證：
+建議環境：Python `uv + .venv`，前端使用 `pnpm`。
+
 ```bash
-python3 -m unittest discover -s tests -p 'test_*.py' -v
+uv run python -m unittest discover -s tests -p 'test_*.py' -v
+
+cd frontend
+pnpm typecheck
+pnpm build
+```
+
+常用 smoke script：
+
+```bash
 ./scripts/smoke_bootstrap.sh
 ```
 
-## Frontend（React + TypeScript + Vite）
-- 新前端骨架位置：`frontend`
-- 僅串接既有 runtime API：
-  - `GET /api/status`
-  - `GET /api/frame`
-  - `POST /api/action`
-- 不改 SQLite canonical / save / modify / export 主幹。
-- `app/ui_shell.py` 已收斂為 API + frontend static host；不再維護舊 Python HTML/inline-JS 互動頁主線。
+## 新接手快速路徑
 
-啟動方式（建議先啟 UI runtime）：
-```bash
-# terminal A：啟動既有 python UI runtime（API 提供者）
-python3 app/ui_shell.py --host 127.0.0.1 --port 8510
-
-# terminal B：啟動 React frontend
-cd frontend
-pnpm install
-pnpm dev
-```
-
-預設 Vite 會把 `/api/*` proxy 到 `http://127.0.0.1:8510`。  
-若 runtime 不在預設 port，請用環境變數覆寫：
-```bash
-cd frontend
-VITE_RUNTIME_PROXY_TARGET=http://127.0.0.1:9000 pnpm dev
-```
-
-## 新接手者快速路徑
-1. 先看 `bootstrap.manifest.json` 的 `feature_flags` 與 seed 路徑
-2. 跑 `bootstrap` 再跑 `health`
-3. 用 `save -> modify -> export` 跑一次最小流程
-4. 檢查 SQLite 與 artifact 邊界是否符合預期
+1. 讀 `bootstrap.manifest.json`，確認 `db.path`、`data_seed.root`、`artifact_root`、`feature_flags`。
+2. 執行 `bootstrap` 與 `health`，確認 schema、registry、binding 與 acceptance gate。
+3. 用 sandbox 或 test env 跑一次 `fetch -> save/modify -> export` 的最小流程。
+4. 檢查 SQLite canonical、artifact、`run_log`、`publish_runs`、`evidence_index` 是否符合預期。
