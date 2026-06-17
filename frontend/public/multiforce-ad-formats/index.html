@@ -7,15 +7,18 @@
     <title>multiFORCE 廣告格式展示</title>
     <style>
       :root {
-        --ink: #172932;
-        --muted: #637985;
-        --line: #cbd9df;
-        --surface: #f6faf8;
+        --ink: #0d0d0d;
+        --muted: #666f76;
+        --line: #d9e1e7;
+        --surface: #f5f7f8;
         --panel: #ffffff;
-        --accent: #0f766e;
-        --accent-dark: #0d544f;
-        --amber: #9a5b12;
-        --shadow: #10233414;
+        --accent: #ff7a1a;
+        --accent-dark: #df5d00;
+        --accent-soft: #fff0e5;
+        --teal: #0f766e;
+        --teal-soft: #e8f5f2;
+        --icon: #4d4d4d;
+        --shadow: #0d0d0d12;
       }
 
       * {
@@ -25,11 +28,23 @@
       body {
         margin: 0;
         background:
-          radial-gradient(900px 520px at 85% -10%, #ffe6c7 0%, transparent 58%),
-          radial-gradient(900px 520px at -15% 110%, #d8ece8 0%, transparent 60%),
+          linear-gradient(180deg, #ffffff 0%, #f7f8f9 42%, #eef3f5 100%),
           var(--surface);
         color: var(--ink);
-        font-family: "Avenir Next", "IBM Plex Sans", "Segoe UI", "Noto Sans TC", sans-serif;
+        font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Inter, "Segoe UI", sans-serif;
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background:
+          radial-gradient(720px 420px at 92% -8%, #ff7a1a2c 0%, transparent 62%),
+          radial-gradient(760px 480px at 82% 34%, #ff7a1a16 0%, transparent 68%),
+          radial-gradient(860px 520px at 94% 78%, #ff7a1a12 0%, transparent 70%),
+          linear-gradient(90deg, transparent 0%, #ff7a1a08 76%, #ff7a1a10 100%);
+        content: "";
       }
 
       button,
@@ -38,27 +53,52 @@
       }
 
       .page {
+        position: relative;
+        z-index: 0;
         width: min(100%, 1720px);
         margin: 0 auto;
         padding: 22px 18px 42px;
       }
 
       .hero {
+        position: relative;
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
         align-items: end;
         gap: 18px;
         border: 1px solid var(--line);
         border-radius: 8px;
-        background: linear-gradient(135deg, #fbfdfc 0%, #edf7f4 58%, #fff8ed 100%);
+        background: linear-gradient(135deg, #ffffff 0%, #f7f9fa 64%, #fff4eb 100%);
         padding: 24px;
+        overflow: hidden;
+        box-shadow: 0 12px 28px var(--shadow);
+      }
+
+      .hero::after {
+        position: absolute;
+        top: -58px;
+        right: -42px;
+        width: 168px;
+        height: 168px;
+        border: 28px solid #ff7a1a;
+        border-left-color: transparent;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        opacity: 0.15;
+        transform: rotate(14deg);
+        content: "";
+      }
+
+      .hero > * {
+        position: relative;
+        z-index: 1;
       }
 
       .kicker {
         margin: 0 0 7px;
         color: var(--accent);
         font-size: 12px;
-        font-weight: 900;
+        font-weight: 800;
         letter-spacing: 0.11em;
         text-transform: uppercase;
       }
@@ -80,14 +120,14 @@
         display: inline-block;
         margin-left: 8px;
         color: #425966;
-        font-weight: 850;
+        font-weight: 700;
       }
 
       .search label {
         display: block;
         margin-bottom: 7px;
         font-size: 13px;
-        font-weight: 800;
+        font-weight: 700;
       }
 
       .search input {
@@ -102,7 +142,74 @@
 
       .search input:focus {
         border-color: var(--accent);
-        box-shadow: 0 0 0 3px #0f766e1c;
+        box-shadow: 0 0 0 3px #ff7a1a24;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin: 16px 0 0;
+      }
+
+      .device-toggle {
+        display: inline-flex;
+        gap: 6px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+        padding: 4px;
+        box-shadow: 0 8px 18px var(--shadow);
+      }
+
+      .device-toggle button {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 92px;
+        justify-content: center;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: #4d4d4d;
+        padding: 9px 14px;
+        font-size: 14px;
+        font-weight: 800;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .device-toggle button::before,
+      .demo-actions a::before {
+        flex: 0 0 auto;
+        content: "";
+      }
+
+      .device-toggle button::before {
+        width: 13px;
+        height: 10px;
+        border: 1.8px solid currentColor;
+        border-radius: 2px;
+        box-shadow: 0 4px 0 -2.4px currentColor;
+      }
+
+      .device-toggle button[data-device="mobile"]::before {
+        width: 8px;
+        height: 13px;
+        border-radius: 3px;
+        box-shadow: inset 0 -2px 0 -1px currentColor;
+      }
+
+      .device-toggle button.active {
+        background: var(--teal);
+        color: #fff;
+        box-shadow: 0 6px 14px #0f766e24;
+      }
+
+      .device-toggle button[data-device="mobile"].active {
+        background: var(--accent);
+        box-shadow: 0 6px 14px #ff7a1a2e;
       }
 
       .typebar-wrap {
@@ -128,10 +235,10 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         background: #fff;
-        color: #273b46;
+        color: #2b3338;
         padding: 9px 13px;
         font-size: 14px;
-        font-weight: 850;
+        font-weight: 700;
         cursor: pointer;
         scroll-snap-align: start;
       }
@@ -139,13 +246,14 @@
       .typebar button span {
         margin-left: 8px;
         color: #72858e;
-        font-weight: 800;
+        font-weight: 700;
       }
 
       .typebar button.active {
         border-color: var(--accent);
-        background: #e7f5f2;
+        background: var(--accent-soft);
         color: var(--accent-dark);
+        box-shadow: inset 0 -3px 0 #ff7a1a;
       }
 
       @keyframes typebar-peek {
@@ -167,7 +275,7 @@
         display: flex;
         align-items: baseline;
         justify-content: space-between;
-        border-bottom: 1px solid #d5e1e6;
+        border-bottom: 1px solid var(--line);
         padding: 0 0 10px;
         margin-bottom: 12px;
       }
@@ -177,10 +285,24 @@
         font-size: 20px;
       }
 
+      .section-title {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .material-spec {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
       .section-head span {
         color: #6b7f89;
         font-size: 13px;
-        font-weight: 850;
+        font-weight: 700;
       }
 
       .grid {
@@ -193,10 +315,10 @@
         display: grid;
         grid-template-columns: 150px minmax(0, 1fr);
         min-height: 248px;
-        border: 1px solid #d2dde3;
+        border: 1px solid var(--line);
         border-radius: 8px;
         background: var(--panel);
-        box-shadow: 0 9px 20px var(--shadow);
+        box-shadow: 0 10px 24px var(--shadow);
         overflow: hidden;
       }
 
@@ -205,7 +327,9 @@
         align-items: center;
         justify-content: center;
         min-height: 248px;
-        background: #17252d;
+        background:
+          radial-gradient(circle at 50% 18%, #38434a 0%, transparent 42%),
+          #20282d;
         padding: 12px;
       }
 
@@ -244,7 +368,7 @@
 
       .copy {
         margin: 0;
-        color: #405763;
+        color: #4d4d4d;
         font-size: 14px;
         line-height: 1.7;
       }
@@ -252,8 +376,14 @@
       .performance {
         display: grid;
         gap: 8px;
-        border-top: 1px solid #dce6ea;
+        border-top: 1px solid var(--line);
         padding-top: 10px;
+      }
+
+      .metric-month {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
       }
 
       .metric-row {
@@ -266,26 +396,114 @@
       }
 
       .metric {
-        border: 1px solid #d8e4e8;
+        border: 1px solid #e0e5e8;
         border-radius: 8px;
-        background: #f8fbfc;
+        background: #f8fafb;
         padding: 8px;
       }
 
       .metric-label {
         display: block;
-        color: #6b7f89;
+        color: var(--muted);
         font-size: 11px;
-        font-weight: 850;
+        font-weight: 700;
       }
 
       .metric-value {
         display: block;
         margin-top: 3px;
-        color: #172932;
+        color: var(--ink);
         font-size: 16px;
-        font-weight: 950;
+        font-weight: 800;
         line-height: 1.15;
+      }
+
+      .metric-delta {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 5px;
+        border-radius: 999px;
+        padding: 3px 6px;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      .metric-delta span + span {
+        opacity: 0.82;
+      }
+
+      .metric-delta.good {
+        background: #e8f5f2;
+        color: #0f766e;
+      }
+
+      .metric-delta.bad {
+        background: #fdecec;
+        color: #c7372f;
+      }
+
+      .metric-delta.neutral {
+        background: #edf1f3;
+        color: #66747b;
+      }
+
+      .history {
+        border: 1px solid #e0e5e8;
+        border-radius: 8px;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      .history summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 8px 10px;
+        color: #4d4d4d;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        list-style: none;
+      }
+
+      .history summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .history summary::after {
+        width: 7px;
+        height: 7px;
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        transform: rotate(45deg) translateY(-2px);
+        content: "";
+      }
+
+      .history[open] summary::after {
+        transform: rotate(225deg) translateY(-2px);
+      }
+
+      .history-month {
+        display: grid;
+        gap: 6px;
+        border-top: 1px solid #edf1f3;
+        padding: 8px;
+      }
+
+      .history-month .metric-row.compact {
+        gap: 6px;
+      }
+
+      .history-month .metric {
+        padding: 7px;
+      }
+
+      .history-month .metric-value {
+        font-size: 14px;
       }
 
       .demo-actions {
@@ -297,20 +515,44 @@
 
       .demo-actions a {
         flex: 0 0 auto;
-        border: 1px solid #b7d0dd;
-        border-radius: 8px;
-        background: #f7fcff;
-        color: #07546a;
-        padding: 9px 13px;
-        font-size: 15px;
-        font-weight: 950;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        background: var(--teal);
+        color: #fff;
+        padding: 8px 12px;
+        font-size: 14px;
+        font-weight: 800;
         line-height: 1;
         text-decoration: none;
+        box-shadow: 0 6px 14px #0f766e24;
+      }
+
+      .demo-actions a::before {
+        width: 13px;
+        height: 10px;
+        border: 1.8px solid currentColor;
+        border-radius: 2px;
+        box-shadow: 0 4px 0 -2.4px currentColor;
+      }
+
+      .demo-actions a.device-mobile {
+        background: var(--accent);
+        box-shadow: 0 6px 14px #ff7a1a28;
+      }
+
+      .demo-actions a.device-mobile::before {
+        width: 8px;
+        height: 13px;
+        border-radius: 3px;
+        box-shadow: inset 0 -2px 0 -1px currentColor;
       }
 
       .demo-actions a:hover {
         border-color: var(--accent);
-        color: var(--accent-dark);
+        filter: brightness(0.96);
       }
 
       .empty {
@@ -350,9 +592,45 @@
           grid-template-columns: 1fr;
         }
 
-        .typebar-wrap {
+        .section-head {
+          align-items: flex-start;
+          gap: 8px;
+        }
+
+        .section-title {
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .material-spec {
+          font-size: 12px;
+          white-space: normal;
+        }
+
+        .toolbar {
           position: sticky;
           top: 0;
+          z-index: 30;
+          margin: 12px -10px 0;
+          padding: 10px 10px 8px;
+          background: color-mix(in srgb, var(--surface) 94%, #ffffff 6%);
+          box-shadow: 0 8px 20px #10233410;
+        }
+
+        .device-toggle {
+          width: 100%;
+        }
+
+        .device-toggle button {
+          flex: 1 1 0;
+          min-width: 0;
+          padding: 12px 10px;
+          font-size: 16px;
+        }
+
+        .typebar-wrap {
+          position: sticky;
+          top: 58px;
           z-index: 20;
           margin: 0 -10px 12px;
           background: color-mix(in srgb, var(--surface) 94%, #ffffff 6%);
@@ -465,6 +743,13 @@
         </div>
       </header>
 
+      <div class="toolbar">
+        <div class="device-toggle" id="device-toggle" aria-label="裝置切換">
+          <button type="button" class="active" data-device="mobile">Mobile</button>
+          <button type="button" data-device="desktop">PC</button>
+        </div>
+      </div>
+
       <div class="typebar-wrap">
         <nav class="typebar" id="typebar" aria-label="廣告格式分類"></nav>
       </div>
@@ -487,12 +772,13 @@
         "DOOH 與其他",
         "其他",
       ];
-      const DEVICE_LABELS = { mobile: "Mobile", desktop: "Desktop" };
+      const DEVICE_LABELS = { mobile: "Mobile", desktop: "PC" };
       let catalog = [];
       let categoryMap = {};
       let excelCopyMap = { bySizeId: {}, byTitle: {} };
       let performanceMap = { byNid: {}, startDay: "", endDay: "" };
       let activeType = "全部";
+      let activeDevice = "mobile";
       let query = "";
       let typebarHintDismissed = false;
 
@@ -507,6 +793,13 @@
 
       function displayCategory(value) {
         return String(value || "").replace(/-/g, " - ");
+      }
+
+      function categoryMaterialSpec(value) {
+        const type = normalizeType(value);
+        if (type === "置底-非展開") return "素材尺寸：640x360";
+        if (type === "置底-展開" || type === "桌機置底-展開") return "素材尺寸：640x360 + 900x1600";
+        return "";
       }
 
       function categoryForItem(item) {
@@ -543,6 +836,14 @@
 
       function performanceForItem(item) {
         return performanceMap.byNid?.[String(item.nid)] || null;
+      }
+
+      function carouselForItem(item) {
+        return (item.carousels || []).find((entry) => entry.device === activeDevice) || null;
+      }
+
+      function isDisplayableItem(item) {
+        return Boolean(performanceForItem(item)) && Boolean(carouselForItem(item));
       }
 
       function compareItemsByPerformance(a, b) {
@@ -590,6 +891,50 @@
         return `${Number(value || 0).toFixed(2)}%`;
       }
 
+      function formatMonthLabel(value) {
+        const [year, month] = String(value || "").split("-");
+        if (!year || !month) return String(value || "");
+        return `${year}/${month}`;
+      }
+
+      function metricFromRaw(rows) {
+        const totals = rows.reduce((sum, row) => ({
+          impressions: sum.impressions + Number(row.impressions || 0),
+          clicks: sum.clicks + Number(row.clicks || 0),
+          dspAmount: sum.dspAmount + Number(row.dspAmount || 0),
+        }), { impressions: 0, clicks: 0, dspAmount: 0 });
+        return {
+          ctr: totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0,
+          cpm: totals.impressions > 0 ? (totals.dspAmount / totals.impressions) * 1000 : 0,
+          cpc: totals.clicks > 0 ? totals.dspAmount / totals.clicks : 0,
+        };
+      }
+
+      function deltaForMetric(metric, latest, baseline) {
+        const latestValue = Number(latest?.[metric] || 0);
+        const baselineValue = Number(baseline?.[metric] || 0);
+        if (!baseline || !Number.isFinite(baselineValue)) return null;
+        const diff = latestValue - baselineValue;
+        const lowerIsBetter = metric === "cpm" || metric === "cpc";
+        const isGood = Math.abs(diff) < 0.00001 ? null : lowerIsBetter ? diff < 0 : diff > 0;
+        return { diff, className: isGood === null ? "neutral" : isGood ? "good" : "bad" };
+      }
+
+      function renderMetricDelta(metric, latest, previousRows) {
+        if (!previousRows.length) return "";
+        const baseline = metricFromRaw(previousRows);
+        const delta = deltaForMetric(metric, latest, baseline);
+        if (!delta) return "";
+        const absDiff = Math.abs(delta.diff);
+        const prefix = delta.diff > 0 ? "+" : delta.diff < 0 ? "-" : "";
+        const value = metric === "ctr" ? `${absDiff.toFixed(2)}pt` : `$${formatCurrency(absDiff)}`;
+        const baselineValue = Number(baseline[metric] || 0);
+        const percentDiff = baselineValue ? (delta.diff / baselineValue) * 100 : 0;
+        const percentPrefix = percentDiff > 0 ? "+" : percentDiff < 0 ? "-" : "";
+        const percentValue = `${percentPrefix}${Math.abs(percentDiff).toFixed(1)}%`;
+        return `<span class="metric-delta ${delta.className}" title="相較前兩月原始數據重算基準"><span>${prefix}${escapeHtml(value)}</span><span>${escapeHtml(percentValue)}</span></span>`;
+      }
+
       function localAssetPath(path) {
         const value = String(path || "");
         if (!value || /^https?:\/\//i.test(value) || value.startsWith("data:")) return value;
@@ -616,7 +961,7 @@
 
       function getTypeCounts() {
         const counts = new Map();
-        for (const item of catalog.filter((entry) => Boolean(performanceForItem(entry)))) {
+        for (const item of catalog.filter(isDisplayableItem)) {
           const type = categoryForItem(item);
           counts.set(type, (counts.get(type) || 0) + 1);
         }
@@ -629,7 +974,7 @@
         const token = query.trim().toLowerCase();
         return catalog
           .filter((item) => activeType === "全部" || categoryForItem(item) === activeType)
-          .filter((item) => Boolean(performanceForItem(item)))
+          .filter(isDisplayableItem)
           .filter((item) => {
             if (!token) return true;
             const mappedDetails = mappedDetailsForItem(item);
@@ -649,7 +994,7 @@
       function renderTypebar() {
         const typebar = document.getElementById("typebar");
         const counts = getTypeCounts();
-        const options = [{ type: "全部", count: catalog.filter((item) => Boolean(performanceForItem(item))).length }, ...counts];
+        const options = [{ type: "全部", count: catalog.filter(isDisplayableItem).length }, ...counts];
         typebar.innerHTML = options.map(({ type, count }) => `
           <button type="button" class="${type === activeType ? "active" : ""}" data-type="${escapeHtml(type)}">
             ${escapeHtml(displayCategory(type))}<span>${count}</span>
@@ -704,7 +1049,10 @@
         content.innerHTML = grouped.map(({ type, items }) => `
           <section class="section">
             <header class="section-head">
-              <h2>${escapeHtml(displayCategory(type))}</h2>
+              <div class="section-title">
+                <h2>${escapeHtml(displayCategory(type))}</h2>
+                ${categoryMaterialSpec(type) ? `<span class="material-spec">${escapeHtml(categoryMaterialSpec(type))}</span>` : ""}
+              </div>
               <span>${items.length} 項</span>
             </header>
             <div class="grid">
@@ -715,15 +1063,19 @@
       }
 
       function renderCard(item) {
-        const carousel = (item.carousels || [])[0];
+        const carousel = carouselForItem(item);
         const excelCopy = excelCopyForItem(item);
         const performance = performanceForItem(item);
+        const history = [...(performance?.monthlyHistory || [])].sort((a, b) => String(b.month || "").localeCompare(String(a.month || "")));
+        const latestPerformance = history[0] || performance;
+        const previousPerformance = history.slice(1);
+        const baselineRows = previousPerformance.slice(0, 2);
         const mediaClass = carousel?.device === "desktop" ? "media desktop" : "media";
-        const demoActions = (item.carousels || []).map((entry) => `
-          <a href="${escapeHtml(buildDemoHref(item, entry))}" target="_blank" rel="noreferrer">
-            ${escapeHtml(DEVICE_LABELS[entry.device] || entry.device || "Demo")}
+        const demoAction = carousel ? `
+          <a class="device-${escapeHtml(carousel.device || "demo")}" href="${escapeHtml(buildDemoHref(item, carousel))}" target="_blank" rel="noreferrer">
+            ${escapeHtml(DEVICE_LABELS[carousel.device] || carousel.device || "Demo")} Demo
           </a>
-        `).join("");
+        ` : "";
         return `
           <article class="card">
             <div class="${mediaClass}">
@@ -734,7 +1086,7 @@
                 <div>
                   <h3>${escapeHtml(item.title)}</h3>
                 </div>
-                <div class="demo-actions" aria-label="Live Demo">${demoActions}</div>
+                <div class="demo-actions" aria-label="Live Demo">${demoAction}</div>
               </div>
               ${excelCopy ? `<p class="copy">${escapeHtml(excelCopy)}</p>` : ""}
               ${performance ? `
@@ -742,23 +1094,51 @@
                   <div class="metric-row">
                     <div class="metric">
                       <span class="metric-label">曝光</span>
-                      <span class="metric-value">${escapeHtml(formatInteger(performance.impressions))}</span>
+                      <span class="metric-value">${escapeHtml(formatInteger(latestPerformance.impressions))}</span>
                     </div>
                   </div>
+                  <span class="metric-month">${escapeHtml(formatMonthLabel(latestPerformance.month))}</span>
                   <div class="metric-row compact">
                     <div class="metric">
                       <span class="metric-label">CPM</span>
-                      <span class="metric-value">$${escapeHtml(formatCurrency(performance.cpm))}</span>
+                      <span class="metric-value">$${escapeHtml(formatCurrency(latestPerformance.cpm))}</span>
+                      ${renderMetricDelta("cpm", latestPerformance, baselineRows)}
                     </div>
                     <div class="metric">
                       <span class="metric-label">CTR</span>
-                      <span class="metric-value">${escapeHtml(formatPercent(performance.ctr))}</span>
+                      <span class="metric-value">${escapeHtml(formatPercent(latestPerformance.ctr))}</span>
+                      ${renderMetricDelta("ctr", latestPerformance, baselineRows)}
                     </div>
                     <div class="metric">
                       <span class="metric-label">CPC</span>
-                      <span class="metric-value">$${escapeHtml(formatCurrency(performance.cpc))}</span>
+                      <span class="metric-value">$${escapeHtml(formatCurrency(latestPerformance.cpc))}</span>
+                      ${renderMetricDelta("cpc", latestPerformance, baselineRows)}
                     </div>
                   </div>
+                  ${previousPerformance.length ? `
+                    <details class="history">
+                      <summary>前 ${previousPerformance.length} 個月成效</summary>
+                      ${previousPerformance.map((monthPerformance) => `
+                        <div class="history-month">
+                          <span class="metric-month">${escapeHtml(formatMonthLabel(monthPerformance.month))}</span>
+                          <div class="metric-row compact">
+                            <div class="metric">
+                              <span class="metric-label">CPM</span>
+                              <span class="metric-value">$${escapeHtml(formatCurrency(monthPerformance.cpm))}</span>
+                            </div>
+                            <div class="metric">
+                              <span class="metric-label">CTR</span>
+                              <span class="metric-value">${escapeHtml(formatPercent(monthPerformance.ctr))}</span>
+                            </div>
+                            <div class="metric">
+                              <span class="metric-label">CPC</span>
+                              <span class="metric-value">$${escapeHtml(formatCurrency(monthPerformance.cpc))}</span>
+                            </div>
+                          </div>
+                        </div>
+                      `).join("")}
+                    </details>
+                  ` : ""}
                 </div>
               ` : ""}
             </div>
@@ -767,9 +1147,10 @@
       }
 
       function render() {
-        const performanceItems = catalog.filter((item) => Boolean(performanceForItem(item)));
+        renderDeviceToggle();
+        const performanceItems = catalog.filter(isDisplayableItem);
         document.getElementById("format-count").textContent = performanceItems.length;
-        document.getElementById("gif-count").textContent = performanceItems.reduce((sum, item) => sum + (item.carousels || []).length, 0);
+        document.getElementById("gif-count").textContent = performanceItems.length;
         const startMonth = String(performanceMap.startDay || "").slice(0, 7);
         document.getElementById("period-label").textContent = startMonth ? ` · ${startMonth}` : "";
         document.getElementById("total-label").textContent = ` · 全部 ${catalog.length} 種格式 / ${catalog.reduce((sum, item) => sum + (item.carousels || []).length, 0)} 個 GIF`;
@@ -777,10 +1158,19 @@
         renderContent();
       }
 
+      function renderDeviceToggle() {
+        document.querySelectorAll("#device-toggle button[data-device]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.device === activeDevice);
+        });
+      }
+
       function scrollToContentTop() {
         const content = document.getElementById("content");
+        const toolbar = document.querySelector(".toolbar");
         const typebarWrap = document.querySelector(".typebar-wrap");
-        const stickyOffset = getComputedStyle(typebarWrap).position === "sticky" ? typebarWrap.offsetHeight : 0;
+        const toolbarOffset = getComputedStyle(toolbar).position === "sticky" ? toolbar.offsetHeight : 0;
+        const typebarOffset = getComputedStyle(typebarWrap).position === "sticky" ? typebarWrap.offsetHeight : 0;
+        const stickyOffset = toolbarOffset + typebarOffset;
         const targetTop = window.scrollY + content.getBoundingClientRect().top - stickyOffset - 8;
         window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
       }
@@ -816,6 +1206,13 @@
       document.getElementById("format-search").addEventListener("input", (event) => {
         query = event.target.value;
         renderContent();
+      });
+      document.getElementById("device-toggle").addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-device]");
+        if (!button || button.dataset.device === activeDevice) return;
+        activeDevice = button.dataset.device;
+        render();
+        requestAnimationFrame(scrollToContentTop);
       });
       document.getElementById("typebar").addEventListener("click", (event) => {
         const button = event.target.closest("button[data-type]");
