@@ -7,8 +7,8 @@ type: review_result
 # Review Result
 
 ## Findings
-- [P3] Review metadata still reports a resolved test failure - `.work/CARD-MDREPORT-SSP-PERFORMANCE-FACTS-20260616/result.md:24`, `.work/current/handoff.md:24`
-  The branch now has `98 passed` after commit `1653b5f`, but the implementation result and current handoff still say the DSP browser acceptance failure remains. This can mislead the next agent or reviewer into thinking the branch still has a known red test. Update these handoff/result notes before merging or handing off.
+- Resolved: [P3] Review metadata stale test-failure note.
+  Follow-up commit `463f69d` refreshed the implementation result and handoff. Follow-up cleanup also refreshed remaining status/context metadata so the card now reports completed verification consistently.
 
 ## Open Questions
 - None blocking.

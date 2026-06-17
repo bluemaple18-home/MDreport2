@@ -1,6 +1,6 @@
 ---
 id: CARD-MDREPORT-SSP-PERFORMANCE-FACTS-20260616
-status: verification_partial
+status: completed
 type: context_manifest
 ---
 

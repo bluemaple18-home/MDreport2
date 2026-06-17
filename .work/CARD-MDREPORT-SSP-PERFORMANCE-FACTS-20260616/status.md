@@ -1,6 +1,6 @@
 ---
 id: CARD-MDREPORT-SSP-PERFORMANCE-FACTS-20260616
-status: verification_partial
+status: completed
 type: status
 ---
 
@@ -21,7 +21,7 @@ type: status
 
 ## Blockers
 - None for SSP first slice.
-- Full `tests/test_ui_shell.py` currently has one DSP browser acceptance failure unrelated to this SSP storage layer: `monthTotals[4]` is `0.0`.
+- Verification is green: `.venv/bin/python -m pytest tests/test_ui_shell.py tests/test_ssp_api.py tests/test_phase2_services.py` reports `98 passed`.
 
 ## Do Not Touch
 - DSP canonical/report pipeline.
