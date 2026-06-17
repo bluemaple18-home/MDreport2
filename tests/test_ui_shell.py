@@ -3694,8 +3694,8 @@ class UiShellTests(unittest.TestCase):
                             suppliers_head = page.locator("[data-testid='ssp-anomaly-suppliers-head']")
                             self.assertTrue(suppliers_head.is_visible())
                             self.assertIn("供應商", suppliers_head.inner_text())
-                            self.assertIn("DoD 變動(萬)", suppliers_head.inner_text())
-                            self.assertIn("網站異常數", suppliers_head.inner_text())
+                            self.assertIn("偵測原因", suppliers_head.inner_text())
+                            self.assertIn("網站異常列數", suppliers_head.inner_text())
                             first_supplier_detail = page.locator("[data-testid='ssp-anomaly-suppliers-accordion'] details").first
                             if first_supplier_detail.count() > 0:
                                 self.assertFalse(first_supplier_detail.evaluate("el => el.hasAttribute('open')"))
