@@ -20,7 +20,8 @@ DEFAULT_RULES: dict[str, Any] = {
         "QA經銷商",
     ],
     "internal_distributor_keywords": ["域動"],
-    "io_commission_keywords": ["momo", "momo直播", "momolive"],
+    "io_commission_keywords": [],
+    "momo_marketing_keywords": ["momo", "momo直播", "momolive"],
     "dooh_keywords": ["dooh"],
     "dooh_beiliu_keywords": ["北流"],
     "hb_vendor_keywords": ["appier", "bridgewell", "宇匯", "criteo", "rtbhouse", "teads", "ucfunnel", "酷比"],
@@ -329,6 +330,7 @@ def classify_dsp_row(row: Mapping[str, Any], rules: dict[str, Any] | None = None
     dooh_hit = _pick_first_hit(token, [str(v) for v in active_rules.get("dooh_keywords", [])])
     beiliu_hit = _pick_first_hit(token, [str(v) for v in active_rules.get("dooh_beiliu_keywords", [])])
     io_hit = _pick_first_hit(token, [str(v) for v in active_rules.get("io_commission_keywords", [])])
+    momo_hit = _pick_first_hit(token, [str(v) for v in active_rules.get("momo_marketing_keywords", MOMO_KEYWORDS)])
     hb_hit = _pick_first_hit(token, [str(v) for v in active_rules.get("hb_vendor_keywords", [])])
 
     dist_level_b = ""
@@ -360,6 +362,13 @@ def classify_dsp_row(row: Mapping[str, Any], rules: dict[str, Any] | None = None
         dist_level_d = hb_hit
         final_distributor = "HB串接"
         hit_distributor = "hb_vendor"
+        source_distributor = "rule"
+    elif is_md and momo_hit:
+        dist_level_b = "內部經銷商"
+        dist_level_c = "營銷事業處"
+        dist_level_d = "momo"
+        final_distributor = "[台灣]域動行銷股份有限公司"
+        hit_distributor = "momo_marketing"
         source_distributor = "rule"
     elif is_md and io_hit:
         dist_level_b = "外部經銷商"

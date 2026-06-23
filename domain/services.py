@@ -59,7 +59,6 @@ WORKBOOK_ILLEGAL_CHAR_RE = re.compile(r"[\x00-\x08\x0B-\x0C\x0E-\x1F]")
 
 TAB4_MONTH_LABELS = [f"{idx + 1}月" for idx in range(MONTH_COUNT)]
 MONTHLY_P4_MANUAL_INPUTS = [
-    {"key": "external_io_momo", "label": "IO momo"},
     {"key": "hb_revenue", "label": "串接收入 (HB)"},
     {"key": "external_beiliu_io", "label": "外部經銷商 北流委刊IO"},
     {"key": "remaining_traffic_revenue", "label": "剩餘流量變現(無成本)"},
@@ -211,7 +210,7 @@ TAB4_DETAIL_SECTION_SPECS = [
         "year_row": 63,
         "total_row": 64,
         "total_label_a": "外部IO委刊 DSP投資額 總計",
-        "total_label_d": "MOMO、DOOH委刊",
+        "total_label_d": "DOOH委刊",
         "detail_label_a": "外部IO委刊 \n分項績效",
         "detail_labels": [
             {"b": "三螢", "c": "一般廣告", "d": ""},
@@ -1039,7 +1038,7 @@ class CanonicalService:
             mf_strategy_base = float(month_computed.get("mf_strategy", 0.0))
             external_self = float(month_computed.get("external_self_operated", 0.0))
             live_io_actual = float(month_computed.get("external_io_live_auto", 0.0))
-            marketing_io_actual = manual(month, "external_io_momo") + live_io_actual
+            marketing_io_actual = live_io_actual
             external_total_actual = external_self
             data_fee_actual = external_self * 0.05 + manual(month, "data_monetization_adjustment")
             remaining_actual = manual(month, "remaining_traffic_revenue")
@@ -1146,7 +1145,6 @@ class CanonicalService:
             live_io_actual = float(month_computed.get("external_io_live_auto", 0.0))
             mf_actual = (
                 mf_marketing_base
-                + manual(month_text, "external_io_momo")
                 + live_io_actual
                 + mf_strategy_base
                 + external_self

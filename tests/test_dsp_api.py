@@ -316,7 +316,7 @@ class DspApiTests(unittest.TestCase):
         self.assertEqual(row["分類層級D"], "玩藝國際股份有限公司")
         self.assertEqual(row["規則命中_經銷商"], "external_distributor")
 
-    def test_md_momo_is_io_but_marketing_momo_stays_internal(self) -> None:
+    def test_md_momo_goes_to_marketing_and_marketing_alias_stays_internal(self) -> None:
         rows = normalize_dsp_report_rows(
             [
                 {
@@ -345,11 +345,11 @@ class DspApiTests(unittest.TestCase):
             source_name="dsp3_api",
         )
 
-        self.assertEqual(rows[0]["最終經銷商"], "IO委刊")
-        self.assertEqual(rows[0]["分類層級B"], "外部經銷商")
-        self.assertEqual(rows[0]["分類層級C"], "IO委刊")
+        self.assertEqual(rows[0]["最終經銷商"], "[台灣]域動行銷股份有限公司")
+        self.assertEqual(rows[0]["分類層級B"], "內部經銷商")
+        self.assertEqual(rows[0]["分類層級C"], "營銷事業處")
         self.assertEqual(rows[0]["分類層級D"], "momo")
-        self.assertEqual(rows[0]["規則命中_經銷商"], "io_commission")
+        self.assertEqual(rows[0]["規則命中_經銷商"], "momo_marketing")
 
         self.assertEqual(rows[1]["最終經銷商"], "[台灣]域動行銷股份有限公司")
         self.assertEqual(rows[1]["分類層級B"], "內部經銷商")

@@ -100,9 +100,10 @@ class MonthlyP4Tests(unittest.TestCase):
                         經銷商="域動行銷-MD",
                         訂單="momo直播 專案",
                         素材="momo素材",
-                        最終經銷商="IO委刊",
-                        分類層級B="外部經銷商",
-                        分類層級C="IO委刊",
+                        最終經銷商="[台灣]域動行銷股份有限公司",
+                        規則命中_經銷商="momo_marketing",
+                        分類層級B="內部經銷商",
+                        分類層級C="營銷事業處",
                         分類層級D="momo",
                         執行金額=7000.0,
                     ),
@@ -139,7 +140,6 @@ class MonthlyP4Tests(unittest.TestCase):
             svc.save_monthly_p4_manual_inputs(
                 month="2026-04",
                 inputs={
-                    "external_io_momo": 135000,
                     "hb_revenue": 84728,
                     "remaining_traffic_revenue": 141009,
                     "data_monetization_adjustment": 72000,
@@ -149,10 +149,9 @@ class MonthlyP4Tests(unittest.TestCase):
             )
             after = svc.build_monthly_p4_snapshot(week_start="2026-04-01", week_end="2026-04-30")
             april_after = next(item for item in after["monthPayloads"] if item["month"] == "2026-04")
-            self.assertEqual(float(april_after["manualInputs"]["external_io_momo"]), 135000.0)
             self.assertEqual(float(april_after["actuals"]["external_total"]), 8000.0)
-            self.assertEqual(float(april_after["actuals"]["mf_marketing"]), 141500.0)
-            self.assertEqual(float(april_after["computed"]["mf_marketing"]), 500.0)
+            self.assertEqual(float(april_after["actuals"]["mf_marketing"]), 13500.0)
+            self.assertEqual(float(april_after["computed"]["mf_marketing"]), 7500.0)
             self.assertEqual(float(april_after["computed"]["external_io_live_auto"]), 6000.0)
             self.assertGreater(float(april_after["actuals"]["data_fee"]), 72000.0)
 
@@ -467,7 +466,6 @@ class MonthlyP4Tests(unittest.TestCase):
             svc.save_monthly_p4_manual_inputs(
                 month="2026-04",
                 inputs={
-                    "external_io_momo": 0,
                     "hb_revenue": 0,
                     "external_beiliu_io": 0,
                     "remaining_traffic_revenue": 0,
@@ -540,7 +538,6 @@ class MonthlyP4Tests(unittest.TestCase):
             svc.save_monthly_p4_manual_inputs(
                 month="2026-04",
                 inputs={
-                    "external_io_momo": 0,
                     "hb_revenue": 0,
                     "remaining_traffic_revenue": 0,
                     "data_monetization_adjustment": 0,
@@ -555,7 +552,6 @@ class MonthlyP4Tests(unittest.TestCase):
             svc.save_monthly_p4_manual_inputs(
                 month="2026-04",
                 inputs={
-                    "external_io_momo": 0,
                     "hb_revenue": 0,
                     "external_beiliu_io": 0,
                     "remaining_traffic_revenue": 0,

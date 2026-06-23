@@ -2368,6 +2368,77 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual(padding_scope.get("request_source"), "including_padding")
             self.assertEqual(padding_scope.get("metric_source"), "excluding_padding")
 
+    def test_ssp_anomaly_frame_compacts_rows_without_dropping_metrics(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="ssp")
+            dispatch_action(ctx, {"action": "bootstrap"})
+            cfg = build_config(root, ctx.manifest_rel, ctx.runtime_env)
+            repo = SQLiteRepository(cfg.db_path, project_root=root)
+            included_rows = [
+                {
+                    "source": "ssp3_api",
+                    "ts": "2026-06-10 10:00:00",
+                    "date": "2026-06-10",
+                    "hour": 10,
+                    "placement_id": 1001,
+                    "placement_name": "Slot A",
+                    "supplier_name": "Supplier A",
+                    "site_name": "Site A",
+                    "request": 100,
+                    "impression": 50,
+                    "clicks": 5,
+                    "revenue": 10,
+                    "dsp_amount": 12,
+                },
+                {
+                    "source": "ssp3_api",
+                    "ts": "2026-06-10 11:00:00",
+                    "date": "2026-06-10",
+                    "hour": 11,
+                    "placement_id": 1002,
+                    "placement_name": "Slot B",
+                    "supplier_name": "Supplier A",
+                    "site_name": "Site A",
+                    "request": 200,
+                    "impression": 80,
+                    "clicks": 7,
+                    "revenue": 20,
+                    "dsp_amount": 24,
+                },
+            ]
+            with repo.connect() as conn:
+                repo.save_ssp_raw_rows(conn, included_rows)
+                repo.save_ssp_placement_performance_facts(
+                    conn,
+                    included_rows,
+                    padding_scope="excluding_padding",
+                    pb=1,
+                    replace_days={"2026-06-10"},
+                )
+                conn.commit()
+
+            frame = collect_workflow_frame(
+                ctx,
+                main_tab="ssp_anomaly",
+                period_week_start="2026-06-10",
+                period_week_end="2026-06-10",
+            )
+
+            self.assertEqual(frame.get("row_count"), 1)
+            row = (frame.get("rows") or [{}])[0]
+            self.assertEqual(row.get("supplier_name"), "Supplier A")
+            self.assertEqual(row.get("site_name"), "Site A")
+            self.assertEqual(row.get("request"), 300.0)
+            self.assertEqual(row.get("impression"), 130.0)
+            self.assertEqual(row.get("clicks"), 12.0)
+            self.assertEqual(row.get("revenue"), 30.0)
+            self.assertEqual(row.get("dsp_amount"), 36.0)
+            padding_scope = frame.get("ssp_padding_scope") or {}
+            self.assertEqual(padding_scope.get("including_row_count"), 2)
+            self.assertEqual(padding_scope.get("including_compact_row_count"), 1)
+
     def test_ssp_media_demand_config_loads_defaults_and_saves_per_env(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

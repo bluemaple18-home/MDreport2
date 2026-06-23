@@ -405,7 +405,7 @@ export function MonthlyP4Workspace({ snapshot, busy, onSaveInputs, onUploadTestT
         return month;
       }
       const externalSelf = Number(month.computed.external_self_operated || 0);
-      const marketingIo = Number(inputs.external_io_momo || 0) + Number(month.computed.external_io_live_auto || 0);
+      const marketingIo = Number(month.computed.external_io_live_auto || 0);
       const actuals: Record<string, number> = {
         ...month.actuals,
         mf_marketing: Number(month.computed.mf_marketing || 0) + marketingIo,

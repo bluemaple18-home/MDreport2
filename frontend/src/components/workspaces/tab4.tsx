@@ -91,7 +91,7 @@ const SUMMARY_ROW_SPECS: MatrixRowSpec[] = [
     groupTitle: "",
     levelB: "外部經銷商",
     levelC: "IO委刊",
-    levelD: "momo、DOOH委刊",
+    levelD: "DOOH委刊",
     matcher: (row) => {
       const b = pickCategory(row, ["分類層級B", "最終經銷商", "經銷商"]);
       const c = pickCategory(row, ["分類層級C", "最終廣告形式", "廣告形式"]);

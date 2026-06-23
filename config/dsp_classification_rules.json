@@ -15,7 +15,8 @@
     "QA經銷商"
   ],
   "internal_distributor_keywords": ["域動"],
-  "io_commission_keywords": ["momo", "momo直播", "momolive"],
+  "io_commission_keywords": [],
+  "momo_marketing_keywords": ["momo", "momo直播", "momolive"],
   "dooh_keywords": ["dooh"],
   "dooh_beiliu_keywords": ["北流"],
   "hb_vendor_keywords": ["appier", "bridgewell", "宇匯", "criteo", "rtbhouse", "teads", "ucfunnel", "酷比"],

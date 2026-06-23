@@ -201,6 +201,63 @@ def _merge_ssp_excluding_padding_rows(
     return merged
 
 
+def _compact_ssp_anomaly_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    sum_fields = {
+        "request",
+        "impression",
+        "clicks",
+        "revenue",
+        "dsp_amount",
+        "active_view",
+        "invalid_click",
+        "invalid_impress",
+        "profit",
+        "site_mu",
+        "advertiser_mu",
+    }
+    grouped: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for row in rows:
+        date_key = _row_day_text(row)
+        supplier = str(row.get("supplier_name") or "未分類供應商").strip() or "未分類供應商"
+        site = str(row.get("site_name") or row.get("placement_name") or "未命名網站").strip() or "未命名網站"
+        key = (date_key, supplier, site)
+        item = grouped.get(key)
+        if item is None:
+            item = {
+                "row_order": len(grouped),
+                "source": row.get("source") or "",
+                "ts": f"{date_key} 00:00:00" if date_key and date_key != "n/a" else "",
+                "date": date_key,
+                "hour": 0,
+                "placement_id": row.get("placement_id") or 0,
+                "placement_name": site,
+                "order_id": row.get("order_id") or "",
+                "order_name": row.get("order_name") or "",
+                "supplier_id": row.get("supplier_id") or 0,
+                "supplier_name": supplier,
+                "site_id": row.get("site_id") or 0,
+                "site_name": site,
+                "updated_at": row.get("updated_at") or "",
+            }
+            for field in sum_fields:
+                item[field] = 0.0
+            for field in (
+                "padding_scope",
+                "pb",
+                "request_padding_scope",
+                "metric_padding_scope",
+            ):
+                if field in row:
+                    item[field] = row.get(field)
+            grouped[key] = item
+        for field in sum_fields:
+            try:
+                item[field] = float(item.get(field) or 0.0) + float(row.get(field) or 0.0)
+            except Exception:
+                item[field] = float(item.get(field) or 0.0)
+    return list(grouped.values())
+
+
 def _sandbox_lock_key(ctx: UiContext) -> str:
     return f"{ctx.root.resolve()}::{ctx.runtime_env}::{ctx.manifest_rel}::{ctx.sandbox_id}"
 
@@ -659,13 +716,19 @@ def collect_workflow_frame(
                 }
         row_count = len(rows)
         if ctx.workflow == "ssp" and main_tab == "ssp_anomaly" and isinstance(summary.get("ssp_padding_scope"), dict):
-            summary["ssp_excluding_padding_rows"] = _merge_ssp_excluding_padding_rows(
+            raw_including_row_count = row_count
+            merged_excluding_rows = _merge_ssp_excluding_padding_rows(
                 including_rows=rows,
                 excluding_rows=ssp_excluding_fact_rows,
             )
+            rows = _compact_ssp_anomaly_rows(rows)
+            summary["ssp_excluding_padding_rows"] = _compact_ssp_anomaly_rows(merged_excluding_rows)
+            row_count = len(rows)
             padding_meta = dict(summary["ssp_padding_scope"])
-            padding_meta["including_row_count"] = row_count
-            padding_meta["excluding_row_count"] = len(summary.get("ssp_excluding_padding_rows") or [])
+            padding_meta["including_row_count"] = raw_including_row_count
+            padding_meta["excluding_row_count"] = len(merged_excluding_rows)
+            padding_meta["including_compact_row_count"] = row_count
+            padding_meta["excluding_compact_row_count"] = len(summary.get("ssp_excluding_padding_rows") or [])
             summary["ssp_padding_scope"] = padding_meta
         summary["columns"] = columns
         summary["rows"] = rows
