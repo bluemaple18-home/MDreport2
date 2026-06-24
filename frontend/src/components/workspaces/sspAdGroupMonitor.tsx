@@ -2,6 +2,7 @@ import { Fragment, useMemo, useState } from "react";
 import type { SspAdGroupMetricSummary, SspAdGroupMonitorSnapshot } from "../../types";
 import { formatAmount, formatNumber, formatPercent } from "../../utils/format";
 import { ActionButton, DataStateBlock, Panel } from "../ui";
+import { placementRowKey, rowKey } from "./sspAdGroupMonitorRules";
 
 type Props = {
   snapshot?: SspAdGroupMonitorSnapshot;
@@ -79,10 +80,6 @@ function formatDod(value: number): string {
   }
   const sign = value > 0 ? "+" : "";
   return `${sign}${value.toFixed(1)}%`;
-}
-
-function rowKey(row: SspAdGroupMetricSummary): string {
-  return String(row.zone_group_id || row.zone_id || row.zone_group_name || row.zone_name || row.ad_format || "");
 }
 
 function rowLabel(row: SspAdGroupMetricSummary): string {
@@ -646,16 +643,19 @@ export function SspAdGroupMonitorWorkspace({ snapshot, busy, periodWeekStart, pe
               </tr>
             </thead>
             <tbody>
-              {placementRows.map((row) => (
-                <tr key={rowKey(row)} className={row.status === "alert" ? "row-alert" : ""}>
-                  <td><span className={`signal-dot signal-${row.status === "alert" ? "alert" : "ok"}`} /></td>
-                  <td>{row.zone_id}</td>
-                  <td>
-                    <span>{row.zone_name || "-"}</span>
-                  </td>
-                  {renderMetricCells(row, rowKey(row))}
-                </tr>
-              ))}
+              {placementRows.map((row) => {
+                const key = placementRowKey(row);
+                return (
+                  <tr key={key} className={row.status === "alert" ? "row-alert" : ""}>
+                    <td><span className={`signal-dot signal-${row.status === "alert" ? "alert" : "ok"}`} /></td>
+                    <td>{row.zone_id}</td>
+                    <td>
+                      <span>{row.zone_name || "-"}</span>
+                    </td>
+                    {renderMetricCells(row, key)}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

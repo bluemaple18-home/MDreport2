@@ -373,6 +373,7 @@ export type SspMediaDemandMetricSet = {
   fr: number;
   ctr: number;
   ecpm: number;
+  cpc: number;
 };
 
 export type SspMediaDemandViewRow = {

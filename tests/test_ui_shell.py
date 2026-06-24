@@ -2595,62 +2595,76 @@ class UiShellTests(unittest.TestCase):
 
             cfg = build_config(root, "bootstrap.manifest.json", "prod")
             repo = SQLiteRepository(cfg.db_path, project_root=root)
-            repo.replace_ssp_raw_rows(
-                [
-                    {
-                        "source": "times_api",
-                        "ts": "2026-05-10 23:00:00",
-                        "date": "2026-05-10",
-                        "hour": 23,
-                        "placement_id": 111,
-                        "placement_name": "A",
-                        "request": 200,
-                        "impression": 80,
-                        "clicks": 4,
-                        "revenue": 50,
-                        "dsp_amount": 30,
-                    },
-                    {
-                        "source": "times_api",
-                        "ts": "2026-05-10 11:00:00",
-                        "date": "2026-05-10",
-                        "hour": 11,
-                        "placement_id": 222,
-                        "placement_name": "B",
-                        "request": 100,
-                        "impression": 60,
-                        "clicks": 3,
-                        "revenue": 40,
-                        "dsp_amount": 20,
-                    },
-                    {
-                        "source": "backup_api",
-                        "ts": "2026-05-10 12:00:00",
-                        "date": "2026-05-10",
-                        "hour": 12,
-                        "placement_id": 222,
-                        "placement_name": "B",
-                        "request": 250,
-                        "impression": 90,
-                        "clicks": 5,
-                        "revenue": 55,
-                        "dsp_amount": 35,
-                    },
-                    {
-                        "source": "times_api",
-                        "ts": "2026-05-09 11:00:00",
-                        "date": "2026-05-09",
-                        "hour": 11,
-                        "placement_id": 333,
-                        "placement_name": "C",
-                        "request": 999,
-                        "impression": 300,
-                        "clicks": 10,
-                        "revenue": 70,
-                        "dsp_amount": 50,
-                    },
-                ]
-            )
+            included_rows = [
+                {
+                    "source": "times_api",
+                    "ts": "2026-05-10 23:00:00",
+                    "date": "2026-05-10",
+                    "hour": 23,
+                    "placement_id": 111,
+                    "placement_name": "A",
+                    "request": 200,
+                    "impression": 80,
+                    "clicks": 4,
+                    "revenue": 50,
+                    "dsp_amount": 30,
+                },
+                {
+                    "source": "times_api",
+                    "ts": "2026-05-10 11:00:00",
+                    "date": "2026-05-10",
+                    "hour": 11,
+                    "placement_id": 222,
+                    "placement_name": "B",
+                    "request": 100,
+                    "impression": 60,
+                    "clicks": 3,
+                    "revenue": 40,
+                    "dsp_amount": 20,
+                },
+                {
+                    "source": "backup_api",
+                    "ts": "2026-05-10 12:00:00",
+                    "date": "2026-05-10",
+                    "hour": 12,
+                    "placement_id": 222,
+                    "placement_name": "B",
+                    "request": 250,
+                    "impression": 90,
+                    "clicks": 5,
+                    "revenue": 55,
+                    "dsp_amount": 35,
+                },
+                {
+                    "source": "times_api",
+                    "ts": "2026-05-09 11:00:00",
+                    "date": "2026-05-09",
+                    "hour": 11,
+                    "placement_id": 333,
+                    "placement_name": "C",
+                    "request": 999,
+                    "impression": 300,
+                    "clicks": 10,
+                    "revenue": 70,
+                    "dsp_amount": 50,
+                },
+            ]
+            excluding_rows = [
+                {**included_rows[0], "impression": 30, "clicks": 2, "revenue": 25, "dsp_amount": 15},
+                {**included_rows[1], "impression": 40, "clicks": 2, "revenue": 30, "dsp_amount": 10},
+                {**included_rows[2], "impression": 70, "clicks": 4, "revenue": 45, "dsp_amount": 25},
+                {**included_rows[3], "impression": 250, "clicks": 8, "revenue": 60, "dsp_amount": 40},
+            ]
+            repo.replace_ssp_raw_rows(included_rows)
+            with repo.connect() as conn:
+                repo.save_ssp_placement_performance_facts(
+                    conn,
+                    excluding_rows,
+                    padding_scope="excluding_padding",
+                    pb=1,
+                    replace_days={"2026-05-09", "2026-05-10"},
+                )
+                conn.commit()
 
             view = repo.resolve_ssp_media_demand_view(
                 runtime_env="prod",
@@ -2671,6 +2685,12 @@ class UiShellTests(unittest.TestCase):
             self.assertAlmostEqual(float(rows[0]["metrics_by_date"]["2026-05-10"]["all"]["complianceRate"]), 350.0)
             self.assertAlmostEqual(float(rows[1]["latest_compliance_rate"]), 200.0)
             self.assertAlmostEqual(float(rows[0]["latest_request"]), 350.0)
+            self.assertAlmostEqual(float(rows[0]["metrics_by_date"]["2026-05-10"]["all"]["request"]), 350.0)
+            self.assertAlmostEqual(float(rows[0]["metrics_by_date"]["2026-05-10"]["all"]["impression"]), 110.0)
+            self.assertAlmostEqual(float(rows[0]["metrics_by_date"]["2026-05-10"]["all"]["fr"]), 110.0 / 350.0 * 100.0)
+            self.assertAlmostEqual(float(rows[0]["metrics_by_date"]["2026-05-10"]["all"]["ctr"]), 6.0 / 110.0 * 100.0)
+            self.assertAlmostEqual(float(rows[0]["metrics_by_date"]["2026-05-10"]["all"]["ecpm"]), 75.0 / 110.0 * 1000.0)
+            self.assertAlmostEqual(float(rows[0]["metrics_by_date"]["2026-05-10"]["all"]["cpc"]), 75.0 / 6.0)
 
             unmet_view = repo.resolve_ssp_media_demand_view(
                 runtime_env="prod",
@@ -2705,6 +2725,42 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual([row["slot"]["placement_id"] for row in scoped_rows], ["222"])
             self.assertAlmostEqual(float(scoped_rows[0]["latest_request"]), 100.0)
             self.assertAlmostEqual(float(scoped_rows[0]["latest_compliance_rate"]), 100.0)
+            self.assertAlmostEqual(float(scoped_rows[0]["metrics_by_date"]["2026-05-10"]["07-22"]["request"]), 100.0)
+            self.assertAlmostEqual(float(scoped_rows[0]["metrics_by_date"]["2026-05-10"]["07-22"]["impression"]), 40.0)
+            self.assertAlmostEqual(float(scoped_rows[0]["metrics_by_date"]["2026-05-10"]["07-22"]["fr"]), 40.0)
+            self.assertAlmostEqual(float(scoped_rows[0]["metrics_by_date"]["2026-05-10"]["07-22"]["ctr"]), 2.0 / 40.0 * 100.0)
+            self.assertAlmostEqual(float(scoped_rows[0]["metrics_by_date"]["2026-05-10"]["07-22"]["ecpm"]), 30.0 / 40.0 * 1000.0)
+            self.assertAlmostEqual(float(scoped_rows[0]["metrics_by_date"]["2026-05-10"]["07-22"]["cpc"]), 30.0 / 2.0)
+
+            with repo.connect() as conn:
+                conn.execute("DELETE FROM ssp_performance_facts WHERE padding_scope = ?", ("excluding_padding",))
+                conn.commit()
+
+            missing_excluding_view = repo.resolve_ssp_media_demand_view(
+                runtime_env="prod",
+                data_seed_root=cfg.data_seed_root,
+                category="蓋板",
+                source="times_api",
+                start_date="2026-05-01",
+                end_date="2026-05-10",
+                scope_mode="all",
+                day_limit=7,
+                threshold=60,
+                only_unmet=False,
+            )
+            missing_rows = missing_excluding_view.get("rows") or []
+            missing_by_placement = {
+                str(row["slot"]["placement_id"]): row
+                for row in missing_rows
+            }
+            self.assertEqual(set(missing_by_placement.keys()), {"111", "222", "333"})
+            missing_metrics = missing_by_placement["222"]["metrics_by_date"]["2026-05-10"]["all"]
+            self.assertAlmostEqual(float(missing_metrics["request"]), 100.0)
+            self.assertAlmostEqual(float(missing_metrics["impression"]), 0.0)
+            self.assertAlmostEqual(float(missing_metrics["fr"]), 0.0)
+            self.assertAlmostEqual(float(missing_metrics["ctr"]), 0.0)
+            self.assertAlmostEqual(float(missing_metrics["ecpm"]), 0.0)
+            self.assertAlmostEqual(float(missing_metrics["cpc"]), 0.0)
 
     def test_tab4_delivery_state_relocks_after_rawdata_save(self) -> None:
         with tempfile.TemporaryDirectory() as td:

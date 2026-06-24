@@ -8,7 +8,7 @@
     "build": "pnpm typecheck && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
-    "test:controller-guard": "node --experimental-strip-types --test tests/rawdataMutationSemantics.test.ts tests/distributorSummaryFilters.test.ts tests/runtimeContractEnvOverride.test.ts tests/savePayloadContract.test.ts tests/sspParityRules.test.ts tests/dspRawdataFilters.test.ts"
+    "test:controller-guard": "node --experimental-strip-types --test tests/rawdataMutationSemantics.test.ts tests/distributorSummaryFilters.test.ts tests/runtimeContractEnvOverride.test.ts tests/savePayloadContract.test.ts tests/sspParityRules.test.ts tests/dspRawdataFilters.test.ts tests/sspAdGroupMonitorRules.test.ts tests/sspMediaDemandRules.test.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

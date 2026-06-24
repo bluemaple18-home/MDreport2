@@ -428,10 +428,12 @@ def build_ssp_media_demand_view(
             compliance_0722 = _compute_compliance_rate(request_0722, media_target)
             fr_all = (impression_all / request_all) * 100 if request_all > 0 else 0.0
             fr_0722 = (impression_0722 / request_0722) * 100 if request_0722 > 0 else 0.0
-            ctr_all = (clicks_all / request_all) * 100 if request_all > 0 else 0.0
-            ctr_0722 = (clicks_0722 / request_0722) * 100 if request_0722 > 0 else 0.0
+            ctr_all = (clicks_all / impression_all) * 100 if impression_all > 0 else 0.0
+            ctr_0722 = (clicks_0722 / impression_0722) * 100 if impression_0722 > 0 else 0.0
             ecpm_all = (revenue_all / impression_all) * 1000 if impression_all > 0 else 0.0
             ecpm_0722 = (revenue_0722 / impression_0722) * 1000 if impression_0722 > 0 else 0.0
+            cpc_all = revenue_all / clicks_all if clicks_all > 0 else 0.0
+            cpc_0722 = revenue_0722 / clicks_0722 if clicks_0722 > 0 else 0.0
             metrics_by_date[date_key] = {
                 "all": {
                     "complianceRate": compliance_all,
@@ -443,6 +445,7 @@ def build_ssp_media_demand_view(
                     "fr": fr_all,
                     "ctr": ctr_all,
                     "ecpm": ecpm_all,
+                    "cpc": cpc_all,
                 },
                 "07-22": {
                     "complianceRate": compliance_0722,
@@ -454,6 +457,7 @@ def build_ssp_media_demand_view(
                     "fr": fr_0722,
                     "ctr": ctr_0722,
                     "ecpm": ecpm_0722,
+                    "cpc": cpc_0722,
                 },
             }
             if date_key == latest_date:

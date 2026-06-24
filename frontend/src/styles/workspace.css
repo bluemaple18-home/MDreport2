@@ -431,17 +431,36 @@
 }
 
 .ssp-media-control-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: nowrap;
   gap: 10px;
   align-items: end;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.ssp-media-control-grid .field {
+  flex: 0 0 auto;
+  min-width: 128px;
+}
+
+.ssp-media-control-grid .field:has(input[type="number"]) {
+  flex: 0 0 260px;
+  min-width: 260px;
+}
+
+.ssp-media-control-grid .btn-row {
+  flex-wrap: nowrap;
+  margin-top: 6px;
 }
 
 .ssp-media-toggle {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 8px;
   min-height: 40px;
+  white-space: nowrap;
   font-size: 12px;
   font-weight: 700;
 }
@@ -649,12 +668,6 @@
   font-weight: 700;
 }
 
-@media (max-width: 1200px) {
-  .ssp-media-control-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 720px) {
   .period-range-popover {
     width: min(100vw - 40px, 420px);
@@ -669,7 +682,6 @@
     display: grid;
   }
 
-  .ssp-media-control-grid,
   .workspace-twin-grid,
   .metrics-grid {
     grid-template-columns: 1fr;

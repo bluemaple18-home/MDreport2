@@ -2030,42 +2030,88 @@ class SQLiteRepository:
         end_date: str,
     ) -> list[dict[str, object]]:
         self._ensure_ssp_raw_table(conn)
+        self._ensure_ssp_performance_tables(conn)
         normalized_placement_ids = [int(pid) for pid in placement_ids if str(pid).strip().isdigit()]
         if not normalized_placement_ids or not start_date or not end_date:
             return []
 
-        where_parts = [
-            f"placement_id IN ({', '.join('?' for _ in normalized_placement_ids)})",
+        placement_filter = f"placement_id IN ({', '.join('?' for _ in normalized_placement_ids)})"
+        raw_where_parts = [
+            placement_filter,
             "date >= ?",
             "date <= ?",
         ]
-        params: list[object] = [*normalized_placement_ids, start_date, end_date]
+        metric_where_parts = [
+            "dataset = ?",
+            "padding_scope = ?",
+            placement_filter,
+            "date >= ?",
+            "date <= ?",
+        ]
+        raw_params: list[object] = [*normalized_placement_ids, start_date, end_date]
+        metric_params: list[object] = [
+            "placement_hourly",
+            "excluding_padding",
+            *normalized_placement_ids,
+            start_date,
+            end_date,
+        ]
         if sources:
             normalized_sources = [str(item).strip() for item in sources if str(item).strip()]
             if normalized_sources:
-                where_parts.insert(0, f"source IN ({', '.join('?' for _ in normalized_sources)})")
-                params = [*normalized_sources, *params]
+                source_filter = f"source IN ({', '.join('?' for _ in normalized_sources)})"
+                raw_where_parts.insert(0, source_filter)
+                metric_where_parts.insert(0, source_filter)
+                raw_params = [*normalized_sources, *raw_params]
+                metric_params = [*normalized_sources, *metric_params]
 
         sql = f"""
+        WITH included_request AS (
+          SELECT
+            date,
+            placement_id,
+            SUM(request) AS request_all,
+            SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN request ELSE 0 END) AS request_0722
+          FROM ssp_raw
+          WHERE {" AND ".join(raw_where_parts)}
+          GROUP BY date, placement_id
+        ),
+        excluded_metrics AS (
+          SELECT
+            date,
+            placement_id,
+            SUM(impression) AS impression_all,
+            SUM(clicks) AS clicks_all,
+            SUM(revenue) AS revenue_all,
+            SUM(dsp_amount) AS dsp_amount_all,
+            SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN impression ELSE 0 END) AS impression_0722,
+            SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN clicks ELSE 0 END) AS clicks_0722,
+            SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN revenue ELSE 0 END) AS revenue_0722,
+            SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN dsp_amount ELSE 0 END) AS dsp_amount_0722
+          FROM ssp_performance_facts
+          WHERE {" AND ".join(metric_where_parts)}
+          GROUP BY date, placement_id
+        )
         SELECT
-          date,
-          placement_id,
-          SUM(request) AS request_all,
-          SUM(impression) AS impression_all,
-          SUM(clicks) AS clicks_all,
-          SUM(revenue) AS revenue_all,
-          SUM(dsp_amount) AS dsp_amount_all,
-          SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN request ELSE 0 END) AS request_0722,
-          SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN impression ELSE 0 END) AS impression_0722,
-          SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN clicks ELSE 0 END) AS clicks_0722,
-          SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN revenue ELSE 0 END) AS revenue_0722,
-          SUM(CASE WHEN hour >= 7 AND hour <= 22 THEN dsp_amount ELSE 0 END) AS dsp_amount_0722
-        FROM ssp_raw
-        WHERE {" AND ".join(where_parts)}
-        GROUP BY date, placement_id
-        ORDER BY date DESC, placement_id ASC
+          included_request.date,
+          included_request.placement_id,
+          included_request.request_all,
+          COALESCE(excluded_metrics.impression_all, 0.0) AS impression_all,
+          COALESCE(excluded_metrics.clicks_all, 0.0) AS clicks_all,
+          COALESCE(excluded_metrics.revenue_all, 0.0) AS revenue_all,
+          COALESCE(excluded_metrics.dsp_amount_all, 0.0) AS dsp_amount_all,
+          included_request.request_0722,
+          COALESCE(excluded_metrics.impression_0722, 0.0) AS impression_0722,
+          COALESCE(excluded_metrics.clicks_0722, 0.0) AS clicks_0722,
+          COALESCE(excluded_metrics.revenue_0722, 0.0) AS revenue_0722,
+          COALESCE(excluded_metrics.dsp_amount_0722, 0.0) AS dsp_amount_0722
+        FROM included_request
+        LEFT JOIN excluded_metrics
+          ON excluded_metrics.date = included_request.date
+         AND excluded_metrics.placement_id = included_request.placement_id
+        ORDER BY included_request.date DESC, included_request.placement_id ASC
         """
-        cur = conn.execute(sql, tuple(params))
+        cur = conn.execute(sql, tuple([*raw_params, *metric_params]))
         rows: list[dict[str, object]] = []
         for raw in cur.fetchall():
             rows.append(

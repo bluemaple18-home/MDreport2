@@ -3,7 +3,14 @@ import { fetchSspMediaDemand } from "../../api/runtimeApi";
 import type { RuntimeContext, Workflow, SspMediaDemandConfig, SspMediaDemandSlot, SspMediaDemandView } from "../../types";
 import { ActionButton, DataStateBlock, Field, Panel } from "../ui";
 import type { RowData } from "./shared";
-import { formatNumber, formatPercent } from "../../utils/format";
+import { formatAmount, formatNumber, formatPercent } from "../../utils/format";
+import {
+  DEMAND_METRIC_MODES,
+  buildDemandScopeGroups,
+  showDemandComplianceColumn,
+  type DemandMetricKey,
+  type DemandMetricMode,
+} from "./sspMediaDemandRules";
 
 type SspMediaDemandWorkspaceProps = {
   rows: RowData[];
@@ -16,7 +23,6 @@ type SspMediaDemandWorkspaceProps = {
   onSaveSlots: (slots: SspMediaDemandSlot[]) => Promise<boolean>;
 };
 
-type DemandMetricKey = "request" | "impression" | "fr" | "complianceRate";
 type LocalSlot = SspMediaDemandSlot & { draftKey: string };
 type MediaDemandColumn = {
   key: string;
@@ -34,6 +40,7 @@ const MEDIA_DEMAND_COLUMN_WIDTH_MAX = 360;
 const MEDIA_DEMAND_REQUEST_WIDTH = 96;
 const MEDIA_DEMAND_IMPRESSION_WIDTH = 96;
 const MEDIA_DEMAND_FR_WIDTH = 74;
+const MEDIA_DEMAND_PERFORMANCE_WIDTH = 82;
 const MEDIA_DEMAND_COMPLIANCE_WIDTH = 92;
 const MEDIA_DEMAND_COLUMN_WIDTH_STORAGE_KEY = "mdrep:ssp-media-demand-colwidths";
 const MEDIA_DEMAND_SHOW_TARGET_STORAGE_KEY = "mdrep:ssp-media-demand-show-target";
@@ -44,30 +51,14 @@ const MEDIA_DEMAND_FIXED_COLUMNS: FixedColumnSpec[] = [
 ];
 
 const CATEGORY_FALLBACK = ["蓋板", "置底", "置底展開", "文中300x250", "文中320x480"];
-const DEMAND_SCOPE_GROUPS: Array<{
-  scope: "all" | "07-22";
-  label: string;
-  metrics: Array<{ key: Exclude<DemandMetricKey, "complianceRate">; label: string; formatter: (value: number) => string }>;
-}> = [
-  {
-    scope: "all",
-    label: "全時段",
-    metrics: [
-      { key: "request", label: "請求", formatter: formatNumber },
-      { key: "impression", label: "曝光", formatter: formatNumber },
-      { key: "fr", label: "FR", formatter: formatPercent },
-    ],
-  },
-  {
-    scope: "07-22",
-    label: "0700-2200",
-    metrics: [
-      { key: "request", label: "請求", formatter: formatNumber },
-      { key: "impression", label: "曝光", formatter: formatNumber },
-      { key: "fr", label: "FR", formatter: formatPercent },
-    ],
-  },
-];
+const DEMAND_METRIC_FORMATTERS: Record<Exclude<DemandMetricKey, "complianceRate">, (value: number) => string> = {
+  request: formatNumber,
+  impression: formatNumber,
+  fr: formatPercent,
+  cpc: formatAmount,
+  ecpm: formatAmount,
+  ctr: formatPercent,
+};
 const DEMAND_COMPLIANCE_COLUMN = {
   key: "complianceRate" as const,
   label: "合格請求%",
@@ -80,6 +71,9 @@ function metricColumnWidth(metricKey: Exclude<DemandMetricKey, "complianceRate">
   }
   if (metricKey === "impression") {
     return MEDIA_DEMAND_IMPRESSION_WIDTH;
+  }
+  if (metricKey === "ctr" || metricKey === "ecpm" || metricKey === "cpc") {
+    return MEDIA_DEMAND_PERFORMANCE_WIDTH;
   }
   return MEDIA_DEMAND_REQUEST_WIDTH;
 }
@@ -201,6 +195,7 @@ export function SspMediaDemandWorkspace({
   const [draftSlots, setDraftSlots] = useState<LocalSlot[]>(() => toLocalSlots(config?.slots || []));
   const [onlyUnmet, setOnlyUnmet] = useState<boolean>(false);
   const [scopeMode, setScopeMode] = useState<"all" | "07-22">("all");
+  const [metricMode, setMetricMode] = useState<DemandMetricMode>("traffic");
   const [showMediaTarget, setShowMediaTarget] = useState<boolean>(() => {
     if (typeof window === "undefined") {
       return false;
@@ -357,45 +352,61 @@ export function SspMediaDemandWorkspace({
     [showMediaTarget],
   );
   const activeDemandScope = useMemo(
-    () => DEMAND_SCOPE_GROUPS.find((group) => group.scope === scopeMode) || DEMAND_SCOPE_GROUPS[0],
-    [scopeMode],
+    () => buildDemandScopeGroups(scopeMode, metricMode)[0],
+    [metricMode, scopeMode],
   );
   const visibleDemandScopes = useMemo(
-    () => (scopeMode === "all" ? DEMAND_SCOPE_GROUPS : [activeDemandScope]),
-    [activeDemandScope, scopeMode],
+    () => buildDemandScopeGroups(scopeMode, metricMode).map((group) => ({
+      ...group,
+      metrics: group.metrics.map((metric) => ({
+        ...metric,
+        formatter: DEMAND_METRIC_FORMATTERS[metric.key],
+      })),
+    })),
+    [metricMode, scopeMode],
   );
   const visibleDemandMetricCount = useMemo(
     () => visibleDemandScopes.reduce((total, group) => total + group.metrics.length, 0),
     [visibleDemandScopes],
   );
+  const showComplianceColumn = useMemo(
+    () => showDemandComplianceColumn(metricMode),
+    [metricMode],
+  );
   const tableLeafColumns = useMemo<MediaDemandColumn[]>(() => {
     const dateKeys = viewData?.date_keys || [];
     return [
       ...visibleFixedColumns,
-      ...dateKeys.flatMap((dateKey) => [
-        ...visibleDemandScopes.flatMap((group) => group.metrics.map((metric) => ({
+      ...dateKeys.flatMap((dateKey) => {
+        const metricColumns = visibleDemandScopes.flatMap((group) => group.metrics.map((metric) => ({
           key: `${dateKey}:${group.scope}:${metric.key}`,
           label: metric.label,
           width: metricColumnWidth(metric.key),
-        }))),
-        {
-          key: `${dateKey}:complianceRate`,
-          label: DEMAND_COMPLIANCE_COLUMN.label,
-          width: MEDIA_DEMAND_COMPLIANCE_WIDTH,
-        },
-      ]),
+        })));
+        if (!showComplianceColumn) {
+          return metricColumns;
+        }
+        return [
+          ...metricColumns,
+          {
+            key: `${dateKey}:complianceRate`,
+            label: DEMAND_COMPLIANCE_COLUMN.label,
+            width: MEDIA_DEMAND_COMPLIANCE_WIDTH,
+          },
+        ];
+      }),
     ];
-  }, [viewData?.date_keys, visibleDemandScopes, visibleFixedColumns]);
+  }, [showComplianceColumn, viewData?.date_keys, visibleDemandScopes, visibleFixedColumns]);
 
   const tableTotals = useMemo(() => {
     const dateKeys = viewData?.date_keys || [];
     const rowsForTotal = viewData?.rows || [];
-    const totalsByDate: Record<string, Record<"all" | "07-22", { request: number; impression: number; complianceRate: number; fr: number; ctr: number; ecpm: number }>> = {};
+    const totalsByDate: Record<string, Record<"all" | "07-22", { request: number; impression: number; complianceRate: number; fr: number; clicks: number; revenue: number; ctr: number; ecpm: number; cpc: number }>> = {};
     let mediaTargetTotal = 0;
     for (const dateKey of dateKeys) {
       totalsByDate[dateKey] = {
-        all: { request: 0, impression: 0, complianceRate: 0, fr: 0, ctr: 0, ecpm: 0 },
-        "07-22": { request: 0, impression: 0, complianceRate: 0, fr: 0, ctr: 0, ecpm: 0 },
+        all: { request: 0, impression: 0, complianceRate: 0, fr: 0, clicks: 0, revenue: 0, ctr: 0, ecpm: 0, cpc: 0 },
+        "07-22": { request: 0, impression: 0, complianceRate: 0, fr: 0, clicks: 0, revenue: 0, ctr: 0, ecpm: 0, cpc: 0 },
       };
     }
     for (const row of rowsForTotal) {
@@ -409,8 +420,8 @@ export function SspMediaDemandWorkspace({
           const metrics = row.metrics_by_date?.[dateKey]?.[scope] || {};
           bucket[scope].request += safeNumber(metrics.request);
           bucket[scope].impression += safeNumber(metrics.impression);
-          bucket[scope].ctr += safeNumber(metrics.ctr);
-          bucket[scope].ecpm += safeNumber(metrics.ecpm);
+          bucket[scope].clicks += safeNumber(metrics.clicks);
+          bucket[scope].revenue += safeNumber(metrics.revenue);
         }
       }
     }
@@ -422,6 +433,9 @@ export function SspMediaDemandWorkspace({
       for (const scope of ["all", "07-22"] as const) {
         const item = bucket[scope];
         item.fr = item.request > 0 ? (item.impression / item.request) * 100 : 0;
+        item.ctr = item.impression > 0 ? (item.clicks / item.impression) * 100 : 0;
+        item.ecpm = item.impression > 0 ? (item.revenue / item.impression) * 1000 : 0;
+        item.cpc = item.clicks > 0 ? item.revenue / item.clicks : 0;
         item.complianceRate = mediaTargetTotal > 0 ? (item.request / mediaTargetTotal) * 100 : 0;
       }
     }
@@ -532,6 +546,19 @@ export function SspMediaDemandWorkspace({
                     onClick={() => setScopeMode("07-22")}
                     testId="ssp-media-scope-07-22"
                   />
+                </div>
+              </Field>
+              <Field label="表格欄位">
+                <div className="btn-row" data-testid="ssp-media-metric-mode">
+                  {DEMAND_METRIC_MODES.map((mode) => (
+                    <ActionButton
+                      key={mode.key}
+                      label={mode.label}
+                      variant={metricMode === mode.key ? "primary" : "ghost"}
+                      onClick={() => setMetricMode(mode.key)}
+                      testId={`ssp-media-metric-${mode.key}`}
+                    />
+                  ))}
                 </div>
               </Field>
               <Field label="合格率閥值(%)">
@@ -692,7 +719,7 @@ export function SspMediaDemandWorkspace({
                       </th>
                     ))}
                     {(viewData?.date_keys || []).map((dateKey) => (
-                      <th key={`${dateKey}-date`} colSpan={visibleDemandMetricCount + 1}>{dateKey}</th>
+                      <th key={`${dateKey}-date`} colSpan={visibleDemandMetricCount + (showComplianceColumn ? 1 : 0)}>{dateKey}</th>
                     ))}
                   </tr>
                   <tr>
@@ -700,7 +727,7 @@ export function SspMediaDemandWorkspace({
                       ...visibleDemandScopes.map((group) => (
                         <th key={`${dateKey}-${group.scope}`} colSpan={group.metrics.length}>{group.label}</th>
                       )),
-                      <th key={`${dateKey}-qualified`} rowSpan={2}>{DEMAND_COMPLIANCE_COLUMN.label}</th>,
+                      ...(showComplianceColumn ? [<th key={`${dateKey}-qualified`} rowSpan={2}>{DEMAND_COMPLIANCE_COLUMN.label}</th>] : []),
                     ]))}
                   </tr>
                   <tr>
@@ -741,7 +768,7 @@ export function SspMediaDemandWorkspace({
                             </td>
                           );
                         })),
-                        (() => {
+                        ...(showComplianceColumn ? [(() => {
                           const value = row.metrics_by_date[dateKey]?.[activeDemandScope.scope]?.[DEMAND_COMPLIANCE_COLUMN.key] || 0;
                           const isRed = value > 0 && value < threshold;
                           return (
@@ -749,13 +776,13 @@ export function SspMediaDemandWorkspace({
                               {DEMAND_COMPLIANCE_COLUMN.formatter(value)}
                             </td>
                           );
-                        })(),
+                        })()] : []),
                       ]))}
                     </tr>
                   ))}
                   {((viewData?.rows || []).length === 0) ? (
                     <tr>
-                      <td colSpan={visibleFixedColumns.length + ((viewData?.date_keys || []).length * (visibleDemandMetricCount + 1))}>目前條件下沒有可顯示的版位。</td>
+                      <td colSpan={visibleFixedColumns.length + ((viewData?.date_keys || []).length * (visibleDemandMetricCount + (showComplianceColumn ? 1 : 0)))}>目前條件下沒有可顯示的版位。</td>
                     </tr>
                   ) : null}
                 </tbody>
@@ -773,9 +800,9 @@ export function SspMediaDemandWorkspace({
                           </td>
                         );
                       })),
-                      <td key={`total-${dateKey}-complianceRate`}>
+                      ...(showComplianceColumn ? [<td key={`total-${dateKey}-complianceRate`}>
                         {DEMAND_COMPLIANCE_COLUMN.formatter(tableTotals.totalsByDate[dateKey]?.[activeDemandScope.scope]?.complianceRate || 0)}
-                      </td>,
+                      </td>] : []),
                     ]))}
                   </tr>
                 </tfoot>
