@@ -372,7 +372,7 @@ export function useRuntimeStore() {
           main_tab: state.route.mainTab,
           sub_tab: state.route.subTab,
         }, {
-          row_limit: state.rowLimit,
+          row_limit: state.route.subTab === "rawdata" ? state.rowLimit : undefined,
         }),
       ]);
       dispatch({ type: "set_status", payload: statusPayload });
@@ -404,7 +404,7 @@ export function useRuntimeStore() {
         main_tab: state.route.mainTab,
         sub_tab: state.route.subTab,
       }, {
-        row_limit: state.rowLimit,
+        row_limit: state.route.subTab === "rawdata" ? state.rowLimit : undefined,
       });
       dispatch({ type: "set_frame", payload });
     } finally {
@@ -493,7 +493,7 @@ export function useRuntimeStore() {
               main_tab: effectiveMainTab,
               sub_tab: effectiveSubTab,
             }, {
-              row_limit: state.rowLimit,
+              row_limit: effectiveSubTab === "rawdata" ? state.rowLimit : undefined,
             }),
           ]);
           dispatch({ type: "set_status", payload: statusPayload });

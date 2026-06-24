@@ -630,7 +630,11 @@ export function persistState(state: PersistedState): void {
   params.set(QUERY_KEYS.periodWeekStart, state.period.weekStart);
   params.set(QUERY_KEYS.periodWeekEnd, state.period.weekEnd);
   params.set(QUERY_KEYS.rowFilter, state.rowFilter);
-  params.set(QUERY_KEYS.rowLimit, String(state.rowLimit));
+  if (state.route.subTab === "rawdata") {
+    params.set(QUERY_KEYS.rowLimit, String(state.rowLimit));
+  } else {
+    params.delete(QUERY_KEYS.rowLimit);
+  }
   const query = params.toString();
   const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}`;
   window.history.replaceState(null, "", nextUrl);

@@ -94,6 +94,7 @@ CREATE TABLE IF NOT EXISTS ssp_raw (
   updated_at TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_ssp_raw_row ON ssp_raw(row_order);
+CREATE INDEX IF NOT EXISTS idx_ssp_raw_date ON ssp_raw(date);
 """
 
 SSP_MEDIA_SLOT_TABLE_SQL = """
@@ -2543,8 +2544,43 @@ class SQLiteRepository:
         cur = conn.execute(
             "SELECT row_order, " + ", ".join(SSP_RAW_COLUMNS) + ", updated_at FROM ssp_raw ORDER BY row_order ASC"
         )
+        return self._hydrate_ssp_raw_rows(cur.fetchall())
+
+    def read_ssp_raw_rows_for_period_in_tx(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        start_day: str,
+        end_day: str,
+    ) -> list[dict]:
+        self._ensure_ssp_raw_table(conn)
+        start = str(start_day or "").strip()
+        end = str(end_day or "").strip()
+        if not start or not end:
+            return self.read_ssp_raw_rows_in_tx(conn)
+        cur = conn.execute(
+            "SELECT row_order, " + ", ".join(SSP_RAW_COLUMNS) + ", updated_at "
+            "FROM ssp_raw WHERE date BETWEEN ? AND ? ORDER BY row_order ASC",
+            (start, end),
+        )
+        return self._hydrate_ssp_raw_rows(cur.fetchall())
+
+    def read_latest_ssp_raw_day_rows_in_tx(self, conn: sqlite3.Connection) -> list[dict]:
+        self._ensure_ssp_raw_table(conn)
+        latest = conn.execute("SELECT MAX(date) FROM ssp_raw WHERE date != ''").fetchone()
+        latest_day = str((latest or [""])[0] or "")
+        if not latest_day:
+            return []
+        cur = conn.execute(
+            "SELECT row_order, " + ", ".join(SSP_RAW_COLUMNS) + ", updated_at "
+            "FROM ssp_raw WHERE date = ? ORDER BY row_order ASC",
+            (latest_day,),
+        )
+        return self._hydrate_ssp_raw_rows(cur.fetchall())
+
+    def _hydrate_ssp_raw_rows(self, raw_rows: list[tuple]) -> list[dict]:
         rows: list[dict] = []
-        for raw in cur.fetchall():
+        for raw in raw_rows:
             row: dict[str, object] = {"row_order": int(raw[0])}
             for idx, col in enumerate(SSP_RAW_COLUMNS, start=1):
                 row[col] = raw[idx]

@@ -654,6 +654,7 @@ def collect_workflow_frame(
             monthly_p4_test_db_path=ctx.monthly_p4_test_db_path,
         )
         repo = service.repo
+        ssp_rows_period_scoped = False
         if ctx.workflow == "ssp":
             if main_tab == "ssp_ad_group":
                 rows = []
@@ -662,12 +663,49 @@ def collect_workflow_frame(
                 summary["field_names"] = []
                 summary["manual_fields"] = []
             else:
-                snapshot = service.resolve_ssp_effective_snapshot()
-                rows = list(snapshot["rows"])
-                columns = list(snapshot["columns"])
-                summary["source_table"] = str(snapshot["source"])
-                summary["field_names"] = list(snapshot["field_names"])
-                summary["manual_fields"] = list(snapshot["manual_fields"])
+                if main_tab == "ssp_anomaly":
+                    field_names = list(repo.workflow_columns("ssp"))
+                    with repo.connect() as conn:
+                        rows = repo.read_ssp_raw_rows_for_period_in_tx(
+                            conn,
+                            start_day=period_week_start or "",
+                            end_day=period_week_end or "",
+                        )
+                        if not rows and period_week_start and period_week_end:
+                            rows = repo.read_latest_ssp_raw_day_rows_in_tx(conn)
+                            fallback_day = _row_day_text(rows[0]) if rows else ""
+                            if fallback_day:
+                                summary["period_fallback"] = {
+                                    "workflow": "ssp",
+                                    "reason": "selected_period_has_no_rows",
+                                    "requested_start": period_week_start,
+                                    "requested_end": period_week_end,
+                                    "fallback_start": fallback_day,
+                                    "fallback_end": fallback_day,
+                                    "row_count": len(rows),
+                                }
+                                period_week_start = fallback_day
+                                period_week_end = fallback_day
+                    if rows:
+                        columns = ["row_order", *field_names, "updated_at"]
+                        summary["source_table"] = "ssp_raw"
+                        summary["field_names"] = field_names
+                        summary["manual_fields"] = []
+                        ssp_rows_period_scoped = True
+                    else:
+                        snapshot = service.resolve_ssp_effective_snapshot()
+                        rows = list(snapshot["rows"])
+                        columns = list(snapshot["columns"])
+                        summary["source_table"] = str(snapshot["source"])
+                        summary["field_names"] = list(snapshot["field_names"])
+                        summary["manual_fields"] = list(snapshot["manual_fields"])
+                else:
+                    snapshot = service.resolve_ssp_effective_snapshot()
+                    rows = list(snapshot["rows"])
+                    columns = list(snapshot["columns"])
+                    summary["source_table"] = str(snapshot["source"])
+                    summary["field_names"] = list(snapshot["field_names"])
+                    summary["manual_fields"] = list(snapshot["manual_fields"])
                 summary["ssp_media_demand"] = repo.resolve_ssp_media_demand_config(
                     ctx.runtime_env,
                     cfg.data_seed_root,
@@ -702,7 +740,7 @@ def collect_workflow_frame(
                 start_day=period_week_start,
                 end_day=period_week_end,
             )
-        if ctx.workflow == "ssp":
+        if ctx.workflow == "ssp" and not ssp_rows_period_scoped:
             original_rows = rows
             rows = _filter_rows_by_date_range(
                 rows,
