@@ -2565,10 +2565,215 @@ class SQLiteRepository:
         )
         return self._hydrate_ssp_raw_rows(cur.fetchall())
 
-    def read_latest_ssp_raw_day_rows_in_tx(self, conn: sqlite3.Connection) -> list[dict]:
+    def count_ssp_raw_rows_for_period_in_tx(self, conn: sqlite3.Connection, *, start_day: str, end_day: str) -> int:
+        self._ensure_ssp_raw_table(conn)
+        start = str(start_day or "").strip()
+        end = str(end_day or "").strip()
+        if not start or not end:
+            row = conn.execute("SELECT COUNT(1) FROM ssp_raw").fetchone()
+        else:
+            row = conn.execute("SELECT COUNT(1) FROM ssp_raw WHERE date BETWEEN ? AND ?", (start, end)).fetchone()
+        return int((row or [0])[0] or 0)
+
+    def count_ssp_performance_facts_for_period_in_tx(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        dataset: str,
+        padding_scope: str,
+        start_day: str,
+        end_day: str,
+    ) -> int:
+        self._ensure_ssp_performance_tables(conn)
+        row = conn.execute(
+            """
+            SELECT COUNT(1)
+            FROM ssp_performance_facts
+            WHERE dataset = ? AND padding_scope = ? AND date BETWEEN ? AND ?
+            """,
+            (str(dataset or ""), str(padding_scope or ""), str(start_day or ""), str(end_day or "")),
+        ).fetchone()
+        return int((row or [0])[0] or 0)
+
+    def resolve_latest_ssp_raw_day_in_tx(self, conn: sqlite3.Connection) -> str:
         self._ensure_ssp_raw_table(conn)
         latest = conn.execute("SELECT MAX(date) FROM ssp_raw WHERE date != ''").fetchone()
-        latest_day = str((latest or [""])[0] or "")
+        return str((latest or [""])[0] or "")
+
+    def read_compact_ssp_anomaly_rows_for_period_in_tx(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        start_day: str,
+        end_day: str,
+    ) -> list[dict]:
+        self._ensure_ssp_raw_table(conn)
+        rows = conn.execute(
+            """
+            WITH normalized AS (
+              SELECT
+                date,
+                COALESCE(NULLIF(TRIM(supplier_name), ''), '未分類供應商') AS supplier_key,
+                COALESCE(NULLIF(TRIM(site_name), ''), NULLIF(TRIM(placement_name), ''), '未命名網站') AS site_key,
+                MIN(source) AS source,
+                MIN(placement_id) AS placement_id,
+                MIN(order_id) AS order_id,
+                MIN(order_name) AS order_name,
+                MIN(supplier_id) AS supplier_id,
+                MIN(site_id) AS site_id,
+                MAX(updated_at) AS updated_at,
+                SUM(request) AS request,
+                SUM(impression) AS impression,
+                SUM(clicks) AS clicks,
+                SUM(revenue) AS revenue,
+                SUM(dsp_amount) AS dsp_amount
+              FROM ssp_raw
+              WHERE date BETWEEN ? AND ?
+              GROUP BY date, supplier_key, site_key
+            )
+            SELECT
+              source, date, supplier_key, site_key, placement_id, order_id, order_name,
+              supplier_id, site_id, updated_at, request, impression, clicks, revenue, dsp_amount
+            FROM normalized
+            ORDER BY date ASC, supplier_key ASC, site_key ASC
+            """,
+            (str(start_day or ""), str(end_day or "")),
+        ).fetchall()
+        return self._hydrate_compact_ssp_anomaly_rows(rows)
+
+    def read_compact_ssp_anomaly_excluding_rows_for_period_in_tx(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        start_day: str,
+        end_day: str,
+    ) -> list[dict]:
+        self._ensure_ssp_raw_table(conn)
+        self._ensure_ssp_performance_tables(conn)
+        rows = conn.execute(
+            """
+            WITH raw_group AS (
+              SELECT
+                date,
+                COALESCE(NULLIF(TRIM(supplier_name), ''), '未分類供應商') AS supplier_key,
+                COALESCE(NULLIF(TRIM(site_name), ''), NULLIF(TRIM(placement_name), ''), '未命名網站') AS site_key,
+                MIN(source) AS source,
+                MIN(placement_id) AS placement_id,
+                MIN(order_id) AS order_id,
+                MIN(order_name) AS order_name,
+                MIN(supplier_id) AS supplier_id,
+                MIN(site_id) AS site_id,
+                MAX(updated_at) AS updated_at,
+                SUM(request) AS request
+              FROM ssp_raw
+              WHERE date BETWEEN ? AND ?
+              GROUP BY date, supplier_key, site_key
+            ),
+            fact_group AS (
+              SELECT
+                date,
+                COALESCE(NULLIF(TRIM(supplier_name), ''), '未分類供應商') AS supplier_key,
+                COALESCE(NULLIF(TRIM(site_name), ''), NULLIF(TRIM(placement_name), ''), '未命名網站') AS site_key,
+                SUM(impression) AS impression,
+                SUM(clicks) AS clicks,
+                SUM(revenue) AS revenue,
+                SUM(dsp_amount) AS dsp_amount,
+                SUM(active_view) AS active_view,
+                SUM(invalid_click) AS invalid_click,
+                SUM(invalid_impress) AS invalid_impress,
+                SUM(profit) AS profit,
+                SUM(site_mu) AS site_mu,
+                SUM(advertiser_mu) AS advertiser_mu
+              FROM ssp_performance_facts
+              WHERE dataset = 'placement_hourly'
+                AND padding_scope = 'excluding_padding'
+                AND date BETWEEN ? AND ?
+              GROUP BY date, supplier_key, site_key
+            )
+            SELECT
+              raw_group.source, raw_group.date, raw_group.supplier_key, raw_group.site_key,
+              raw_group.placement_id, raw_group.order_id, raw_group.order_name,
+              raw_group.supplier_id, raw_group.site_id, raw_group.updated_at,
+              raw_group.request,
+              COALESCE(fact_group.impression, 0.0) AS impression,
+              COALESCE(fact_group.clicks, 0.0) AS clicks,
+              COALESCE(fact_group.revenue, 0.0) AS revenue,
+              COALESCE(fact_group.dsp_amount, 0.0) AS dsp_amount,
+              COALESCE(fact_group.active_view, 0.0) AS active_view,
+              COALESCE(fact_group.invalid_click, 0.0) AS invalid_click,
+              COALESCE(fact_group.invalid_impress, 0.0) AS invalid_impress,
+              COALESCE(fact_group.profit, 0.0) AS profit,
+              COALESCE(fact_group.site_mu, 0.0) AS site_mu,
+              COALESCE(fact_group.advertiser_mu, 0.0) AS advertiser_mu
+            FROM raw_group
+            LEFT JOIN fact_group
+              ON fact_group.date = raw_group.date
+             AND fact_group.supplier_key = raw_group.supplier_key
+             AND fact_group.site_key = raw_group.site_key
+            ORDER BY raw_group.date ASC, raw_group.supplier_key ASC, raw_group.site_key ASC
+            """,
+            (str(start_day or ""), str(end_day or ""), str(start_day or ""), str(end_day or "")),
+        ).fetchall()
+        return self._hydrate_compact_ssp_anomaly_rows(
+            rows,
+            padding_scope="mixed_request_including_metrics_excluding",
+            pb=1,
+            request_padding_scope="including_padding",
+            metric_padding_scope="excluding_padding",
+        )
+
+    def _hydrate_compact_ssp_anomaly_rows(
+        self,
+        raw_rows: list[tuple],
+        *,
+        padding_scope: str = "",
+        pb: int | None = None,
+        request_padding_scope: str = "",
+        metric_padding_scope: str = "",
+    ) -> list[dict]:
+        out: list[dict] = []
+        for idx, raw in enumerate(raw_rows):
+            item = {
+                "row_order": idx,
+                "source": raw[0],
+                "ts": f"{raw[1]} 00:00:00" if raw[1] else "",
+                "date": raw[1],
+                "hour": 0,
+                "supplier_name": raw[2],
+                "site_name": raw[3],
+                "placement_name": raw[3],
+                "placement_id": int(raw[4] or 0),
+                "order_id": raw[5],
+                "order_name": raw[6],
+                "supplier_id": int(raw[7] or 0),
+                "site_id": int(raw[8] or 0),
+                "updated_at": raw[9],
+                "request": float(raw[10] or 0.0),
+                "impression": float(raw[11] or 0.0),
+                "clicks": float(raw[12] or 0.0),
+                "revenue": float(raw[13] or 0.0),
+                "dsp_amount": float(raw[14] or 0.0),
+                "active_view": float(raw[15] or 0.0) if len(raw) > 15 else 0.0,
+                "invalid_click": float(raw[16] or 0.0) if len(raw) > 16 else 0.0,
+                "invalid_impress": float(raw[17] or 0.0) if len(raw) > 17 else 0.0,
+                "profit": float(raw[18] or 0.0) if len(raw) > 18 else 0.0,
+                "site_mu": float(raw[19] or 0.0) if len(raw) > 19 else 0.0,
+                "advertiser_mu": float(raw[20] or 0.0) if len(raw) > 20 else 0.0,
+            }
+            if padding_scope:
+                item["padding_scope"] = padding_scope
+            if pb is not None:
+                item["pb"] = pb
+            if request_padding_scope:
+                item["request_padding_scope"] = request_padding_scope
+            if metric_padding_scope:
+                item["metric_padding_scope"] = metric_padding_scope
+            out.append(item)
+        return out
+
+    def read_latest_ssp_raw_day_rows_in_tx(self, conn: sqlite3.Connection) -> list[dict]:
+        self._ensure_ssp_raw_table(conn)
+        latest_day = self.resolve_latest_ssp_raw_day_in_tx(conn)
         if not latest_day:
             return []
         cur = conn.execute(

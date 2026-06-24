@@ -655,6 +655,7 @@ def collect_workflow_frame(
         )
         repo = service.repo
         ssp_rows_period_scoped = False
+        ssp_anomaly_rows_compacted = False
         if ctx.workflow == "ssp":
             if main_tab == "ssp_ad_group":
                 rows = []
@@ -666,15 +667,19 @@ def collect_workflow_frame(
                 if main_tab == "ssp_anomaly":
                     field_names = list(repo.workflow_columns("ssp"))
                     with repo.connect() as conn:
-                        rows = repo.read_ssp_raw_rows_for_period_in_tx(
+                        rows = repo.read_compact_ssp_anomaly_rows_for_period_in_tx(
                             conn,
                             start_day=period_week_start or "",
                             end_day=period_week_end or "",
                         )
                         if not rows and period_week_start and period_week_end:
-                            rows = repo.read_latest_ssp_raw_day_rows_in_tx(conn)
-                            fallback_day = _row_day_text(rows[0]) if rows else ""
+                            fallback_day = repo.resolve_latest_ssp_raw_day_in_tx(conn)
                             if fallback_day:
+                                rows = repo.read_compact_ssp_anomaly_rows_for_period_in_tx(
+                                    conn,
+                                    start_day=fallback_day,
+                                    end_day=fallback_day,
+                                )
                                 summary["period_fallback"] = {
                                     "workflow": "ssp",
                                     "reason": "selected_period_has_no_rows",
@@ -686,12 +691,33 @@ def collect_workflow_frame(
                                 }
                                 period_week_start = fallback_day
                                 period_week_end = fallback_day
+                        raw_including_row_count = repo.count_ssp_raw_rows_for_period_in_tx(
+                            conn,
+                            start_day=period_week_start or "",
+                            end_day=period_week_end or "",
+                        )
+                        ssp_excluding_fact_rows = repo.read_compact_ssp_anomaly_excluding_rows_for_period_in_tx(
+                            conn,
+                            start_day=period_week_start or "",
+                            end_day=period_week_end or "",
+                        )
                     if rows:
                         columns = ["row_order", *field_names, "updated_at"]
                         summary["source_table"] = "ssp_raw"
                         summary["field_names"] = field_names
                         summary["manual_fields"] = []
+                        summary["ssp_excluding_padding_rows"] = ssp_excluding_fact_rows
+                        summary["ssp_padding_scope"] = {
+                            "default": "including_padding",
+                            "including_row_count": raw_including_row_count,
+                            "excluding_row_count": raw_including_row_count,
+                            "request_source": "including_padding",
+                            "metric_source": "excluding_padding",
+                            "including_compact_row_count": len(rows),
+                            "excluding_compact_row_count": len(ssp_excluding_fact_rows),
+                        }
                         ssp_rows_period_scoped = True
+                        ssp_anomaly_rows_compacted = True
                     else:
                         snapshot = service.resolve_ssp_effective_snapshot()
                         rows = list(snapshot["rows"])
@@ -710,7 +736,7 @@ def collect_workflow_frame(
                     ctx.runtime_env,
                     cfg.data_seed_root,
                 )
-                if main_tab == "ssp_anomaly":
+                if main_tab == "ssp_anomaly" and not ssp_anomaly_rows_compacted:
                     ssp_excluding_fact_rows = repo.read_ssp_performance_facts(
                         dataset="placement_hourly",
                         padding_scope="excluding_padding",
@@ -760,7 +786,12 @@ def collect_workflow_frame(
                     "row_count": len(rows),
                 }
         row_count = len(rows)
-        if ctx.workflow == "ssp" and main_tab == "ssp_anomaly" and isinstance(summary.get("ssp_padding_scope"), dict):
+        if (
+            ctx.workflow == "ssp"
+            and main_tab == "ssp_anomaly"
+            and not ssp_anomaly_rows_compacted
+            and isinstance(summary.get("ssp_padding_scope"), dict)
+        ):
             raw_including_row_count = row_count
             merged_excluding_rows = _merge_ssp_excluding_padding_rows(
                 including_rows=rows,
