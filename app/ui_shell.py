@@ -601,6 +601,7 @@ def collect_workflow_frame(
     main_tab: str = "",
     period_week_start: str | None = None,
     period_week_end: str | None = None,
+    row_limit: int | None = None,
 ) -> dict[str, Any]:
     health = _sandbox_health(ctx) if ctx.sandbox_id else bootstrap_health(ctx.root, ctx.manifest_rel, ctx.runtime_env)
     cfg = build_config(ctx.root, ctx.manifest_rel, ctx.runtime_env)
@@ -695,6 +696,12 @@ def collect_workflow_frame(
             columns = ["row_order", *repo.canonical_columns, "updated_at"]
             summary["field_names"] = list(repo.canonical_columns)
             summary["manual_fields"] = list(repo.modify_allowed_columns)
+        if ctx.workflow == "dsp":
+            rows = _filter_rows_by_date_range(
+                rows,
+                start_day=period_week_start,
+                end_day=period_week_end,
+            )
         if ctx.workflow == "ssp":
             original_rows = rows
             rows = _filter_rows_by_date_range(
@@ -730,11 +737,16 @@ def collect_workflow_frame(
             padding_meta["including_compact_row_count"] = row_count
             padding_meta["excluding_compact_row_count"] = len(summary.get("ssp_excluding_padding_rows") or [])
             summary["ssp_padding_scope"] = padding_meta
+        returned_row_count = len(rows)
+        if ctx.workflow == "dsp" and row_limit is not None and row_limit > 0:
+            rows = rows[:row_limit]
+            returned_row_count = len(rows)
         summary["columns"] = columns
         summary["rows"] = rows
         summary["row_count"] = row_count
+        summary["returned_row_count"] = returned_row_count
         summary["pivot_preview"] = [
-            {"label": "row_count", "value": len(rows)},
+            {"label": "row_count", "value": row_count},
             {"label": "workflow", "value": ctx.workflow},
             {"label": "template_version", "value": ctx.template_version},
             {"label": "rule_version", "value": ctx.rule_version},
@@ -1342,6 +1354,7 @@ class UiRequestHandler(BaseHTTPRequestHandler):
                     main_tab=str(params.get("main_tab", [""])[0]).strip(),
                     period_week_start=str(params.get("period_week_start", [""])[0]).strip() or None,
                     period_week_end=str(params.get("period_week_end", [""])[0]).strip() or None,
+                    row_limit=int(str(params.get("row_limit", ["0"])[0]) or "0"),
                 )
                 self._json(HTTPStatus.OK, {"status": "ok", "result": payload})
             except Exception as exc:

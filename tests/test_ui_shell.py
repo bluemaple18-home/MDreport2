@@ -2252,6 +2252,40 @@ class UiShellTests(unittest.TestCase):
             self.assertEqual((frame.get("rows") or [{}])[0].get("經銷商"), "SSP_FRAME")
             self.assertEqual((frame.get("rows") or [{}])[0].get("最終經銷商"), "SSP_FRAME_CANONICAL")
 
+    def test_dsp_frame_filters_period_and_limits_returned_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._make_project(root)
+            ctx = self._ctx(root, workflow="dsp")
+            dispatch_action(ctx, {"action": "bootstrap"})
+            dispatch_action(
+                ctx,
+                {
+                    "action": "save",
+                    "workflow": "dsp",
+                    "rows": [
+                        self._full_row(日期時間="2026-06-15 00:00:00", 經銷商="IN_PERIOD_A"),
+                        self._full_row(日期時間="2026-06-16 00:00:00", 經銷商="IN_PERIOD_B"),
+                        self._full_row(日期時間="2026-06-22 00:00:00", 經銷商="OUT_PERIOD"),
+                    ],
+                },
+            )
+
+            frame = collect_workflow_frame(
+                ctx,
+                main_tab="dsp_tab3",
+                period_week_start="2026-06-15",
+                period_week_end="2026-06-21",
+                row_limit=1,
+            )
+
+            self.assertEqual(frame.get("row_count"), 2)
+            self.assertEqual(frame.get("returned_row_count"), 1)
+            rows = frame.get("rows") or []
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0].get("經銷商"), "IN_PERIOD_A")
+            self.assertEqual((frame.get("pivot_preview") or [{}])[0].get("value"), 2)
+
     def test_ssp_frame_empty_selected_period_falls_back_to_latest_day(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

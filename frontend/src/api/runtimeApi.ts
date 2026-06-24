@@ -92,6 +92,7 @@ export async function fetchFrame(
   ctx: RuntimeContext,
   period?: { period_week_start: string; period_week_end: string },
   route?: { main_tab?: MainTab; sub_tab?: SubTab },
+  options?: { row_limit?: number },
 ): Promise<RuntimeEnvelope<RuntimeFrameResult>> {
   const query = new URLSearchParams(withQuery(ctx));
   if (period?.period_week_start) {
@@ -105,6 +106,9 @@ export async function fetchFrame(
   }
   if (route?.sub_tab) {
     query.set("sub_tab", route.sub_tab);
+  }
+  if (options?.row_limit && options.row_limit > 0) {
+    query.set("row_limit", String(options.row_limit));
   }
   const url = `${buildApiUrl("/api/frame")}?${query.toString()}`;
   const existing = inFlightFrameRequests.get(url);

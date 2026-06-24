@@ -51,6 +51,7 @@ export function useAppShellController() {
     state.route.mainTab,
     state.period.weekStart,
     state.period.weekEnd,
+    state.rowLimit,
   ].join("\n");
 
   useEffect(() => {

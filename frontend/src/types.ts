@@ -122,6 +122,7 @@ export type RuntimeFrameResult = {
   columns: string[];
   rows: Array<Record<string, unknown>>;
   row_count: number;
+  returned_row_count?: number;
   sandbox?: {
     id: string;
     enabled: boolean;
